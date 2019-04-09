@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"lib/klog"
+	"github.com/kamasamikon/miego/klog"
 	"math/rand"
 	"net/http"
 	"runtime"

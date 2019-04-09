@@ -3,9 +3,9 @@ package msa
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/kamasamikon/miego/conf"
+	"github.com/kamasamikon/miego/klog"
 	"io/ioutil"
-	"lib/conf"
-	"lib/klog"
 	"net"
 	"net/http"
 	"os/exec"

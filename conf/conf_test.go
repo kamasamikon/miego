@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"lib/klog"
+	"github.com/kamasamikon/miego/klog"
 	"testing"
 	"time"
 )

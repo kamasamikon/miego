@@ -3,8 +3,8 @@ package conf
 import (
 	"bufio"
 	"fmt"
+	"github.com/kamasamikon/miego/klog"
 	"io"
-	"lib/klog"
 	"os"
 	"strconv"
 	"strings"
