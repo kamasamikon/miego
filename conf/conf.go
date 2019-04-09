@@ -3,11 +3,12 @@ package conf
 import (
 	"bufio"
 	"fmt"
-	"github.com/kamasamikon/miego/klog"
 	"io"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/kamasamikon/miego/klog"
 )
 
 // See confcenter
@@ -67,6 +68,7 @@ func entryAdd(line string) {
 		}
 	}
 
+	// Simply overwrite the old value.
 	mapPathEntry[path] = e
 }
 
