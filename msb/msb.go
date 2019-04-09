@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // KService : Micro service information loaded from configure file.
@@ -95,46 +97,42 @@ func timerRefresh() {
 /////////////////////////////////////////////////////////////////////////
 // Nginx
 
-func lbGen() string {
-	/*
-			servAddr == "msdemo.v2"
+func genLocationAndUpstream() (string, string) {
+	var serviceGroup = make(map[string][]*KService)
+	for _, v := range mapServices {
+		key := v.ServiceName + "/" + v.Version
 
-			location ~ ^/ms/msdemo/v2/(.+) {
-				proxy_pass http://msb/msdemo.v2/$1;
-			}
+		var group []*KService
+		group, ok := serviceGroup[key]
 
-		var lines strings.Builder
-
-		for _, v := range mapServices {
-			// location /ms/
-			servAddr := v.ipAddr
-			orgAddr := v.ipAddr.Replace(".", "/", 1)
-			lines.WriteString(fmt.Sprintf("\t\tlocation /ms/%s/ {", orgAddr))
-			lines.WriteString(fmt.Sprintf("\t\t\tproxy_pass http://%s/;", servAddr))
-			lines.WriteString(fmt.Sprintf("\t\t}"))
+		if ok {
+			group = append(group, v)
+		} else {
+			group = []*KService{v}
 		}
+		serviceGroup[key] = group
+	}
 
-		return lines.String()
-	*/
-	return ""
-}
+	var redir strings.Builder
+	for key, group := range serviceGroup {
+		s := group[0]
+		fmt.Fprintf(&redir, "location ~ ^/ms/%s/(.+) {\n", key)
+		fmt.Fprintf(&redir, "\tproxy_pass http://%s.%s/$1;\n", s.ServiceName, s.Version)
+		fmt.Fprintf(&redir, "}\n")
+	}
 
-func upstreamGen() string {
-	/*
-			server msdemo:7788
-
-			upstream msdemo {
-				1.1.1.1:7788
-				2.2.2.2:7788
-			}
-
-		var lines strings.Builder
-
-		for _, v := range mapServices {
+	var upstr strings.Builder
+	for _, group := range serviceGroup {
+		s := group[0]
+		fmt.Fprintf(&upstr, "upstream %s.%s {\n", s.ServiceName, s.Version)
+		for _, a := range group {
+			fmt.Fprintf(&upstr, "\tserver %s:%d;\n", a.IPAddr, a.Port)
 		}
+		fmt.Fprintf(&upstr, "}\n")
 
-	*/
-	return "TODO"
+	}
+
+	return redir.String(), upstr.String()
 }
 
 func templLoad() string {
@@ -148,8 +146,7 @@ func templLoad() string {
 func nginxConfWrite() error {
 	// re-generate nginx.conf file.
 
-	us := upstreamGen()
-	lb := lbGen()
+	us, lb := genLocationAndUpstream()
 
 	templ := templLoad()
 
@@ -169,4 +166,5 @@ func nginxReload() {
 }
 
 func init() {
+	spew.Config.Indent = "\t"
 }
