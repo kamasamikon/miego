@@ -39,33 +39,42 @@ func klog(color string, class string, formating string, args ...interface{}) {
 	fmt.Printf("%s|%s|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", color, class, nowQ, nowH, filename, funcname, line, reset, fmt.Sprintf(formating, args...))
 }
 
+// F :Fatal
 func F(formating string, args ...interface{}) {
 	klog(crF, "F", formating, args...)
 }
 
+// A :Alert
 func A(formating string, args ...interface{}) {
 	klog(crA, "A", formating, args...)
 }
 
+// C :Critical conditions
 func C(formating string, args ...interface{}) {
 	klog(crC, "C", formating, args...)
 }
 
+// E :Error
 func E(formating string, args ...interface{}) {
 	klog(crE, "E", formating, args...)
 }
 
+// W :Warning
 func W(formating string, args ...interface{}) {
 	klog(crW, "W", formating, args...)
 }
 
+// N :Notice
 func N(formating string, args ...interface{}) {
 	klog(crN, "N", formating, args...)
 }
 
+// I :Information
 func I(formating string, args ...interface{}) {
 	klog(crI, "I", formating, args...)
 }
+
+// D :Debug message
 func D(formating string, args ...interface{}) {
 	klog(crD, "D", formating, args...)
 }

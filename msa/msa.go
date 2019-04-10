@@ -3,14 +3,15 @@ package msa
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/klog"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/kamasamikon/miego/conf"
+	"github.com/kamasamikon/miego/klog"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -51,30 +52,24 @@ func GetOutboundIP() string {
 }
 
 func (s *KService) serviceRun() {
-	msPath := conf.Str("ms/path", "/usr/bin/git")
+	// ms/path: /usr/bin/git config '-l'
+	// msPath := conf.Str("ms/path", "/bin/sleep")
+	msPath := conf.Str("ms/path", "echo aaa bbb ccc ddd")
+	args := strings.Split(msPath, " ")
 
-	// wait till OK
-	cmd := exec.Command(msPath, "help")
+	cmd := exec.Command(args[0], args[1:]...)
+
 	in := bytes.NewBuffer(nil)
 	cmd.Stdin = in
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
-	go func() {
-		in.WriteString("node E:/design/test.js\n")
-	}()
-
-	err := cmd.Start()
+	err := cmd.Run()
 	if err != nil {
 		klog.E("Command finished with error: %v", err)
 	}
-	klog.D("%s", cmd.Args)
 
-	err = cmd.Wait()
-	if err != nil {
-		klog.E("Command finished with error: %v", err)
-	}
 	klog.D(out.String())
 }
 
@@ -99,6 +94,7 @@ func (s *KService) regLoop() {
 }
 
 func init() {
+	// FIXME: Load from os.Env or os.Args
 	conf.Load("./msa.cfg")
 
 	service = &KService{
