@@ -37,5 +37,5 @@ func TestMain(t *testing.T) {
 	bin, _ = json.Marshal(b)
 	msSet(bin)
 
-	genLocationAndUpstream()
+	nginxConfWrite()
 }

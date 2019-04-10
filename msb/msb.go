@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/kamasamikon/miego/klog"
 )
 
 // KService : Micro service information loaded from configure file.
@@ -41,12 +42,14 @@ func (s *KService) toKey() string {
 func msSet(postData []byte) bool {
 	s := KService{}
 	if err := json.Unmarshal(postData, &s); err != nil {
+		klog.E("%s", err.Error())
 		return false
 	}
 
 	key := s.toKey()
 	if _, ok := mapServices[key]; ok {
 		// Already exist, overwrite?
+		klog.E("%s already exists, skip.", key)
 		return false
 	}
 	mapServices[key] = &s
@@ -59,6 +62,7 @@ func msGet(serviceName string, version string, ipAddr string, port int) (s *KSer
 	if s, ok := mapServices[key]; ok {
 		return s
 	}
+	klog.E("%s not found.", key)
 	return nil
 }
 
@@ -68,6 +72,7 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 		delete(mapServices, key)
 		return true
 	}
+	klog.E("%s not found.", key)
 	return false
 }
 
@@ -86,6 +91,7 @@ func timerRefresh() {
 			}
 
 			if len(tobeDel) > 0 {
+				klog.I("Some services should be deleted. %s", tobeDel)
 				nginxConfWrite()
 				nginxReload()
 			}
@@ -116,20 +122,19 @@ func genLocationAndUpstream() (string, string) {
 	var redir strings.Builder
 	for key, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&redir, "location ~ ^/ms/%s/(.+) {\n", key)
-		fmt.Fprintf(&redir, "\tproxy_pass http://%s.%s/$1;\n", s.ServiceName, s.Version)
-		fmt.Fprintf(&redir, "}\n")
+		fmt.Fprintf(&redir, "        location ~ ^/ms/%s/(.+) {\n", key)
+		fmt.Fprintf(&redir, "            proxy_pass http://%s.%s/$1;\n", s.ServiceName, s.Version)
+		fmt.Fprintf(&redir, "        }\n\n")
 	}
 
 	var upstr strings.Builder
 	for _, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&upstr, "upstream %s.%s {\n", s.ServiceName, s.Version)
+		fmt.Fprintf(&upstr, "    upstream %s.%s {\n", s.ServiceName, s.Version)
 		for _, a := range group {
-			fmt.Fprintf(&upstr, "\tserver %s:%d;\n", a.IPAddr, a.Port)
+			fmt.Fprintf(&upstr, "        server %s:%d;\n", a.IPAddr, a.Port)
 		}
-		fmt.Fprintf(&upstr, "}\n")
-
+		fmt.Fprintf(&upstr, "    }\n\n")
 	}
 
 	return redir.String(), upstr.String()
@@ -138,6 +143,7 @@ func genLocationAndUpstream() (string, string) {
 func templLoad() string {
 	data, err := ioutil.ReadFile("./nginx.conf.templ")
 	if err != nil {
+		klog.E("templLoad NG: %s", err.Error())
 		return ""
 	}
 	return string(data)
@@ -150,10 +156,13 @@ func nginxConfWrite() error {
 
 	templ := templLoad()
 
-	templ = strings.Replace(templ, "XXXXXXXXX", us, -1)
-	templ = strings.Replace(templ, "YYYYYYYYY", lb, -1)
+	templ = strings.Replace(templ, "@@UPSTREAM_LIST@@", lb, -1)
+	templ = strings.Replace(templ, "@@REDIRECT_LIST@@", us, -1)
 
-	path := "/etc/nginx/nginx.conf"
+	klog.D("%s", templ)
+
+	// path := "/etc/nginx/nginx.conf"
+	path := "/tmp/nginx.conf"
 	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {
 		return err
 	}
