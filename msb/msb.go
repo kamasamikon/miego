@@ -140,10 +140,14 @@ func genLocationAndUpstream() (string, string) {
 	return redir.String(), upstr.String()
 }
 
-func templLoad() string {
-	data, err := ioutil.ReadFile("./nginx.conf.templ")
+func TemplLoad(path string) string {
+	if path == "" {
+		path = "./nginx.conf.templ"
+	}
+
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		klog.E("templLoad NG: %s", err.Error())
+		klog.E("TemplLoad NG: %s", err.Error())
 		return ""
 	}
 	return string(data)
@@ -154,7 +158,7 @@ func nginxConfWrite() error {
 
 	us, lb := genLocationAndUpstream()
 
-	templ := templLoad()
+	templ := TemplLoad("")
 
 	templ = strings.Replace(templ, "@@UPSTREAM_LIST@@", lb, -1)
 	templ = strings.Replace(templ, "@@REDIRECT_LIST@@", us, -1)
