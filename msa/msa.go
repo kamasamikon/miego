@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net"
@@ -52,30 +51,37 @@ func GetOutboundIP() string {
 	return localAddr.IP.String()
 }
 
-func (s *KService) serviceRun() {
-	// ms/path: /usr/bin/git config '-l'
-	msPath := conf.Str("ms/path", "echo aaa bbb ccc ddd")
-	args := strings.Split(msPath, " ")
+func (s *KService) programRun() {
+	go func() {
+		for {
+			// XXX: the service must be /service/main
+			exePath := "/service/main"
 
-	cmd := exec.Command(args[0], args[1:]...)
+			cmd := exec.Command(exePath)
+			cmd.Dir = "/service"
 
-	in := bytes.NewBuffer(nil)
-	cmd.Stdin = in
+			// in := bytes.NewBuffer(nil)
+			// cmd.Stdin = in
 
-	// var out bytes.Buffer
-	// cmd.Stdout = &out
+			// XXX: Not save to buffer, because the output maybe too long.
+			// var out bytes.Buffer
+			// cmd.Stdout = &out
 
-	err := cmd.Run()
-	if err != nil {
-		klog.E("Command finished with error: %s", err.Error())
-	}
+			klog.D("RUN /service/main")
+			err := cmd.Run()
+			if err != nil {
+				klog.E("Command finished with error: %s", err.Error())
+			}
+			klog.D("Normal exit, but it will be restarted now.")
+		}
+	}()
 }
 
 func (s *KService) regLoop() {
-	msbURL := conf.Str("msb/url", "http://127.0.0.1:7766/")
 	waitOK := time.Duration(conf.Int("msb/regWait/ok", 5))
 	waitNG := time.Duration(conf.Int("msb/regWait/ng", 1))
 
+	msbURL := conf.Str("msb/url", "http://127.0.0.1:7766/")
 	if url := os.Getenv("MSBURL"); url != "" {
 		msbURL = url
 	}
@@ -97,7 +103,8 @@ func (s *KService) regLoop() {
 
 func main() {
 	// FIXME: Load from os.Env or os.Args
-	conf.Load("./msa.cfg")
+	conf.Load("/msa/msa.cfg")
+	conf.Load("/msa/usr.cfg")
 
 	service = &KService{
 		ServiceName: conf.Str("ms/name", "FIXME"),
@@ -110,6 +117,6 @@ func main() {
 		CreatedAt:   time.Now().Format("FIXME"),
 	}
 
-	service.serviceRun()
+	service.programRun()
 	service.regLoop()
 }

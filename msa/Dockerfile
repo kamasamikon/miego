@@ -1,26 +1,15 @@
-
 FROM alpine
 # FROM smebberson/alpine-nginx
-# FROM centos:7
-# FROM frolvlad/alpine-python3
-# FROM openresty/openresty
 
-WORKDIR /root
+WORKDIR /msa
 
 RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main/" > /etc/apk/repositories
 
-
 # RUN apk update && apk upgrade && apk add --no-cache nginx 
 
-
-### #####################################################################
-## Install RPC
-#
 COPY ./PRC /etc/localtime
+COPY ./msa.cfg /msa/msa.cfg
+COPY ./msa /msa
 
-### #####################################################################
-## Run
-#
-COPY ./msa .
-COPY dockerentry.sh .
-ENTRYPOINT /root/dockerentry.sh
+RUN mkdir /service
+ENTRYPOINT /msa/msa
