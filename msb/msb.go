@@ -52,6 +52,8 @@ func msSet(postData []byte) bool {
 		klog.E("%s already exists, skip.", key)
 		return false
 	}
+
+	s.RefreshTime = time.Now().Second()
 	mapServices[key] = &s
 
 	return true
@@ -145,9 +147,10 @@ func genLocationAndUpstream() (string, string) {
 
 func TemplLoad(path string) string {
 	if path == "" {
-		path = "./nginx.conf.templ"
+		path = "/etc/nginx/nginx.conf.templ"
 	}
 
+	klog.D("use templ '%s'", path)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		klog.E("TemplLoad NG: %s", err.Error())
@@ -157,8 +160,6 @@ func TemplLoad(path string) string {
 }
 
 func nginxConfWrite() error {
-	// re-generate nginx.conf file.
-
 	us, lb := genLocationAndUpstream()
 
 	templ := TemplLoad("")
@@ -168,8 +169,7 @@ func nginxConfWrite() error {
 
 	klog.D("%s", templ)
 
-	// path := "/etc/nginx/nginx.conf"
-	path := "/tmp/nginx.conf"
+	path := "/etc/nginx/nginx.conf"
 	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {
 		klog.E(err.Error())
 		return err

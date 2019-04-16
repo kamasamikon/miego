@@ -208,6 +208,4 @@ func Dump() {
 }
 
 func init() {
-	path := "./aster.cfg"
-	Load(path)
 }

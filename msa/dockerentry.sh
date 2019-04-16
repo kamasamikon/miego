@@ -1,6 +1,5 @@
 #!/bin/sh
 
-nginx &
 while true; do 
-    /root/main 
+    /root/msa 
 done

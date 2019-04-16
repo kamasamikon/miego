@@ -1,7 +1,7 @@
 #!/bin/sh
 
+nginx &
+
 while true; do 
-    echo nginx 
-    echo /root/main 
-    sleep 2
+    /root/main 
 done
