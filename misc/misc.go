@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kamasamikon/miego/klog"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/kamasamikon/miego/klog"
 )
 
 const (
@@ -98,6 +99,23 @@ func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 	klog.D(pingString)
 
 	r, eb := http.Post(url, ctJSON, strings.NewReader(pingString))
+	if eb != nil {
+		klog.E(eb.Error())
+		return eb
+	}
+	if r.StatusCode != 200 {
+		klog.E("%d", r.StatusCode)
+		return errors.New(fmt.Sprintf("StatusCode == %d", r.StatusCode))
+	}
+
+	if pongObj == nil {
+		return nil
+	}
+	return json.NewDecoder(r.Body).Decode(pongObj)
+}
+
+func HTTPGet(url string, pongObj interface{}) error {
+	r, eb := http.Get(url)
 	if eb != nil {
 		klog.E(eb.Error())
 		return eb

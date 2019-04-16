@@ -1,13 +1,7 @@
 #!/bin/sh
 
-echo "XXXXXXXXXXXXXXXXXXXXXXXXXXx"
-echo "XXXXXXXXXXXXXXXXXXXXXXXXXXx"
-echo "XXXXXXXXXXXXXXXXXXXXXXXXXXx"
-echo "XXXXXXXXXXXXXXXXXXXXXXXXXXx"
-echo "XXXXXXXXXXXXXXXXXXXXXXXXXXx"
-
-nginx &
-/bin/sh
-/root/main 
-echo "AAAAAAAAAAAAAAAAAAAAAAA"
-
+while true; do 
+    echo nginx 
+    echo /root/main 
+    sleep 2
+done

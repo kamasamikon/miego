@@ -78,26 +78,29 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 
 /////////////////////////////////////////////////////////////////////////
 // Refresh
-func timerRefresh() {
-	go func() {
-		var tobeDel []string
-		for {
-			now := time.Now().Second()
-			for _, s := range mapServices {
-				if diff := now - s.RefreshTime; diff > 10 {
-					key := s.toKey()
-					tobeDel = append(tobeDel, key)
-				}
+func RefreshLoop() {
+	var tobeDel []string
+	for {
+		now := time.Now().Second()
+		for _, s := range mapServices {
+			if diff := now - s.RefreshTime; diff > 10 {
+				key := s.toKey()
+				tobeDel = append(tobeDel, key)
+			}
+		}
+
+		if len(tobeDel) > 0 {
+			klog.I("Some services should be deleted. %s", tobeDel)
+			for _, name := range tobeDel {
+				delete(mapServices, name)
 			}
 
-			if len(tobeDel) > 0 {
-				klog.I("Some services should be deleted. %s", tobeDel)
-				nginxConfWrite()
-				nginxReload()
-			}
-			time.Sleep(time.Second * 10)
+			klog.I("Bad services deleted, reloading nginx")
+			nginxConfWrite()
+			nginxReload()
 		}
-	}()
+		time.Sleep(time.Second * 10)
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -168,6 +171,7 @@ func nginxConfWrite() error {
 	// path := "/etc/nginx/nginx.conf"
 	path := "/tmp/nginx.conf"
 	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {
+		klog.E(err.Error())
 		return err
 	}
 
