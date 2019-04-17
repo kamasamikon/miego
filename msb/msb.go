@@ -1,27 +1,30 @@
-package msb
+package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/klog"
 )
 
-// KService : Micro service information loaded from configure file.
+// KService : Micro Service definition
 type KService struct {
-	ServiceName string
-	Version     string
-
-	IPAddr string
-	Port   int
-
-	RefreshTime int
+	ServiceName string `json:"serviceName"`
+	Version     string `json:"version"`
+	Desc        string `json:"desc"`
+	IPAddr      string `json:"ipAddr"`
+	Port        int    `json:"port"`
+	HostName    string `json:"hostName"`
+	ProjName    string `json:"projName"`
+	CreatedAt   string `json:"createdAt"`
+	RefreshTime int64  `json:"refreshTime,omitempty"`
 }
 
 // All the service queue here.
@@ -39,13 +42,7 @@ func (s *KService) toKey() string {
 	return hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
 }
 
-func msSet(postData []byte) bool {
-	s := KService{}
-	if err := json.Unmarshal(postData, &s); err != nil {
-		klog.E("%s", err.Error())
-		return false
-	}
-
+func msSet(s *KService) bool {
 	key := s.toKey()
 	if _, ok := mapServices[key]; ok {
 		// Already exist, overwrite?
@@ -53,9 +50,8 @@ func msSet(postData []byte) bool {
 		return false
 	}
 
-	s.RefreshTime = time.Now().Second()
-	mapServices[key] = &s
-
+	s.RefreshTime = time.Now().Unix()
+	mapServices[key] = s
 	return true
 }
 
@@ -81,20 +77,20 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 /////////////////////////////////////////////////////////////////////////
 // Refresh
 func RefreshLoop() {
-	var tobeDel []string
+	var remKeys []string
 	for {
-		now := time.Now().Second()
+		now := time.Now().Unix()
 		for _, s := range mapServices {
 			if diff := now - s.RefreshTime; diff > 10 {
 				key := s.toKey()
-				tobeDel = append(tobeDel, key)
+				remKeys = append(remKeys, key)
 			}
 		}
 
-		if len(tobeDel) > 0 {
-			klog.I("Some services should be deleted. %s", tobeDel)
-			for _, name := range tobeDel {
-				delete(mapServices, name)
+		if len(remKeys) > 0 {
+			klog.I("Some services should be deleted. %s", remKeys)
+			for _, key := range remKeys {
+				delete(mapServices, key)
 			}
 
 			klog.I("Bad services deleted, reloading nginx")
@@ -182,6 +178,163 @@ func nginxReload() {
 	exec.Command("/usr/bin/nginx", "-s", "-reload")
 }
 
-func init() {
+func serverSet(c *gin.Context) {
+	var s KService
+	err := c.BindJSON(&s)
+	if err != nil {
+		spew.Dump(s)
+	}
+	msSet(&s)
+
+	pong := gin.H{}
+	c.JSON(200, &pong)
+}
+
+func serverGet(c *gin.Context) {
+	// TODO: return ALL services
+	serviceName := c.Param("name")
+	if serviceName == "" {
+		serviceName = "ALL"
+	}
+
+	version := c.Param("version")
+	if version == "" {
+		version = "ALL"
+	}
+
+	ipAddr := c.Param("ipaddr")
+	if ipAddr == "" {
+		ipAddr = "ALL"
+	}
+
+	var iport int64
+	port := c.Param("port")
+	if port == "" || port == "ALL" {
+		iport = -1
+	} else {
+		if x, err := strconv.ParseInt(port, 10, 64); err != nil {
+			klog.E(err.Error())
+			c.JSON(404, nil)
+			return
+		} else {
+			iport = x
+		}
+	}
+
+	var services []*KService
+	for _, v := range mapServices {
+		if serviceName != "ALL" && v.ServiceName != serviceName {
+			continue
+		}
+		if version != "ALL" && v.Version != version {
+			continue
+		}
+		if ipAddr != "ALL" && v.IPAddr != ipAddr {
+			continue
+		}
+		if iport != -1 && int64(v.Port) != iport {
+			continue
+		}
+
+		services = append(services, v)
+	}
+
+	klog.D("%s", serviceName)
+	klog.D("%s", version)
+	klog.D("%s", ipAddr)
+	klog.D("%s", port)
+	klog.D("%d", len(services))
+
+	if services == nil {
+		c.JSON(404, nil)
+	} else {
+		c.JSON(200, services)
+	}
+}
+
+func serverRem(c *gin.Context) {
+	// TODO: return ALL services
+	serviceName := c.Param("name")
+	if serviceName == "" {
+		serviceName = "ALL"
+	}
+
+	version := c.Param("version")
+	if version == "" {
+		version = "ALL"
+	}
+
+	ipAddr := c.Param("ipaddr")
+	if ipAddr == "" {
+		ipAddr = "ALL"
+	}
+
+	var iport int64
+	port := c.Param("port")
+	if port == "" || port == "ALL" {
+		iport = -1
+	} else {
+		if x, err := strconv.ParseInt(port, 10, 64); err != nil {
+			klog.E(err.Error())
+			c.JSON(404, nil)
+			return
+		} else {
+			iport = x
+		}
+	}
+
+	var services []*KService
+	for _, v := range mapServices {
+		if serviceName != "ALL" && v.ServiceName != serviceName {
+			continue
+		}
+		if version != "ALL" && v.Version != version {
+			continue
+		}
+		if ipAddr != "ALL" && v.IPAddr != ipAddr {
+			continue
+		}
+		if iport != -1 && int64(v.Port) != iport {
+			continue
+		}
+
+		services = append(services, v)
+	}
+
+	klog.D("%s", serviceName)
+	klog.D("%s", version)
+	klog.D("%s", ipAddr)
+	klog.D("%s", port)
+	klog.D("%d", len(services))
+
+	if services == nil {
+		c.JSON(404, nil)
+	} else {
+		for _, s := range services {
+			klog.D(s.ServiceName)
+			key := s.toKey()
+			delete(mapServices, key)
+		}
+		c.JSON(200, services)
+	}
+}
+
+func main() {
 	spew.Config.Indent = "\t"
+
+	Gin := gin.Default()
+
+	Gin.POST("/service", serverSet)
+
+	Gin.GET("/service/:name", serverGet)
+	Gin.GET("/service/:name/:version", serverGet)
+	Gin.GET("/service/:name/:version/:ipaddr", serverGet)
+	Gin.GET("/service/:name/:version/:ipaddr/:port", serverGet)
+
+	Gin.DELETE("/service/:name", serverRem)
+	Gin.DELETE("/service/:name/:version", serverRem)
+	Gin.DELETE("/service/:name/:version/:ipaddr", serverRem)
+	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
+
+	Gin.Run(":8090")
 }
