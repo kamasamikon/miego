@@ -1,2 +1,23 @@
-./msabyshare.sh
-./msabysharesafe.sh
+## MSA
+
+这个MSA有两种用法：
+
+第一，把服务目录外挂在主机，用共享目录的方式启动，就是把外部的目录映射为docker内部的/root/ms目录。这要求映射的目录有一个叫做`main`的可执行文件。用一下两个脚本启动即可。
+
+- ./msabyshare.sh
+- ./msabysharesafe.sh
+
+第二种是把服务器达成docker。这个要求：
+
+- msa要做成叫做msa的基础镜像。
+- 把一个叫做`daoker.sh`拷贝到相应的服务的源码目录中去。
+  - 这个文件需要根据当前的服务进行修改。
+  - 这个脚本最终调用了原来的msb/tools/daoker.py这个文件。
+    - 这个文件就是编译和运行容器的。
+- 这个文件修改好了以后，运行就可以了。具体看 `daoker.sh --help`
+
+
+
+## daoclean.py
+
+这个也是原来的msb/tools目录下的脚本，就是用来把多余的容器清除掉，看帮助即可。
