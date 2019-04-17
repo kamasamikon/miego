@@ -105,6 +105,8 @@ func main() {
 	// FIXME: Load from os.Env or os.Args
 	conf.Load("/msa/msa.cfg")
 	conf.Load("/msa/usr.cfg")
+	conf.Load("/service/msa.cfg")
+	conf.Load("/service/usr.cfg")
 
 	service = &KService{
 		ServiceName: conf.Str("ms/name", "FIXME"),
