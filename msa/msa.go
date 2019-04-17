@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -81,16 +82,16 @@ func (s *KService) regLoop() {
 	waitOK := time.Duration(conf.Int("msb/regWait/ok", 5))
 	waitNG := time.Duration(conf.Int("msb/regWait/ng", 1))
 
-	msbURL := conf.Str("msb/url", "http://127.0.0.1:7766/")
-	if url := os.Getenv("MSBURL"); url != "" {
-		msbURL = url
+	msbAddr := conf.Str("msb/addr", "http://127.0.0.1:7766")
+	if url := os.Getenv("MSBADDR"); url != "" {
+		msbAddr = url
 	}
 
 	j, _ := json.Marshal(&s)
 	spew.Dump(s)
 
 	for {
-		r, err := http.Post(msbURL, "application/json", strings.NewReader(string(j)))
+		r, err := http.Post(msbAddr+"/service", "application/json", strings.NewReader(string(j)))
 		if err == nil {
 			klog.D("%d", r.StatusCode)
 			time.Sleep(time.Second * waitOK)
@@ -116,7 +117,7 @@ func main() {
 		Port:        int(conf.Int("ms/port", 8888)),
 		HostName:    hostnameGet(),
 		ProjName:    conf.Str("ms/projName", "FIXME"),
-		CreatedAt:   time.Now().Format("FIXME"),
+		CreatedAt:   strconv.FormatInt(time.Now().Unix(), 10),
 	}
 
 	service.programRun()

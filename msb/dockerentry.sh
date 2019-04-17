@@ -3,5 +3,5 @@
 nginx &
 
 while true; do 
-    /root/main 
+    /root/msb 
 done

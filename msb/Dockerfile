@@ -25,7 +25,7 @@ COPY nginx.conf.templ /etc/nginx/
 ## Install MIE
 #
 COPY ./PRC /etc/localtime
-COPY ./main/main /root/main
+COPY ./msb /root/msb
 
 
 ### #####################################################################

@@ -44,8 +44,9 @@ func (s *KService) toKey() string {
 
 func msSet(s *KService) bool {
 	key := s.toKey()
-	if _, ok := mapServices[key]; ok {
+	if a, ok := mapServices[key]; ok {
 		// Already exist, overwrite?
+		a.RefreshTime = time.Now().Unix()
 		klog.E("%s already exists, skip.", key)
 		return false
 	}
@@ -77,8 +78,8 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 /////////////////////////////////////////////////////////////////////////
 // Refresh
 func RefreshLoop() {
-	var remKeys []string
 	for {
+		var remKeys []string
 		now := time.Now().Unix()
 		for _, s := range mapServices {
 			if diff := now - s.RefreshTime; diff > 10 {
@@ -97,6 +98,7 @@ func RefreshLoop() {
 			nginxConfWrite()
 			nginxReload()
 		}
+		klog.E("Waiting.......")
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -191,7 +193,6 @@ func serverSet(c *gin.Context) {
 }
 
 func serverGet(c *gin.Context) {
-	// TODO: return ALL services
 	serviceName := c.Param("name")
 	if serviceName == "" {
 		serviceName = "ALL"
@@ -238,12 +239,6 @@ func serverGet(c *gin.Context) {
 
 		services = append(services, v)
 	}
-
-	klog.D("%s", serviceName)
-	klog.D("%s", version)
-	klog.D("%s", ipAddr)
-	klog.D("%s", port)
-	klog.D("%d", len(services))
 
 	if services == nil {
 		c.JSON(404, nil)
@@ -253,7 +248,6 @@ func serverGet(c *gin.Context) {
 }
 
 func serverRem(c *gin.Context) {
-	// TODO: return ALL services
 	serviceName := c.Param("name")
 	if serviceName == "" {
 		serviceName = "ALL"
@@ -300,12 +294,6 @@ func serverRem(c *gin.Context) {
 
 		services = append(services, v)
 	}
-
-	klog.D("%s", serviceName)
-	klog.D("%s", version)
-	klog.D("%s", ipAddr)
-	klog.D("%s", port)
-	klog.D("%d", len(services))
 
 	if services == nil {
 		c.JSON(404, nil)
@@ -326,15 +314,18 @@ func main() {
 
 	Gin.POST("/service", serverSet)
 
+	Gin.GET("/service", serverGet)
 	Gin.GET("/service/:name", serverGet)
 	Gin.GET("/service/:name/:version", serverGet)
 	Gin.GET("/service/:name/:version/:ipaddr", serverGet)
 	Gin.GET("/service/:name/:version/:ipaddr/:port", serverGet)
 
+	Gin.DELETE("/service", serverRem)
 	Gin.DELETE("/service/:name", serverRem)
 	Gin.DELETE("/service/:name/:version", serverRem)
 	Gin.DELETE("/service/:name/:version/:ipaddr", serverRem)
 	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
 
+	go RefreshLoop()
 	Gin.Run(":8090")
 }
