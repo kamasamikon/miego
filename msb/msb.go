@@ -16,15 +16,25 @@ import (
 
 // KService : Micro Service definition
 type KService struct {
+	// Base info
 	ServiceName string `json:"serviceName"`
 	Version     string `json:"version"`
 	Desc        string `json:"desc"`
-	IPAddr      string `json:"ipAddr"`
-	Port        int    `json:"port"`
-	HostName    string `json:"hostName"`
+
+	// ipAddress
+	IPAddr string `json:"ipAddr"`
+	Port   int    `json:"port"`
+
+	// container info
+	HostName string `json:"hostName"`
+
+	// Project
 	ProjName    string `json:"projName"`
-	CreatedAt   string `json:"createdAt"`
-	RefreshTime int64  `json:"refreshTime,omitempty"`
+	ProjVersion string `json:"projVersion"`
+	ProjTime    string `json:"projTime"`
+
+	// This msa instance
+	CreatedAt string `json:"createdAt"`
 }
 
 // All the service queue here.

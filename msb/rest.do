@@ -3,6 +3,7 @@
 #^ sip:s.berrybit.cn
 #^ sip:wxvision.ruibei365.com
 #^ sip:127.0.0.1:8090
+#^ sip:172.17.0.1
 
 GET ' ' http://127.0.0.1:8880/msb/services
 
@@ -24,10 +25,10 @@ POST '
 	"ProjName": "ProjName",
 	"CreatedAt": "CreatedAt"
 }
-' http://ip/service
+' http://ip/msb/service
 
-GET ' ' http://ip/service/ALL/Version
-DELETE ' ' http://ip/service/ALL/Version
+GET ' ' http://ip/msb/service/ALL/Version
+DELETE ' ' http://ip/msb/service/ALL/Version
 
 
 POST '
