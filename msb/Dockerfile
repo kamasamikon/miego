@@ -15,6 +15,7 @@ RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main/" > /etc/apk/repo
 # && apk add --no-cache nginx 
 
 COPY nginx.conf.templ /etc/nginx/
+COPY nginx.conf /etc/nginx/
 #COPY dockerstuff/openresty/nginx/conf/server.crt /etc/nginx
 #COPY dockerstuff/openresty/nginx/conf/server.csr /etc/nginx
 #COPY dockerstuff/openresty/nginx/conf/server.key  /etc/nginx

@@ -327,5 +327,5 @@ func main() {
 	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
 
 	go RefreshLoop()
-	Gin.Run(":8090")
+	Gin.Run(":9100")
 }
