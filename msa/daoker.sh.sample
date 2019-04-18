@@ -12,7 +12,7 @@
 #
 
 # MS information
-msName=vcode
+msName=vv
 msVern=v1
 msPort=8888
 msDesc="Generate QR code for given string content."

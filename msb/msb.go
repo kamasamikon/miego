@@ -12,6 +12,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/klog"
+	"github.com/kamasamikon/miego/xgin"
 )
 
 // KService : Micro Service definition
@@ -61,12 +62,12 @@ func msSet(s *KService) bool {
 	key := s.toKey()
 	if a, ok := mapServices[key]; ok {
 		if a.CreatedAt != s.CreatedAt {
-			klog.W("Service '%s': Update.", key)
+			klog.W("U: '%s'.", key)
 			*a = *s
 			a.RefreshTime = time.Now().UnixNano()
 			return true
 		} else {
-			klog.W("Service '%s': Skip.", key)
+			klog.W("S: '%s'", key)
 			a.RefreshTime = time.Now().UnixNano()
 			return false
 		}
@@ -119,7 +120,7 @@ func RefreshLoop() {
 			nginxConfWrite()
 			nginxReload()
 		}
-		klog.E("Waiting %d seconds before next loop.", int(time.Second*10))
+		klog.E("Waiting 10 seconds before next loop.")
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -344,7 +345,7 @@ func serverRem(c *gin.Context) {
 func main() {
 	spew.Config.Indent = "\t"
 
-	Gin := gin.Default()
+	Gin := xgin.New(false)
 
 	Gin.POST("/service", serverSet)
 
@@ -361,5 +362,7 @@ func main() {
 	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
 
 	go RefreshLoop()
+
+	// XXX: Must be 9100, it is defined in /etc/nginx/nginx.conf
 	Gin.Run(":9100")
 }
