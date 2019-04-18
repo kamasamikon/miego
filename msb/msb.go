@@ -119,7 +119,7 @@ func RefreshLoop() {
 			nginxConfWrite()
 			nginxReload()
 		}
-		klog.E("Waiting.......")
+		klog.E("Waiting %d seconds before next loop.", int(time.Second*10))
 		time.Sleep(time.Second * 10)
 	}
 }

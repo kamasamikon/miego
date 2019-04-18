@@ -40,7 +40,7 @@ type KService struct {
 }
 
 var service *KService
-var msbURL string
+var msbHost string
 
 func hostnameGet() string {
 	b, e := ioutil.ReadFile("/etc/hostname")
@@ -88,14 +88,16 @@ func (s *KService) programRun() {
 
 			cmd := exec.Command(exePath)
 			cmd.Dir = workDir
-			cmd.Env = append(cmd.Env, "MSBURL="+msbURL)
+			cmd.Env = append(cmd.Env, "MSBHOST="+msbHost)
 
 			// in := bytes.NewBuffer(nil)
 			// cmd.Stdin = in
+			cmd.Stdin = os.Stdin
 
 			// XXX: Not save to buffer, because the output maybe too long.
 			// var out bytes.Buffer
 			// cmd.Stdout = &out
+			cmd.Stdout = os.Stdout
 
 			klog.D("RUN /ms/main")
 			err := cmd.Run()
@@ -113,9 +115,9 @@ func (s *KService) programRun() {
 }
 
 func msbInfoSet() {
-	msbURL = conf.Str("msa/msb/url", "http://172.17.0.1/msb")
-	if url := os.Getenv("MSBURL"); url != "" {
-		msbURL = url
+	msbHost = conf.Str("msa/msb/host", "172.17.0.1")
+	if ip := os.Getenv("MSBHOST"); ip != "" {
+		msbHost = ip
 	}
 }
 
@@ -126,7 +128,7 @@ func (s *KService) regLoop() {
 	j, _ := json.Marshal(&s)
 	spew.Dump(s)
 
-	msRegURL := msbURL + "/service"
+	msRegURL := "http://" + msbHost + "/msb/service"
 	klog.D("msRegURL: %s", msRegURL)
 	for {
 		_, err := http.Post(msRegURL, "application/json", strings.NewReader(string(j)))
