@@ -34,7 +34,12 @@ type KService struct {
 	ProjTime    string `json:"projTime"`
 
 	// This msa instance
-	CreatedAt string `json:"createdAt"`
+	CreatedAt int64 `json:"createdAt"`
+
+	//
+	// Additional part
+	//
+	RefreshTime int64 `json:"refreshTime"`
 }
 
 // All the service queue here.
@@ -55,13 +60,19 @@ func (s *KService) toKey() string {
 func msSet(s *KService) bool {
 	key := s.toKey()
 	if a, ok := mapServices[key]; ok {
-		// Already exist, overwrite?
-		a.RefreshTime = time.Now().Unix()
-		klog.E("%s already exists, skip.", key)
-		return false
+		if a.CreatedAt != s.CreatedAt {
+			klog.W("Service '%s': Update.", key)
+			*a = *s
+			a.RefreshTime = time.Now().UnixNano()
+			return true
+		} else {
+			klog.W("Service '%s': Skip.", key)
+			a.RefreshTime = time.Now().UnixNano()
+			return false
+		}
 	}
 
-	s.RefreshTime = time.Now().Unix()
+	s.RefreshTime = time.Now().UnixNano()
 	mapServices[key] = s
 	return true
 }
@@ -90,9 +101,9 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 func RefreshLoop() {
 	for {
 		var remKeys []string
-		now := time.Now().Unix()
+		now := time.Now().UnixNano()
 		for _, s := range mapServices {
-			if diff := now - s.RefreshTime; diff > 10 {
+			if diff := now - s.RefreshTime; diff > 10*1000*1000*1000 {
 				key := s.toKey()
 				remKeys = append(remKeys, key)
 			}
@@ -135,8 +146,8 @@ func genLocationAndUpstream() (string, string) {
 	var redir strings.Builder
 	for key, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&redir, "        location ~ ^/ms/%s/(.+) {\n", key)
-		fmt.Fprintf(&redir, "            proxy_pass http://%s.%s/$1;\n", s.ServiceName, s.Version)
+		fmt.Fprintf(&redir, "        location ^~ /ms/%s/ {\n", key)
+		fmt.Fprintf(&redir, "            proxy_pass http://%s.%s/;\n", s.ServiceName, s.Version)
 		fmt.Fprintf(&redir, "        }\n\n")
 	}
 
@@ -172,8 +183,8 @@ func nginxConfWrite() error {
 
 	templ := TemplLoad("")
 
-	templ = strings.Replace(templ, "@@UPSTREAM_LIST@@", lb, -1)
-	templ = strings.Replace(templ, "@@REDIRECT_LIST@@", us, -1)
+	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", lb, -1)
+	templ = strings.Replace(templ, "#@@REDIRECT_LIST@@", us, -1)
 
 	klog.D("%s", templ)
 
@@ -187,7 +198,12 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	exec.Command("/usr/bin/nginx", "-s", "-reload")
+	klog.D("Reload nginx")
+	cmd := exec.Command("/usr/sbin/nginx", "-s", "reload")
+	err := cmd.Run()
+	if err != nil {
+		klog.E(err.Error())
+	}
 }
 
 func serverSet(c *gin.Context) {
@@ -196,7 +212,11 @@ func serverSet(c *gin.Context) {
 	if err != nil {
 		spew.Dump(s)
 	}
-	msSet(&s)
+
+	if ok := msSet(&s); ok {
+		nginxConfWrite()
+		nginxReload()
+	}
 
 	pong := gin.H{}
 	c.JSON(200, &pong)
@@ -313,6 +333,10 @@ func serverRem(c *gin.Context) {
 			key := s.toKey()
 			delete(mapServices, key)
 		}
+
+		nginxConfWrite()
+		nginxReload()
+
 		c.JSON(200, services)
 	}
 }

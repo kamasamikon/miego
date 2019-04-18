@@ -45,7 +45,7 @@ http {
     }
 
 
-@@UPSTREAM_LIST@@
+#@@UPSTREAM_LIST@@
 
     # Includes
     include mime.types;
@@ -63,10 +63,21 @@ http {
         default_type text/html;
         add_header X-Cache-Status $upstream_cache_status;
 
-        location /msb/ {
-                proxy_pass http://msb/;
+        location ^~ /msb/ {
+# allow 172.17.0.2
+# allow 172.17.1.7/24
+# deny all
+            proxy_pass http://msb/;
         }
 
-@@REDIRECT_LIST@@
+#location ^~ /(.*)/ {
+# allow 172.17.0.2
+# allow 172.17.1.7/24
+# deny all
+#proxy_pass http://$1/;
+#}
+
+
+#@@REDIRECT_LIST@@
     }
 }

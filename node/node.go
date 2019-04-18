@@ -25,7 +25,7 @@ type KCallFrame struct {
 	DataFormat int
 	Hint       int
 	DataId     string
-	CreatedAt  int
+	CreatedAt  int64
 }
 
 func dumpFrames(f *KCallFrame) {
@@ -53,7 +53,7 @@ func NewCallFrame(caller *KCallFrame, thisNode *KNode, data []byte, dataFormat i
 		DataFormat: dataFormat,
 		Hint:       hint,
 		DataId:     "TODO: Id of DB?",
-		CreatedAt:  time.Now().Nanosecond(),
+		CreatedAt:  time.Now().UnixNano(),
 	}
 
 	// TODO: Save the data to database;

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -37,10 +36,11 @@ type KService struct {
 	ProjTime    string `json:"projTime"`
 
 	// This msa instance
-	CreatedAt string `json:"createdAt"`
+	CreatedAt int64 `json:"createdAt"`
 }
 
 var service *KService
+var msbURL string
 
 func hostnameGet() string {
 	b, e := ioutil.ReadFile("/etc/hostname")
@@ -84,10 +84,11 @@ func (s *KService) programRun() {
 
 	go func() {
 		for {
-			nsBefore := time.Now().Nanosecond()
+			nsBefore := time.Now().UnixNano()
 
 			cmd := exec.Command(exePath)
 			cmd.Dir = workDir
+			cmd.Env = append(cmd.Env, "MSBURL="+msbURL)
 
 			// in := bytes.NewBuffer(nil)
 			// cmd.Stdin = in
@@ -103,7 +104,7 @@ func (s *KService) programRun() {
 			}
 			klog.D("Normal exit, but it will be restarted now.")
 
-			nsAfter := time.Now().Nanosecond()
+			nsAfter := time.Now().UnixNano()
 			if nsAfter-nsBefore < 1*1000*1000*1000 {
 				klog.C("Service quit too frequenty.")
 			}
@@ -111,26 +112,28 @@ func (s *KService) programRun() {
 	}()
 }
 
+func msbInfoSet() {
+	msbURL = conf.Str("msa/msb/url", "http://172.17.0.1/msb")
+	if url := os.Getenv("MSBURL"); url != "" {
+		msbURL = url
+	}
+}
+
 func (s *KService) regLoop() {
 	waitOK := time.Duration(conf.Int("msa/msb/regWait/ok", 5))
 	waitNG := time.Duration(conf.Int("msa/msb/regWait/ng", 1))
 
-	msbURL := conf.Str("msa/msb/url", "http://172.17.0.1/msb")
-	if url := os.Getenv("MSBURL"); url != "" {
-		msbURL = url
-	}
-
 	j, _ := json.Marshal(&s)
 	spew.Dump(s)
 
-	msbURL = msbURL + "/service"
-	klog.D("msbURL: %s", msbURL)
+	msRegURL := msbURL + "/service"
+	klog.D("msRegURL: %s", msRegURL)
 	for {
-		_, err := http.Post(msbURL, "application/json", strings.NewReader(string(j)))
+		_, err := http.Post(msRegURL, "application/json", strings.NewReader(string(j)))
 		if err == nil {
 			time.Sleep(time.Second * waitOK)
 		} else {
-			klog.E("%s @%s", err.Error(), msbURL)
+			klog.E("%s @%s", err.Error(), msRegURL)
 			time.Sleep(time.Second * waitNG)
 		}
 	}
@@ -156,9 +159,10 @@ func main() {
 		ProjVersion: conf.Str("msa/build/version", "FIXME"),
 		ProjTime:    conf.Str("msa/build/time", "FIXME"),
 
-		CreatedAt: strconv.FormatInt(time.Now().Unix(), 10),
+		CreatedAt: time.Now().UnixNano(),
 	}
 
+	msbInfoSet()
 	service.programRun()
 	service.regLoop()
 }
