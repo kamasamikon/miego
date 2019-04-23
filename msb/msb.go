@@ -45,8 +45,8 @@ type KService struct {
 	//
 	// Pretty
 	//
-	CreatedWhen string
-	RefreshWhen string
+	CreatedWhen string `json:"createdWhen"`
+	RefreshWhen string `json:"refreshWhen"`
 }
 
 // All the service queue here.
@@ -56,7 +56,12 @@ var mapServices = make(map[string]*KService)
 // Services
 
 func msPretty(s *KService) {
-	// TODO: Fill CreatedWhen and RefreshWhen
+	a := time.Unix(s.CreatedAt/1e9, 0)
+	s.CreatedWhen = a.String()
+
+	now := time.Now().UnixNano()
+	ago := int(now-s.RefreshTime) / 1e9
+	s.RefreshWhen = fmt.Sprintf("%d seconds ago.", ago)
 }
 
 func hashKey(serviceName string, version string, ipAddr string, port int) string {
@@ -278,6 +283,7 @@ func serverGet(c *gin.Context) {
 			continue
 		}
 
+		msPretty(v)
 		services = append(services, v)
 	}
 
