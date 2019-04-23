@@ -148,9 +148,9 @@ func main() {
 	conf.Load("/root/ms/usr.cfg")
 
 	service = &KService{
-		ServiceName: conf.Str("msa/ms/name", "FIXME"),
-		Version:     conf.Str("msa/ms/version", "FIXME"),
-		Desc:        conf.Str("msa/ms/desc", "FIXME"),
+		ServiceName: conf.Str("msa/ms/name", "demo"),
+		Version:     conf.Str("msa/ms/version", "v1"),
+		Desc:        conf.Str("msa/ms/desc", "TODO: FILL DESC."),
 
 		IPAddr: GetOutboundIP(),
 		Port:   int(conf.Int("msa/ms/port", 8888)),
