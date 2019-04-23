@@ -17,7 +17,6 @@ FROM msa
 # <<< User part <<<
 
 COPY ms/ ./ms
-COPY msa.cfg ./ms
 '''
 
 
@@ -107,7 +106,11 @@ def createDockerfile():
 
 def callUserScript():
     try:
-        os.removedirs("ms")
+        cmd = ["rm", "-frv", "ms"]
+        subprocess.run(cmd)
+
+        cmd = ["mkdir", "-p", "ms"]
+        subprocess.run(cmd)
     except:
         pass
 
@@ -121,15 +124,18 @@ def copyMain():
     try:
         cmd = ["cp", "-frv", "main", "ms"]
         subprocess.run(cmd)
+
+        cmd = ["cp", "-frv", "msa.cfg", "ms"]
+        subprocess.run(cmd)
     except:
         pass
 
 def build():
     '''Generate the docker image'''
 
+    callUserScript()
     createMsaCfg()
     createDockerfile()
-    callUserScript()
     copyMain()
 
     cmd = ["sudo", "docker", "build", "-t", _msname, "."]
@@ -155,9 +161,9 @@ def run():
     # Remove old container
     #
     if _kill:
-        cmd = ("sudo", "docker", "exec", container, "saybye")
-        print(">>> ", " ".join(cmd))
-        subprocess.run(cmd)
+        # cmd = ("sudo", "docker", "exec", container, "saybye")
+        # print(">>> ", " ".join(cmd))
+        # subprocess.run(cmd)
 
         cmd = ("sudo", "docker", "rm", "--force", container)
         print(">>> ", " ".join(cmd))
