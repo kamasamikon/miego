@@ -115,15 +115,15 @@ func (s *KService) programRun() {
 }
 
 func msbInfoSet() {
-	msbHost = conf.Str("msa/msb/host", "172.17.0.1")
+	msbHost = conf.Str("msb/host", "172.17.0.1")
 	if ip := os.Getenv("MSBHOST"); ip != "" {
 		msbHost = ip
 	}
 }
 
 func (s *KService) regLoop() {
-	waitOK := time.Duration(conf.Int("msa/msb/regWait/ok", 5))
-	waitNG := time.Duration(conf.Int("msa/msb/regWait/ng", 1))
+	waitOK := time.Duration(conf.Int("msb/regWait/ok", 5))
+	waitNG := time.Duration(conf.Int("msb/regWait/ng", 1))
 
 	j, _ := json.Marshal(&s)
 	spew.Dump(s)
@@ -142,24 +142,24 @@ func (s *KService) regLoop() {
 }
 
 func main() {
-	conf.Load("/root/msa.cfg")
-	conf.Load("/root/usr.cfg")
-	conf.Load("/root/ms/msa.cfg")
-	conf.Load("/root/ms/usr.cfg")
+	conf.Load("./msa.cfg")
+	conf.Load("./usr.cfg")
+	conf.Load("./ms/msa.cfg")
+	conf.Load("./ms/usr.cfg")
 
 	service = &KService{
-		ServiceName: conf.Str("msa/ms/name", "demo"),
-		Version:     conf.Str("msa/ms/version", "v1"),
-		Desc:        conf.Str("msa/ms/desc", "TODO: FILL DESC."),
+		ServiceName: conf.Str("ms/name", "demo"),
+		Version:     conf.Str("ms/version", "v1"),
+		Desc:        conf.Str("ms/desc", "TODO: FILL DESC."),
 
 		IPAddr: GetOutboundIP(),
-		Port:   int(conf.Int("msa/ms/port", 8888)),
+		Port:   int(conf.Int("ms/port", 8888)),
 
 		HostName: hostnameGet(),
 
-		ProjName:    conf.Str("msa/build/dirname", "FIXME"),
-		ProjVersion: conf.Str("msa/build/version", "FIXME"),
-		ProjTime:    conf.Str("msa/build/time", "FIXME"),
+		ProjName:    conf.Str("build/dirname", "FIXME"),
+		ProjVersion: conf.Str("build/version", "FIXME"),
+		ProjTime:    conf.Str("build/time", "FIXME"),
 
 		CreatedAt: time.Now().UnixNano(),
 	}

@@ -11,7 +11,7 @@
 # THIS IS A DEMO
 #
 
-# MS information
+# Must define
 msName=vv
 msVern=v1
 msPort=8888

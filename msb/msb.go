@@ -41,6 +41,12 @@ type KService struct {
 	// Additional part
 	//
 	RefreshTime int64 `json:"refreshTime"`
+
+	//
+	// Pretty
+	//
+	CreatedWhen string
+	RefreshWhen string
 }
 
 // All the service queue here.
@@ -48,6 +54,10 @@ var mapServices = make(map[string]*KService)
 
 /////////////////////////////////////////////////////////////////////////
 // Services
+
+func msPretty(s *KService) {
+	// TODO: Fill CreatedWhen and RefreshWhen
+}
 
 func hashKey(serviceName string, version string, ipAddr string, port int) string {
 	// return: 'msdemo:v1@127.0.0.1:8765'
