@@ -47,6 +47,7 @@ type KService struct {
 	//
 	CreatedWhen string `json:"createdWhen"`
 	RefreshWhen string `json:"refreshWhen"`
+	// URL         string `json:"URL"`
 }
 
 // All the service queue here.
@@ -55,13 +56,17 @@ var mapServices = make(map[string]*KService)
 /////////////////////////////////////////////////////////////////////////
 // Services
 
-func msPretty(s *KService) {
+func msPretty(s *KService, c *gin.Context) {
 	a := time.Unix(s.CreatedAt/1e9, 0)
 	s.CreatedWhen = a.String()
 
 	now := time.Now().UnixNano()
 	ago := int(now-s.RefreshTime) / 1e9
 	s.RefreshWhen = fmt.Sprintf("%d seconds ago.", ago)
+
+	// The request is delivered by proxy, can not get correct host.
+	// URL := c.Request.URL
+	// s.URL = fmt.Sprintf("%s://%s/ms/%s/%s/", URL.Scheme, URL.Host, s.ServiceName, s.Version)
 }
 
 func hashKey(serviceName string, version string, ipAddr string, port int) string {
@@ -283,7 +288,7 @@ func serverGet(c *gin.Context) {
 			continue
 		}
 
-		msPretty(v)
+		msPretty(v, c)
 		services = append(services, v)
 	}
 
