@@ -13,7 +13,7 @@ def serviceNameGet():
     return None
 
 def currentDir():
-    return os.path.split(os.path.realpath(__file__))[0]
+    return os.path.realpath(os.getcwd())
 
 def msbIPAddress():
     cmd = ("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb")
@@ -37,15 +37,23 @@ def dockerKill(name):
     print(" ".join(cmd))
     return subprocess.call(cmd)
 
-name = serviceNameGet()
-pwd = currentDir()
-msbIP = msbIPAddress()
-print("MSBIP: <%s>" % msbIP)
+def main():
+    if "--help" in sys.argv:
+        print("Usage: msahare.py [k:kill] [b:backrun]")
+        return
 
-if "k" in sys.argv:
-    dockerKill(name)
+    name = serviceNameGet()
+    pwd = currentDir()
+    msbIP = msbIPAddress()
+    print("MSBIP: <%s>" % msbIP)
 
-backrun = "b" in sys.argv
+    if "k" in sys.argv:
+        dockerKill(name)
 
-dockerRun(name, pwd, msbIP, backrun)
+    backrun = "b" in sys.argv
+
+    dockerRun(name, pwd, msbIP, backrun)
+
+if __name__ == "__main__":
+    main()
 
