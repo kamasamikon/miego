@@ -11,7 +11,7 @@
 # THIS IS A DEMO
 #
 
-# Must define
+# MS information: Must define
 msName=vv
 msVern=v1
 msPort=8888
@@ -26,7 +26,7 @@ __EOF__
 cat << __EOF__ > userScript
 
 # Make/Build
-CGO_ENABLED=0 go build -ldflags "-w -s" main.go
+CGO_ENABLED=0 go build -o main -ldflags "-w -s" main.go
 
 cp -frv templates ms
 

@@ -4,6 +4,19 @@ import subprocess
 import os
 import sys
 
+
+def saferun(cmd, debug=True):
+    try:
+        if debug:
+            color = 3
+            cmdline = " ".join(cmd)
+            print('\033[1;3{}m{}\033[0m'.format(color, cmdline))
+
+        return subprocess.check_output(cmd).strip().decode("utf-8")
+    except:
+        return None
+
+
 def serviceNameGet():
     with open("msa.cfg", "rt") as f:
         for line in f.readlines():
@@ -16,10 +29,7 @@ def currentDir():
     return os.path.realpath(os.getcwd())
 
 def msbIPAddress():
-    cmd = ("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb")
-    print(" ".join(cmd))
-    return subprocess.check_output(cmd).strip().decode("utf-8")
-
+    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb"))
 
 def dockerRun(name, pwd, msbIP, backrun):
     cmd = ["sudo", "docker", "run", "-it", "--name", name]
@@ -29,13 +39,10 @@ def dockerRun(name, pwd, msbIP, backrun):
     cmd.extend(["-v", "%s:/root/ms" % pwd])
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["msa"])
-    print(" ".join(cmd))
-    return subprocess.call(cmd)
+    return saferun(cmd)
 
 def dockerKill(name):
-    cmd = ("sudo", "docker", "rm", "-f", name)
-    print(" ".join(cmd))
-    return subprocess.call(cmd)
+    saferun(("sudo", "docker", "rm", "-f", name))
 
 def main():
     if "--help" in sys.argv:
@@ -45,7 +52,6 @@ def main():
     name = serviceNameGet()
     pwd = currentDir()
     msbIP = msbIPAddress()
-    print("MSBIP: <%s>" % msbIP)
 
     if "k" in sys.argv:
         dockerKill(name)

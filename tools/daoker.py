@@ -124,7 +124,8 @@ def callUserScript():
 
 def copyMain():
     saferun(["cp", "-frv", "main", "ms"])
-    saferun(["cp", "-frv", "msa.cfg", "ms"])
+    saferun(["cp", "-frvL", "msa.cfg", "ms"])
+    saferun(["cp", "-frvL", "/usr/local/bin/msahere.py", "ms"])
 
 def build():
     '''Generate the docker image'''
