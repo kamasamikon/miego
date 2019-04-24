@@ -104,31 +104,27 @@ def createDockerfile():
     with open("Dockerfile", "w") as f:
         f.write(text)
 
+def saferun(cmd, debug=True):
+    try:
+        if debug:
+            color = 3
+            cmdline = " ".join(cmd)
+            print('\033[1;3{}m{}\033[0m'.format(color, cmdline))
+
+        subprocess.run(cmd)
+        return True
+    except:
+        return False
+
+
 def callUserScript():
-    try:
-        cmd = ["rm", "-frv", "ms"]
-        subprocess.run(cmd)
-
-        cmd = ["mkdir", "-p", "ms"]
-        subprocess.run(cmd)
-    except:
-        pass
-
-    try:
-        cmd = ["sh", "./userScript"]
-        subprocess.run(cmd)
-    except:
-        pass
+    saferun(["rm", "-frv", "ms"])
+    saferun(["mkdir", "-p", "ms"])
+    saferun(["sh", "./userScript"])
 
 def copyMain():
-    try:
-        cmd = ["cp", "-frv", "main", "ms"]
-        subprocess.run(cmd)
-
-        cmd = ["cp", "-frv", "msa.cfg", "ms"]
-        subprocess.run(cmd)
-    except:
-        pass
+    saferun(["cp", "-frv", "main", "ms"])
+    saferun(["cp", "-frv", "msa.cfg", "ms"])
 
 def build():
     '''Generate the docker image'''
@@ -143,8 +139,7 @@ def build():
         segs = shlex.split(e)
         cmd.extend(segs)
 
-    print(">>> ", " ".join(cmd))
-    subprocess.run(cmd)
+    saferun(cmd)
 
 
 def run():
@@ -161,13 +156,7 @@ def run():
     # Remove old container
     #
     if _kill:
-        # cmd = ("sudo", "docker", "exec", container, "saybye")
-        # print(">>> ", " ".join(cmd))
-        # subprocess.run(cmd)
-
-        cmd = ("sudo", "docker", "rm", "--force", container)
-        print(">>> ", " ".join(cmd))
-        subprocess.run(cmd)
+        saferun(("sudo", "docker", "rm", "--force", container))
 
     #
     # Run container
@@ -203,40 +192,39 @@ def run():
 
     cmd.extend(("-e", "MSBHOST=%s" % msbip))
     cmd.append("%s:latest" % _msname)
-    print(">>> ", " ".join(cmd))
-    subprocess.run(cmd)
+    saferun(cmd)
 
 
 @click.command()
 
 # Run
-@click.option('--foreground', '-f', is_flag=True, help="Run docker foreground.")
-@click.option('--container', '-c', help="Container name, default is demo.")
-@click.option('--sharemode', '-s', is_flag=True, help="-v PWD/ms:/root/ms.")
-@click.option('--appendmode', '-a', is_flag=True, help="New contaner.")
-@click.option('--kill', '-k', is_flag=True, type=bool, default=False, help="Kill old container.")
+@click.option('--foreground', '-f', is_flag=True, help="(False):   Run docker foreground.")
+@click.option('--container', '-c', help="($msName): Container name.")
+@click.option('--sharemode', '-s', is_flag=True, help="(False):   -v PWD/ms:/root/ms.")
+@click.option('--appendmode', '-a', is_flag=True, help="(False):   New contaner.")
+@click.option('--kill', '-k', is_flag=True, type=bool, default=False, help="(False):   Kill old container.")
 
 # Service
-@click.option('--msname', '-n', help="Service Name.")
-@click.option('--msvern', '-v', help="Service Version.")
-@click.option('--msport', '-p', help="Service Port.")
-@click.option('--msdesc', '-d', help="Service Description.")
+@click.option('--msname', '-n', help="(demo):    Service Name.")
+@click.option('--msvern', '-v', help="(v1):      Service Version.")
+@click.option('--msport', '-p', help="(8888):    Service Port.")
+@click.option('--msdesc', '-d', help="(null):    Service Description.")
 
 # Dockerfile
-@click.option('--dfuser', '-D', help="Commands in Dockerfile.")
+@click.option('--dfuser', '-D', help="(null):    Commands in Dockerfile.")
 
 # MSB
-@click.option('--msbname', '-m', help="MSB container name. Default is 'msb'.")
-@click.option('--msbip', '-i', help="MSB ip address.")
+@click.option('--msbname', '-m', help="(msb):     MSB container name")
+@click.option('--msbip', '-i', help="(byGuess): MSB ip address.")
 
 # Docker environ
-@click.option('--env', '-e', help="environ passed to docker.", multiple=True)
+@click.option('--env', '-e', help="(null):    Environ passed to docker.", multiple=True)
 
 # build or run
 @click.argument('cmds', nargs=-1)
 
 # extra docker options
-@click.option('--extra', '-x', help="extra docker options.", multiple=True)
+@click.option('--extra', '-x', help="(null):    extra docker options.", multiple=True)
 
 def main(foreground, container, sharemode, appendmode, kill,
         msname, msvern, msport, msdesc, dfuser,
@@ -244,6 +232,7 @@ def main(foreground, container, sharemode, appendmode, kill,
         env,
         extra,
         cmds):
+    '''CMDS: build|b=build, run|r=run.'''
 
 
     #
