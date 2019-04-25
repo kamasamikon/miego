@@ -29,7 +29,7 @@ def dockerRun(name, msbIP, backrun):
         cmd.extend(["-d"])
     cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % name])
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
-    cmd.extend(["msa"])
+    cmd.extend([name])
     return saferun(cmd)
 
 def dockerKill(name):
@@ -37,16 +37,16 @@ def dockerKill(name):
 
 def main():
     if "--help" in sys.argv:
-        print("Usage: msahare.py [k:kill] [b:backrun]")
+        print("Usage: mscontainer.py imageName [-k:kill] [-b:backrun]")
         return
 
     name = sys.argv[1]
     msbIP = msbIPAddress()
 
-    if "k" in sys.argv:
+    if "-k" in sys.argv:
         dockerKill(name)
 
-    backrun = "b" in sys.argv
+    backrun = "-b" in sys.argv
 
     dockerRun(name, msbIP, backrun)
 
