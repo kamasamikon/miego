@@ -46,17 +46,22 @@ def dockerKill(name):
 
 def main():
     if "--help" in sys.argv:
-        print("Usage: msahare.py [k:kill] [b:backrun]")
+        print("1. Fetch the MSB's IPAddress and set to the container")
+        print("2. Get the container name from ./msa.cfg")
+        print("3. Share current directory to container's /root/ms")
+        print("4. Run the docker container")
+        print("Usage: msahere.py [-k:kill] [-b:backrun]")
         return
 
     name = serviceNameGet()
     pwd = currentDir()
     msbIP = msbIPAddress()
 
-    if "k" in sys.argv:
-        dockerKill(name)
+    backrun = "-b" in sys.argv
+    killold = "-k" in sys.argv
 
-    backrun = "b" in sys.argv
+    if killold:
+        dockerKill(name)
 
     dockerRun(name, pwd, msbIP, backrun)
 
