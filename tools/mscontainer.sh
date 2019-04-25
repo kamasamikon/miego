@@ -36,7 +36,9 @@ def dockerKill(name):
     saferun(("sudo", "docker", "rm", "-f", name))
 
 def main():
-    if "--help" in sys.argv:
+    if len(sys.argv) == 1 or "--help" in sys.argv:
+        print("Directly run msa services from the image.")
+        print("It fetch the MSB's IPAddress and set to the container")
         print("Usage: mscontainer.py [-k:kill] [-b:backrun] imageNames ...")
         return
 
