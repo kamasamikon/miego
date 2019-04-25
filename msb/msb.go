@@ -58,7 +58,7 @@ var mapServices = make(map[string]*KService)
 
 func msPretty(s *KService, c *gin.Context) {
 	a := time.Unix(s.CreatedAt/1e9, 0)
-	s.CreatedWhen = a.String()
+	s.CreatedWhen = a.Format("2006/01/02 15:04:05")
 
 	now := time.Now().UnixNano()
 	ago := int(now-s.RefreshTime) / 1e9
