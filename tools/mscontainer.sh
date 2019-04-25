@@ -46,6 +46,8 @@ def main():
     killold = "-k" in sys.argv
 
     for name in sys.argv[1:]:
+        if name[0] == "-":
+            continue
         if killold:
             dockerKill(name)
         dockerRun(name, msbIP, backrun)
