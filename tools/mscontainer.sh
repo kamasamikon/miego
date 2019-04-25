@@ -37,18 +37,18 @@ def dockerKill(name):
 
 def main():
     if "--help" in sys.argv:
-        print("Usage: mscontainer.py imageName [-k:kill] [-b:backrun]")
+        print("Usage: mscontainer.py [-k:kill] [-b:backrun] imageNames ...")
         return
 
-    name = sys.argv[1]
     msbIP = msbIPAddress()
 
-    if "-k" in sys.argv:
-        dockerKill(name)
-
     backrun = "-b" in sys.argv
+    killold = "-k" in sys.argv
 
-    dockerRun(name, msbIP, backrun)
+    for name in sys.argv[1:]:
+        if killold:
+            dockerKill(name)
+        dockerRun(name, msbIP, backrun)
 
 if __name__ == "__main__":
     main()

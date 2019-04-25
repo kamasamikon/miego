@@ -27,6 +27,7 @@ func New(debug bool) *gin.Engine {
 			md, err := ioutil.ReadFile("README.md")
 			if err != nil {
 				c.String(200, err.Error())
+				return
 			}
 
 			head := []byte(`
@@ -40,18 +41,16 @@ func New(debug bool) *gin.Engine {
 
 <body>
 `)
+			c.Data(200, binding.MIMEHTML, head)
+
+			body := markdown.ToHTML(md, nil, renderer)
+			c.Data(200, binding.MIMEHTML, body)
 
 			foot := []byte(`
 </body>
 </html>
 `)
-			html := markdown.ToHTML(md, nil, renderer)
-
-			page := head
-			page = append(page, html...)
-			page = append(page, foot...)
-
-			c.Data(200, binding.MIMEHTML, page)
+			c.Data(200, binding.MIMEHTML, foot)
 		})
 	} else {
 		gin.SetMode(gin.ReleaseMode)
