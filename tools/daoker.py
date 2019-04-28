@@ -142,6 +142,8 @@ def build():
 
     saferun(cmd)
 
+def msbDockerGateway():
+    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.Gateway }}", "msb"))
 
 def run():
     '''Run docker image'''
@@ -192,6 +194,7 @@ def run():
         cmd.extend(("-v", os.getcwd() + "/ms:/root/ms"))
 
     cmd.extend(("-e", "MSBHOST=%s" % msbip))
+    cmd.extend(("-e", "DOCKER_GATEWAY=%s" % msbDockerGateway()))
     cmd.append("%s:latest" % _msname)
     saferun(cmd)
 
