@@ -11,6 +11,12 @@ import (
 	"github.com/gomarkdown/markdown/html"
 )
 
+type KRouter struct {
+	Method  string
+	Path    string
+	Handler string
+}
+
 func New(debug bool) *gin.Engine {
 	g := gin.New()
 
@@ -35,8 +41,15 @@ func New(debug bool) *gin.Engine {
 		gin.SetMode(gin.DebugMode)
 
 		g.GET("/debug/routers", func(c *gin.Context) {
-			x := g.Routes()
-			if data, err := json.MarshalIndent(x, "", "    "); err == nil {
+			var routers []KRouter
+			for _, x := range g.Routes() {
+				routers = append(routers, KRouter{
+					Method:  x.Method,
+					Path:    x.Path,
+					Handler: x.Handler,
+				})
+			}
+			if data, err := json.MarshalIndent(routers, "", "  "); err == nil {
 				c.Data(200, binding.MIMEHTML, head)
 				c.Data(200, binding.MIMEHTML, []byte("<pre>"))
 				c.Data(200, binding.MIMEHTML, data)
@@ -46,6 +59,7 @@ func New(debug bool) *gin.Engine {
 				c.JSON(200, g.Routes())
 			}
 		})
+
 		g.GET("/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
 			opts := html.RendererOptions{Flags: htmlFlags}
