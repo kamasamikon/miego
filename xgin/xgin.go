@@ -1,6 +1,7 @@
 package xgin
 
 import (
+	"encoding/json"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +14,37 @@ import (
 func New(debug bool) *gin.Engine {
 	g := gin.New()
 
+	head := []byte(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>README</title>
+</head>
+
+<body>
+`)
+
+	foot := []byte(`
+</body>
+</html>
+`)
+
 	if debug {
 		gin.SetMode(gin.DebugMode)
 
 		g.GET("/debug/routers", func(c *gin.Context) {
-			c.JSON(200, g.Routes())
+			x := g.Routes()
+			if data, err := json.MarshalIndent(x, "", "    "); err == nil {
+				c.Data(200, binding.MIMEHTML, head)
+				c.Data(200, binding.MIMEHTML, []byte("<pre>"))
+				c.Data(200, binding.MIMEHTML, data)
+				c.Data(200, binding.MIMEHTML, []byte("</pre>"))
+				c.Data(200, binding.MIMEHTML, foot)
+			} else {
+				c.JSON(200, g.Routes())
+			}
 		})
 		g.GET("/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
@@ -30,26 +57,11 @@ func New(debug bool) *gin.Engine {
 				return
 			}
 
-			head := []byte(`
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>README</title>
-</head>
-
-<body>
-`)
 			c.Data(200, binding.MIMEHTML, head)
 
 			body := markdown.ToHTML(md, nil, renderer)
 			c.Data(200, binding.MIMEHTML, body)
 
-			foot := []byte(`
-</body>
-</html>
-`)
 			c.Data(200, binding.MIMEHTML, foot)
 		})
 	} else {
