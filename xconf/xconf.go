@@ -2,10 +2,18 @@ package xconf
 
 import (
 	"github.com/kamasamikon/miego/conf"
+	"github.com/kamasamikon/miego/klog"
 )
 
 func init() {
-	conf.Load("./msa.cfg")
-	conf.Load("./main.cfg")
-	conf.Load("/tmp/conf/main.cfg")
+	files := []string{
+		"./msa.cfg",
+		"./main.cfg",
+		"/tmp/conf/main.cfg",
+	}
+	for _, f := range files {
+		if err := conf.Load(f); err != nil {
+			klog.E(err.Error())
+		}
+	}
 }
