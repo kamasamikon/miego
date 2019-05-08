@@ -99,7 +99,7 @@ func (s *KService) programRun() {
 			// cmd.Stdout = &out
 			cmd.Stdout = os.Stdout
 
-			klog.D("RUN /ms/main")
+			klog.D("RUN: /ms/main, URL: http://%s/ms/%s/%s", msbHost, s.ServiceName, s.Version)
 			err := cmd.Run()
 			if err != nil {
 				klog.E("Command finished with error: %s", err.Error())
@@ -129,7 +129,6 @@ func (s *KService) regLoop() {
 	spew.Dump(s)
 
 	msRegURL := "http://" + msbHost + "/msb/service"
-	klog.D("msRegURL: %s", msRegURL)
 	for {
 		_, err := http.Post(msRegURL, "application/json", strings.NewReader(string(j)))
 		if err == nil {
