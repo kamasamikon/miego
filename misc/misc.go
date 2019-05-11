@@ -78,7 +78,7 @@ func MemConsume() {
 	fmt.Printf("%.3f KB\n", float64(after-before)/goroutineNum/1000)
 }
 
-const ctJSON = "application/json;charset=utf-8"
+const MIMEJSON = "application/json;charset=utf-8"
 
 func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 	var pingString string
@@ -98,7 +98,7 @@ func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 	}
 	klog.D(pingString)
 
-	r, eb := http.Post(url, ctJSON, strings.NewReader(pingString))
+	r, eb := http.Post(url, MIMEJSON, strings.NewReader(pingString))
 	if eb != nil {
 		klog.E(eb.Error())
 		return eb
