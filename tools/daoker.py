@@ -67,8 +67,7 @@ def isUpdated():
 
 def getMsbIp(msbName=None):
     msbName = msbName or "msb"
-    cmd = ("sudo", "docker", "inspect",
-            "--format", '{{ .NetworkSettings.IPAddress }}', msbName)
+    cmd = ("sudo", "docker", "inspect", "--format", '{{ .NetworkSettings.IPAddress }}', msbName)
     print(">>> ", " ".join(cmd))
     return subprocess.check_output(cmd).strip().decode("utf-8")
 
@@ -142,8 +141,10 @@ def build():
 
     saferun(cmd)
 
-def msbDockerGateway():
-    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.Gateway }}", "msb"))
+def dockerGateway():
+    cmd = ("sudo", "docker", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
+    print(">>> ", " ".join(cmd))
+    return subprocess.check_output(cmd).strip().decode("utf-8")
 
 def run():
     '''Run docker image'''
@@ -194,7 +195,7 @@ def run():
         cmd.extend(("-v", os.getcwd() + "/ms:/root/ms"))
 
     cmd.extend(("-e", "MSBHOST=%s" % msbip))
-    cmd.extend(("-e", "DOCKER_GATEWAY=%s" % msbDockerGateway()))
+    cmd.extend(("-e", "DOCKER_GATEWAY=%s" % dockerGateway()))
     cmd.append("%s:latest" % _msname)
     saferun(cmd)
 
