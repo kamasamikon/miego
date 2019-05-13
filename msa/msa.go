@@ -88,6 +88,7 @@ func (s *KService) programRun() {
 
 			cmd := exec.Command(exePath)
 			cmd.Dir = workDir
+			cmd.Env = os.Environ()
 			cmd.Env = append(cmd.Env, "MS_NAME="+s.ServiceName)
 			cmd.Env = append(cmd.Env, "MS_VERSION="+s.Version)
 			cmd.Env = append(cmd.Env, "MS_DESC="+s.Desc)
