@@ -24,11 +24,11 @@ def msbIPAddress():
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb"))
 
 def dockerGateway():
-    cmd = ("sudo", "docker", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
+    cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
 
 def dockerRun(name, msbIP, backrun):
-    cmd = ["sudo", "docker", "run", "-it", "--name", name]
+    cmd = ["sudo", "docker", "run", "-it", "--restart=always", "--name", name]
     if backrun:
         cmd.extend(["-d"])
     cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % name])
