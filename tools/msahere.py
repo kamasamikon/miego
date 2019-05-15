@@ -31,6 +31,10 @@ def currentDir():
 def msbIPAddress():
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb"))
 
+def dockerGateway():
+    cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
+    return saferun(cmd)
+
 def dockerRun(name, pwd, msbIP, backrun):
     cmd = ["sudo", "docker", "run", "-it", "--name", name]
     if backrun:
@@ -38,6 +42,7 @@ def dockerRun(name, pwd, msbIP, backrun):
     cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % name])
     cmd.extend(["-v", "%s:/root/ms" % pwd])
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
+    cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
     cmd.extend(["msa"])
     return saferun(cmd)
 

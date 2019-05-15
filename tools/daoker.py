@@ -123,9 +123,16 @@ def callUserScript():
 
 def copyMain():
     saferun(["cp", "-frv", "main", "ms"])
+
+    saferun(["touch", "msa.cfg"])
     saferun(["cp", "-frvL", "msa.cfg", "ms"])
+
+    saferun(["touch", "main.cfg"])
     saferun(["cp", "-frvL", "main.cfg", "ms"])
+
+    saferun(["touch", "README.md"])
     saferun(["cp", "-frvL", "README.md", "ms"])
+
     saferun(["cp", "-frvL", "/usr/local/bin/msahere.py", "ms"])
 
 def build():
