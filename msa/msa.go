@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
 
@@ -71,14 +72,11 @@ func exists(path string) bool {
 }
 
 func (s *KService) programRun() {
-	var exePath string
-	var workDir string
+	exePath := conf.Str("ms/exe", "/root/ms/main")
+	workDir := path.Dir(exePath)
 
-	if exists("/root/ms/main") {
-		exePath = "/root/ms/main"
-		workDir = "/root/ms"
-	} else {
-		klog.F("BAD SERVICE. /root/ms/main not found.")
+	if !exists(exePath) {
+		klog.F("BAD SERVICE. %s not found.", exePath)
 		return
 	}
 
