@@ -78,6 +78,16 @@ func MemConsume() {
 	fmt.Printf("%.3f KB\n", float64(after-before)/goroutineNum/1000)
 }
 
+// Excel Position: Excel Line position (A .... AZ .... BC) to index
+func epos(s string) int {
+	old := 0
+	for _, c := range s {
+		n := c - 'a' + 1
+		old = old*26 + int(n)
+	}
+	return old - 1
+}
+
 const MIMEJSON = "application/json;charset=utf-8"
 
 func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
