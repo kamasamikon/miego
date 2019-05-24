@@ -113,6 +113,8 @@ func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 		klog.E(eb.Error())
 		return eb
 	}
+	defer r.Body.Close()
+
 	if r.StatusCode != 200 {
 		klog.E("%d", r.StatusCode)
 		return errors.New(fmt.Sprintf("StatusCode == %d", r.StatusCode))
@@ -130,6 +132,8 @@ func HTTPGet(url string, pongObj interface{}) error {
 		klog.E(eb.Error())
 		return eb
 	}
+	defer r.Body.Close()
+
 	if r.StatusCode != 200 {
 		klog.E("%d", r.StatusCode)
 		return errors.New(fmt.Sprintf("StatusCode == %d", r.StatusCode))

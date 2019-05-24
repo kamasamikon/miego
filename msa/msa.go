@@ -81,31 +81,33 @@ func (s *KService) programRun() {
 	}
 
 	go func() {
+		//
+		// Prepare
+		//
+		cmd := exec.Command(exePath)
+		cmd.Dir = workDir
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "MS_NAME="+s.ServiceName)
+		cmd.Env = append(cmd.Env, "MS_VERSION="+s.Version)
+		cmd.Env = append(cmd.Env, "MS_DESC="+s.Desc)
+
+		// in := bytes.NewBuffer(nil)
+		// cmd.Stdin = in
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stdout
+
+		klog.D("cmd: %s", spew.Sdump(cmd))
+
 		for {
 			nsBefore := time.Now().UnixNano()
 
-			cmd := exec.Command(exePath)
-			cmd.Dir = workDir
-			cmd.Env = os.Environ()
-			cmd.Env = append(cmd.Env, "MS_NAME="+s.ServiceName)
-			cmd.Env = append(cmd.Env, "MS_VERSION="+s.Version)
-			cmd.Env = append(cmd.Env, "MS_DESC="+s.Desc)
-
-			// in := bytes.NewBuffer(nil)
-			// cmd.Stdin = in
-			cmd.Stdin = os.Stdin
-
-			// XXX: Not save to buffer, because the output maybe too long.
-			// var out bytes.Buffer
-			// cmd.Stdout = &out
-			cmd.Stdout = os.Stdout
-
-			klog.D("RUN: /ms/main, URL: http://%s/ms/%s/%s", msbHost, s.ServiceName, s.Version)
+			klog.D("SERVICE RUN: %s, URL: http://%s/ms/%s/%s", exePath, msbHost, s.ServiceName, s.Version)
 			err := cmd.Run()
 			if err != nil {
-				klog.E("Command finished with error: %s", err.Error())
+				klog.E("SERVICE ERROR: %s", err.Error())
 			}
-			klog.D("Normal exit, but it will be restarted now.")
+			klog.D("SERVICE NORMAL EXIT, RESTART NOW.")
 
 			nsAfter := time.Now().UnixNano()
 			if nsAfter-nsBefore < 1*1000*1000*1000 {
@@ -123,11 +125,11 @@ func msbInfoSet() {
 }
 
 func (s *KService) regLoop() {
-	waitOK := time.Duration(conf.Int("msb/regWait/ok", 5))
+	waitOK := time.Duration(conf.Int("msb/regWait/ok", 10))
 	waitNG := time.Duration(conf.Int("msb/regWait/ng", 1))
 
 	j, _ := json.Marshal(&s)
-	spew.Dump(s)
+	klog.D("KService: %s", spew.Sdump(s))
 
 	msRegURL := "http://" + msbHost + "/msb/service"
 	for {
