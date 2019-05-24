@@ -131,8 +131,10 @@ func (s *KService) regLoop() {
 
 	msRegURL := "http://" + msbHost + "/msb/service"
 	for {
-		_, err := http.Post(msRegURL, "application/json", strings.NewReader(string(j)))
+		r := strings.NewReader(string(j))
+		resp, err := http.Post(msRegURL, "application/json", r)
 		if err == nil {
+			resp.Body.Close()
 			time.Sleep(time.Second * waitOK)
 		} else {
 			klog.E("%s @%s", err.Error(), msRegURL)

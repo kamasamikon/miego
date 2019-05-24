@@ -79,7 +79,7 @@ func MemConsume() {
 }
 
 // Excel Position: Excel Line position (A .... AZ .... BC) to index
-func epos(s string) int {
+func Epos(s string) int {
 	old := 0
 	for _, c := range s {
 		n := c - 'a' + 1
