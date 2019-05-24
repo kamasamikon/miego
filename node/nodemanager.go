@@ -222,7 +222,7 @@ func (nm *KNodeManager) Run() {
 var NodeManager *KNodeManager
 
 func init() {
-	spew.Config = spew.ConfigState{Indent: "    "}
+	spew.Config.Indent = "\t"
 
 	NodeManager = new(KNodeManager)
 	NodeManager.followMap = make(map[uint][]*KNode)
