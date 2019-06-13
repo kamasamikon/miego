@@ -2,7 +2,6 @@ package idcard
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 )
