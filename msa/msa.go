@@ -80,6 +80,9 @@ func (s *KService) programRun() {
 		return
 	}
 
+	waitOK := time.Duration(conf.Int("ms/relaunch/ok", 1))
+	waitNG := time.Duration(conf.Int("ms/relaunch/ng", 1))
+
 	go func() {
 		//
 		// Prepare
@@ -105,13 +108,16 @@ func (s *KService) programRun() {
 			klog.D("SERVICE RUN: %s, URL: http://%s/ms/%s/%s", exePath, msbHost, s.ServiceName, s.Version)
 			err := cmd.Run()
 			if err != nil {
-				klog.E("SERVICE ERROR: %s", err.Error())
-			}
-			klog.D("SERVICE NORMAL EXIT, RESTART NOW.")
+				klog.E("SERVICE ERROR EXIT: %s", err.Error())
+				time.Sleep(time.Second * waitNG)
+			} else {
+				nsAfter := time.Now().UnixNano()
 
-			nsAfter := time.Now().UnixNano()
-			if nsAfter-nsBefore < 1*1000*1000*1000 {
-				klog.C("Service quit too frequenty.")
+				klog.D("SERVICE NORMAL EXIT: RESTART NOW.")
+				if nsAfter-nsBefore < 1*1000*1000*1000 {
+					klog.C("Service quit too frequenty.")
+				}
+				time.Sleep(time.Second * waitOK)
 			}
 		}
 	}()
