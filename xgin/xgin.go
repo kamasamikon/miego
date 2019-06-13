@@ -18,7 +18,7 @@ type KRouter struct {
 }
 
 func New(debug bool) *gin.Engine {
-	g := gin.New()
+	g := gin.Default()
 
 	head := []byte(`
 <!DOCTYPE html>
