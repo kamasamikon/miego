@@ -28,7 +28,16 @@ def dockerGateway():
     return saferun(cmd)
 
 def dockerRun(name, msbIP, backrun):
-    cmd = ["sudo", "docker", "run", "-it", "--restart=always", "--name", name]
+    cmd = [
+            "sudo", 
+            "docker", 
+            "run", 
+            "-it", 
+            "--restart=always", 
+            "--log-opt", "max-size=2m",
+            "--log-opt", "max-file=5",
+            "--name", name,
+            ]
     if backrun:
         cmd.extend(["-d"])
     cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % name])

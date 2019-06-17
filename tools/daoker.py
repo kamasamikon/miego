@@ -69,7 +69,10 @@ def getMsbIp(msbName=None):
     msbName = msbName or "msb"
     cmd = ("sudo", "docker", "inspect", "--format", '{{ .NetworkSettings.IPAddress }}', msbName)
     print(">>> ", " ".join(cmd))
-    return subprocess.check_output(cmd).strip().decode("utf-8")
+    try:
+        return subprocess.check_output(cmd).strip().decode("utf-8")
+    except:
+        return ""
 
 
 def createMsaCfg():
@@ -188,7 +191,17 @@ def run():
         print(container)
 
     # -v: ms: conf.Load("/tmp/conf/main.cfg")
-    cmd = ["sudo", "docker", "run", "-it", "--restart=always", "--name", container, "-v", "/tmp/.conf.%s:/tmp/conf" % container]
+    cmd = [
+            "sudo",
+            "docker",
+            "run",
+            "-it",
+            "--restart=always",
+            "--log-opt", "max-size=2m",
+            "--log-opt", "max-file=5",
+            "--name", container,
+            "-v", "/tmp/.conf.%s:/tmp/conf" % container
+            ]
     for e in _env:
         cmd.append("-e")
         cmd.append(e)
