@@ -33,6 +33,9 @@ func klog(color string, class string, formating string, args ...interface{}) {
 		// filename = filepath.Base(filename)
 	}
 
+	// hash: class: time: file, func, line
+	// hash := class + ":" + time
+
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")
 	nowH := now.Nanosecond() / 1000 / 1000 % 1000
