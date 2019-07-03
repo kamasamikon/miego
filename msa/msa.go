@@ -100,8 +100,6 @@ func (s *KService) programRun() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stdout
 
-		klog.D("cmd: %s", spew.Sdump(cmd))
-
 		for {
 			nsBefore := time.Now().UnixNano()
 

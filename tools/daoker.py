@@ -122,7 +122,9 @@ def saferun(cmd, debug=True):
 def callUserScript():
     saferun(["rm", "-frv", "ms"])
     saferun(["mkdir", "-p", "ms"])
-    saferun(["sh", "./userScript"])
+    x = subprocess.run(["sh", "-e", "-u", "./userScript"])
+    if x.returncode != 0:
+        sys.exit(x.returncode)
 
 def copyMain():
     saferun(["cp", "-frv", "main", "ms"])
