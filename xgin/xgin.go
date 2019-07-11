@@ -9,6 +9,9 @@ import (
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
+
+	"github.com/kamasamikon/miego/conf"
+	_ "github.com/kamasamikon/miego/xconf"
 )
 
 type KRouter struct {
@@ -17,10 +20,7 @@ type KRouter struct {
 	Handler string
 }
 
-func New(debug bool) *gin.Engine {
-	g := gin.Default()
-
-	head := []byte(`
+var htmlHead []byte = []byte(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -28,21 +28,29 @@ func New(debug bool) *gin.Engine {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>README</title>
 </head>
-
 <body>
 `)
 
-	foot := []byte(`
+var htmlFoot []byte = []byte(`
 </body>
 </html>
 `)
 
-	if debug {
-		gin.SetMode(gin.DebugMode)
+var Engine *gin.Engine
 
-		g.GET("/debug/routers", func(c *gin.Context) {
+func init() {
+	if conf.Int("gin/releaseMode", 0) == 1 {
+		Engine = gin.New()
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		Engine = gin.Default()
+		gin.SetMode(gin.DebugMode)
+	}
+
+	if conf.Int("gin/debug/routers", 1) == 1 {
+		Engine.GET("/debug/routers", func(c *gin.Context) {
 			var routers []KRouter
-			for _, x := range g.Routes() {
+			for _, x := range Engine.Routes() {
 				routers = append(routers, KRouter{
 					Method:  x.Method,
 					Path:    x.Path,
@@ -50,17 +58,19 @@ func New(debug bool) *gin.Engine {
 				})
 			}
 			if data, err := json.MarshalIndent(routers, "", "  "); err == nil {
-				c.Data(200, binding.MIMEHTML, head)
+				c.Data(200, binding.MIMEHTML, htmlHead)
 				c.Data(200, binding.MIMEHTML, []byte("<pre>"))
 				c.Data(200, binding.MIMEHTML, data)
 				c.Data(200, binding.MIMEHTML, []byte("</pre>"))
-				c.Data(200, binding.MIMEHTML, foot)
+				c.Data(200, binding.MIMEHTML, htmlFoot)
 			} else {
-				c.JSON(200, g.Routes())
+				c.JSON(200, Engine.Routes())
 			}
 		})
+	}
 
-		g.GET("/debug/readme", func(c *gin.Context) {
+	if conf.Int("gin/debug/readme", 1) == 1 {
+		Engine.GET("/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
 			opts := html.RendererOptions{Flags: htmlFlags}
 			renderer := html.NewRenderer(opts)
@@ -71,50 +81,12 @@ func New(debug bool) *gin.Engine {
 				return
 			}
 
-			c.Data(200, binding.MIMEHTML, head)
+			c.Data(200, binding.MIMEHTML, htmlHead)
 
 			body := markdown.ToHTML(md, nil, renderer)
 			c.Data(200, binding.MIMEHTML, body)
 
-			c.Data(200, binding.MIMEHTML, foot)
+			c.Data(200, binding.MIMEHTML, htmlFoot)
 		})
-	} else {
-		gin.SetMode(gin.ReleaseMode)
 	}
-
-	return g
-}
-
-// http://xion.io/post/code/go-decorated-functions.html
-//
-// r.POST("/v1/login", Decorator(CheckAuth, CheckToken, Login))
-//
-// func CheckToken(h gin.HandlerFunc) gin.HandlerFunc {
-//     return func(c *gin.Context) {
-//         header := c.Request.Header.Get("token")
-//         if header == "" {
-//             c.JSON(200, gin.H{
-//                 "code":   3,
-//                 "result": "failed",
-//                 "msg":    ". Missing token",
-//             })
-//             return
-//         }
-//         h(c)
-//     }
-// }
-//
-// func Login(c *gin.Context) {
-//     c.JSON(200, gin.H{
-//         "code":   0,
-//         "result": "success",
-//         "msg":    "验证成功",
-//     })
-// }
-func Decorator(h gin.HandlerFunc, decors ...func(gin.HandlerFunc) gin.HandlerFunc) gin.HandlerFunc {
-	for i := range decors {
-		d := decors[len(decors)-1-i] // iterate in reverse
-		h = d(h)
-	}
-	return h
 }

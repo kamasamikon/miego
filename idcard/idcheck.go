@@ -101,11 +101,20 @@ func (idstring KIDCardString) Parse() (*KIDCardInfo, bool) {
 	}
 
 	// Check date
-	date := string(idstring[6:14])
-	fmt.Println(date)
-	if _, err := time.Parse("20060102", date); err != nil {
+	datestring := string(idstring[6:14])
+	fmt.Println(datestring)
+	if date, err := time.Parse("20060102", datestring); err != nil {
 		fmt.Println(err.Error())
 		return nil, false
+	} else {
+		now := time.Now()
+		yyyy := date.Year()
+		if yyyy > now.Year() {
+			return nil, false
+		}
+		if yyyy < 1900 {
+			return nil, false
+		}
 	}
 
 	// Check whole
