@@ -2,6 +2,7 @@ package xgin
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
@@ -11,16 +12,15 @@ import (
 	"github.com/gomarkdown/markdown/html"
 
 	"github.com/kamasamikon/miego/conf"
-	_ "github.com/kamasamikon/miego/xconf"
 )
 
-type KRouter struct {
+type router struct {
 	Method  string
 	Path    string
 	Handler string
 }
 
-var htmlHead []byte = []byte(`
+var htmlHead = []byte(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,27 +31,37 @@ var htmlHead []byte = []byte(`
 <body>
 `)
 
-var htmlFoot []byte = []byte(`
+var htmlFoot = []byte(`
 </body>
 </html>
 `)
 
-var Engine *gin.Engine
+// Default :Only and default Engine
+var Default *gin.Engine
+
+// Run :Default listening on localhost:8888
+func Run(addr string) {
+	if addr == "" {
+		port := conf.Int(8888, "ms/port")
+		addr = fmt.Sprintf(":%d", port)
+	}
+	Default.Run(addr)
+}
 
 func init() {
-	if conf.Int("gin/releaseMode", 0) == 1 {
-		Engine = gin.New()
+	if conf.Int(0, "gin/releaseMode") == 1 {
+		Default = gin.New()
 		gin.SetMode(gin.ReleaseMode)
 	} else {
-		Engine = gin.Default()
+		Default = gin.Default()
 		gin.SetMode(gin.DebugMode)
 	}
 
-	if conf.Int("gin/debug/routers", 1) == 1 {
-		Engine.GET("/debug/routers", func(c *gin.Context) {
-			var routers []KRouter
-			for _, x := range Engine.Routes() {
-				routers = append(routers, KRouter{
+	if conf.Int(1, "gin/debug/routers") == 1 {
+		Default.GET("/debug/routers", func(c *gin.Context) {
+			var routers []router
+			for _, x := range Default.Routes() {
+				routers = append(routers, router{
 					Method:  x.Method,
 					Path:    x.Path,
 					Handler: x.Handler,
@@ -64,13 +74,13 @@ func init() {
 				c.Data(200, binding.MIMEHTML, []byte("</pre>"))
 				c.Data(200, binding.MIMEHTML, htmlFoot)
 			} else {
-				c.JSON(200, Engine.Routes())
+				c.JSON(200, Default.Routes())
 			}
 		})
 	}
 
-	if conf.Int("gin/debug/readme", 1) == 1 {
-		Engine.GET("/debug/readme", func(c *gin.Context) {
+	if conf.Int(1, "gin/debug/readme") == 1 {
+		Default.GET("/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
 			opts := html.RendererOptions{Flags: htmlFlags}
 			renderer := html.NewRenderer(opts)

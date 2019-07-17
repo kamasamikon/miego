@@ -101,31 +101,37 @@ func Exists(path string) bool {
 }
 
 // Int : get a int typed configure
-func Int(path string, defval int64) int64 {
+func Int(defval int64, paths ...string) int64 {
 	// path: aaa/bbb
-	key := "i:/" + path
-	if v, ok := mapPathEntry[key]; ok {
-		return v.vInt
+	for _, path := range paths {
+		key := "i:/" + path
+		if v, ok := mapPathEntry[key]; ok {
+			return v.vInt
+		}
 	}
 	return defval
 }
 
 // Str : get a str typed configure
-func Str(path string, defval string) string {
+func Str(defval string, paths ...string) string {
 	// path: aaa/bbb
-	key := "s:/" + path
-	if v, ok := mapPathEntry[key]; ok {
-		return v.vStr
+	for _, path := range paths {
+		key := "s:/" + path
+		if v, ok := mapPathEntry[key]; ok {
+			return v.vStr
+		}
 	}
 	return defval
 }
 
 // Bool : get a bool entry
-func Bool(path string, defval bool) bool {
+func Bool(defval bool, paths ...string) bool {
 	// path: aaa/bbb
-	key := "b:/" + path
-	if v, ok := mapPathEntry[key]; ok {
-		return v.vBool
+	for _, path := range paths {
+		key := "b:/" + path
+		if v, ok := mapPathEntry[key]; ok {
+			return v.vBool
+		}
 	}
 	return defval
 }
@@ -208,4 +214,11 @@ func Dump() {
 }
 
 func init() {
+	cfgList := os.Getenv("KCFG_FILES")
+	files := strings.Split(cfgList, ":")
+	for _, f := range files {
+		if err := Load(f); err != nil {
+			klog.E("Load KCFG_FILES Error: %s", err.Error())
+		}
+	}
 }
