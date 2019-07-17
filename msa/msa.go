@@ -72,7 +72,7 @@ func exists(path string) bool {
 }
 
 func (s *KService) programRun() {
-	exePath := conf.Str("ms/exe", "/root/ms/main")
+	exePath := conf.Str("/root/ms/main", "ms/exe")
 	workDir := path.Dir(exePath)
 
 	if !exists(exePath) {
@@ -80,8 +80,8 @@ func (s *KService) programRun() {
 		return
 	}
 
-	waitOK := time.Duration(conf.Int("ms/relaunch/ok", 1))
-	waitNG := time.Duration(conf.Int("ms/relaunch/ng", 1))
+	waitOK := time.Duration(conf.Int(1, "ms/relaunch/ok"))
+	waitNG := time.Duration(conf.Int(1, "ms/relaunch/ng"))
 
 	go func() {
 		//
@@ -122,15 +122,15 @@ func (s *KService) programRun() {
 }
 
 func msbInfoSet() {
-	msbHost = conf.Str("msb/host", "172.17.0.1")
+	msbHost = conf.Str("172.17.0.1", "msb/host")
 	if ip := os.Getenv("MSBHOST"); ip != "" {
 		msbHost = ip
 	}
 }
 
 func (s *KService) regLoop() {
-	waitOK := time.Duration(conf.Int("msb/regWait/ok", 10))
-	waitNG := time.Duration(conf.Int("msb/regWait/ng", 1))
+	waitOK := time.Duration(conf.Int(10, "msb/regWait/ok"))
+	waitNG := time.Duration(conf.Int(1, "msb/regWait/ng"))
 
 	j, _ := json.Marshal(&s)
 	klog.D("KService: %s", spew.Sdump(s))
@@ -156,18 +156,18 @@ func main() {
 	conf.Load("./ms/usr.cfg")
 
 	service = &KService{
-		ServiceName: conf.Str("ms/name", "demo"),
-		Version:     conf.Str("ms/version", "v1"),
-		Desc:        conf.Str("ms/desc", "TODO: FILL DESC."),
+		ServiceName: conf.Str("demo", "ms/name"),
+		Version:     conf.Str("v1", "ms/version"),
+		Desc:        conf.Str("TODO: FILL DESC.", "ms/desc"),
 
 		IPAddr: GetOutboundIP(),
-		Port:   int(conf.Int("ms/port", 8888)),
+		Port:   int(conf.Int(8888, "ms/port")),
 
 		HostName: hostnameGet(),
 
-		ProjName:    conf.Str("build/dirname", "FIXME"),
-		ProjVersion: conf.Str("build/version", "FIXME"),
-		ProjTime:    conf.Str("build/time", "FIXME"),
+		ProjName:    conf.Str("FIXME", "build/dirname"),
+		ProjVersion: conf.Str("FIXME", "build/version"),
+		ProjTime:    conf.Str("FIXME", "build/time"),
 
 		CreatedAt: time.Now().UnixNano(),
 	}
