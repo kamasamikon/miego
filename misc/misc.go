@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -50,6 +51,21 @@ func ReverseBytes(s []byte) []byte {
 	return s
 }
 
+// UintTime is to convert time to 20060102150305
+func UintTime(t time.Time) uint64 {
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+	ss := t.Hour()
+	ff := t.Minute()
+	mm := t.Second()
+
+	s := fmt.Sprintf("%04d%02d%02d%02d%02d%02d", nnnn, yy, rr, ss, ff, mm)
+	res, _ := strconv.ParseUint(s, 0, 64)
+
+	return res
+}
+
 func MemConsume() {
 	var c chan int
 	var wg sync.WaitGroup
@@ -78,7 +94,7 @@ func MemConsume() {
 	fmt.Printf("%.3f KB\n", float64(after-before)/goroutineNum/1000)
 }
 
-// Excel Position: Excel Line position (A .... AZ .... BC) to index
+// Epos convert Excel Position to index, e.g. A .... AZ .... BC to 0, ... 16, ...
 func Epos(s string) int {
 	old := 0
 	for _, c := range s {
@@ -90,6 +106,7 @@ func Epos(s string) int {
 
 const MIMEJSON = "application/json;charset=utf-8"
 
+// HTTPPost post json data to peer and convert the response to pongObj structure
 func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 	var pingString string
 
@@ -117,7 +134,7 @@ func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 
 	if r.StatusCode != 200 {
 		klog.E("%d", r.StatusCode)
-		return errors.New(fmt.Sprintf("StatusCode == %d", r.StatusCode))
+		return fmt.Errorf("StatusCode == %d", r.StatusCode)
 	}
 
 	if pongObj == nil {
@@ -126,6 +143,7 @@ func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 	return json.NewDecoder(r.Body).Decode(pongObj)
 }
 
+// HTTPGet convert the response to pongObj structure
 func HTTPGet(url string, pongObj interface{}) error {
 	r, eb := http.Get(url)
 	if eb != nil {

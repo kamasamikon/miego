@@ -15,14 +15,21 @@ import (
 type confEntry struct {
 	// kind: i:int, s:str
 	// kind: a:arr, b:bool, d:dat(len+dat), e:event, i:int, s:str, p:ptr
-	// path: i:/aaa/bbb
+	//
+	// path: i:/aaa/bbb; b:/xxx/zzz
+	//
 	// vXxx: value for each type
-	kind    byte
-	path    string
-	vInt    int64
-	vStr    string
-	vBool   bool
-	deleted bool
+	//
+	// refGet/refSet: count by Read or Write
+	kind byte
+	path string
+
+	vInt  int64
+	vStr  string
+	vBool bool
+
+	refGet int64
+	refSet int64
 }
 
 // KConfMonitor is a Callback called when wathed entry modified.
@@ -55,13 +62,15 @@ func entryAdd(line string) {
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			e.vInt = vInt
 		}
+
 	case 's':
 		e.vStr = value
+
 	case 'b':
 		// true: 1, t, T
 		// false: 0, f, F
 		x := value[0]
-		if x == '1' || x == 't' || x == 'T' {
+		if x == '1' || x == 't' || x == 'T' || x == 'y' || x == 'Y' {
 			e.vBool = true
 		} else {
 			e.vBool = false
@@ -106,6 +115,7 @@ func Int(defval int64, paths ...string) int64 {
 	for _, path := range paths {
 		key := "i:/" + path
 		if v, ok := mapPathEntry[key]; ok {
+			v.refGet++
 			return v.vInt
 		}
 	}
@@ -118,6 +128,7 @@ func Str(defval string, paths ...string) string {
 	for _, path := range paths {
 		key := "s:/" + path
 		if v, ok := mapPathEntry[key]; ok {
+			v.refGet++
 			return v.vStr
 		}
 	}
@@ -130,6 +141,7 @@ func Bool(defval bool, paths ...string) bool {
 	for _, path := range paths {
 		key := "b:/" + path
 		if v, ok := mapPathEntry[key]; ok {
+			v.refGet++
 			return v.vBool
 		}
 	}
@@ -161,14 +173,20 @@ func Set(path string, value interface{}, force bool) {
 		v := value.(int64)
 		monitorCall(e, e.vInt, v)
 		e.vInt = v
+		e.refSet++
+
 	case 's':
 		v := value.(string)
 		monitorCall(e, e.vStr, v)
 		e.vStr = v
+		e.refSet++
+
 	case 'b':
 		v := value.(bool)
 		monitorCall(e, e.vBool, v)
 		e.vBool = v
+		e.refSet++
+
 	default:
 		klog.E("Bad Kind: %c", kind)
 	}
@@ -204,11 +222,13 @@ func Dump() {
 	for p, v := range mapPathEntry {
 		switch v.kind {
 		case 'i':
-			fmt.Printf("%20s : %c : %d\n", p, v.kind, v.vInt)
+			fmt.Printf("%20s : %c : %d : %d/%d\n", p, v.kind, v.vInt, v.refGet, v.refSet)
+
 		case 's':
-			fmt.Printf("%20s : %c : %s\n", p, v.kind, v.vStr)
+			fmt.Printf("%20s : %c : %s : %d/%d\n", p, v.kind, v.vStr, v.refGet, v.refSet)
+
 		case 'b':
-			fmt.Printf("%20s : %c : %t\n", p, v.kind, v.vBool)
+			fmt.Printf("%20s : %c : %t : %d/%d\n", p, v.kind, v.vBool, v.refGet, v.refSet)
 		}
 	}
 }
@@ -218,7 +238,7 @@ func init() {
 	files := strings.Split(cfgList, ":")
 	for _, f := range files {
 		if err := Load(f); err != nil {
-			klog.E("Load KCFG_FILES Error: %s", err.Error())
+			klog.E("LOAD KCFG_FILES Error: %s", err.Error())
 		}
 	}
 }
