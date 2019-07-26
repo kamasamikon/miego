@@ -1,18 +1,12 @@
 package misc
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"math/rand"
-	"net/http"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
-
-	"github.com/kamasamikon/miego/klog"
 )
 
 const (

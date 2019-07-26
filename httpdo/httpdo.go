@@ -4,13 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
-	"runtime"
-	"strconv"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/kamasamikon/miego/klog"
 )
@@ -18,7 +13,7 @@ import (
 const MIMEJSON = "application/json;charset=utf-8"
 
 // HTTPPost post json data to peer and convert the response to pongObj structure
-func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
+func Post(url string, pingObj interface{}, pongObj interface{}) error {
 	var pingString string
 
 	if pingObj == nil {
@@ -55,7 +50,7 @@ func HTTPPost(url string, pingObj interface{}, pongObj interface{}) error {
 }
 
 // HTTPGet convert the response to pongObj structure
-func HTTPGet(url string, pongObj interface{}) error {
+func Get(url string, pongObj interface{}) error {
 	r, eb := http.Get(url)
 	if eb != nil {
 		klog.E(eb.Error())
