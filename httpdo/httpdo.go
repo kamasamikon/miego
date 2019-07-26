@@ -1,4 +1,4 @@
-package misc
+package httpdo
 
 import (
 	"encoding/json"
