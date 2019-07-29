@@ -48,7 +48,7 @@ def dockerRun(name, msbIP, backrun):
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
     volumeMap = volumeGet(name)
-    if volumeMap:
+    if volumeMap and volumeMap[0] != "<":
         cmd.extend(["-v", volumeMap])
 
     cmd.extend([name])
