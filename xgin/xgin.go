@@ -50,11 +50,11 @@ func Run(addr string) {
 
 func init() {
 	if conf.Int(0, "gin/releaseMode") == 1 {
-		Default = gin.New()
 		gin.SetMode(gin.ReleaseMode)
+		Default = gin.New()
 	} else {
-		Default = gin.Default()
 		gin.SetMode(gin.DebugMode)
+		Default = gin.Default()
 	}
 
 	if conf.Int(1, "gin/debug/routers") == 1 {

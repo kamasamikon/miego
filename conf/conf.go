@@ -241,8 +241,21 @@ func init() {
 	cfgList := os.Getenv("KCFG_FILES")
 	files := strings.Split(cfgList, ":")
 	for _, f := range files {
-		if err := Load(f); err != nil {
-			klog.E("LOAD KCFG_FILES Error: %s", err.Error())
+		if f != "" {
+			if err := Load(f); err != nil {
+				klog.E("LOAD KCFG_FILES Error: %s", err.Error())
+			}
+		}
+	}
+
+	for _, argv := range os.Args {
+		if strings.HasPrefix(argv, "--kfg=") {
+			f := argv[6:]
+			if f != "" {
+				if err := Load(f); err != nil {
+					klog.E("LOAD --kfg=xxx Error: %s", err.Error())
+				}
+			}
 		}
 	}
 }
