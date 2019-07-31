@@ -99,4 +99,10 @@ func init() {
 			c.Data(200, binding.MIMEHTML, htmlFoot)
 		})
 	}
+
+	if conf.Int(1, "gin/debug/conf") == 1 {
+		Default.GET("/debug/conf", func(c *gin.Context) {
+			c.String(200, conf.Dump())
+		})
+	}
 }

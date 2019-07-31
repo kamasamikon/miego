@@ -218,19 +218,23 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 }
 
 // Dump : Print all entries
-func Dump() {
-	for p, v := range mapPathEntry {
+func Dump() string {
+	var lines []string
+
+	for _, v := range mapPathEntry {
 		switch v.kind {
 		case 'i':
-			fmt.Printf("%20s : %c : %d : %d/%d\n", p, v.kind, v.vInt, v.refGet, v.refSet)
+			lines = append(lines, fmt.Sprintf("(I) :(%d/%d) \t:%-20s \t:%d\n", v.refGet, v.refSet, v.path, v.vInt))
 
 		case 's':
-			fmt.Printf("%20s : %c : %s : %d/%d\n", p, v.kind, v.vStr, v.refGet, v.refSet)
+			lines = append(lines, fmt.Sprintf("(S) :(%d/%d) \t:%-20s \t:%s\n", v.refGet, v.refSet, v.path, v.vStr))
 
 		case 'b':
-			fmt.Printf("%20s : %c : %t : %d/%d\n", p, v.kind, v.vBool, v.refGet, v.refSet)
+			lines = append(lines, fmt.Sprintf("(B) :(%d/%d) \t:%-20s \t:%t\n", v.refGet, v.refSet, v.path, v.vBool))
 		}
 	}
+
+	return strings.Join(lines, "\n")
 }
 
 func init() {
