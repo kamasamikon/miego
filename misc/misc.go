@@ -88,6 +88,14 @@ func MemConsume() {
 	fmt.Printf("%.3f KB\n", float64(after-before)/goroutineNum/1000)
 }
 
+func Atoi(a string, def int64) int64 {
+	x, e := strconv.ParseInt(a, 0, 64)
+	if e {
+		return def
+	}
+	return x
+}
+
 // Epos convert Excel Position to index, e.g. A .... AZ .... BC to 0, ... 16, ...
 func Epos(s string) int {
 	old := 0
