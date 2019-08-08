@@ -122,7 +122,7 @@ def saferun(cmd, debug=True):
 def callUserScript():
     saferun(["rm", "-frv", "ms"])
     saferun(["mkdir", "-p", "ms"])
-    x = subprocess.run(["sh", "-e", "-u", "./userScript"])
+    x = subprocess.run(["sh", "-e", "-u", "./.userScript"])
     if x.returncode != 0:
         sys.exit(x.returncode)
 
@@ -239,9 +239,6 @@ def run():
 @click.option('--msport', '-p', help="(8888):    Service Port.")
 @click.option('--msdesc', '-d', help="(null):    Service Description.")
 
-# Dockerfile
-@click.option('--dfuser', '-D', help="(null):    Commands in Dockerfile.")
-
 # MSB
 @click.option('--msbname', '-m', help="(msb):     MSB container name")
 @click.option('--msbip', '-i', help="(byGuess): MSB ip address.")
@@ -256,7 +253,7 @@ def run():
 @click.option('--extra', '-x', help="(null):    extra docker options.", multiple=True)
 
 def main(foreground, container, sharemode, appendmode, kill,
-        msname, msvern, msport, msdesc, dfuser,
+        msname, msvern, msport, msdesc,
         msbname, msbip,
         env,
         extra,
@@ -285,7 +282,10 @@ def main(foreground, container, sharemode, appendmode, kill,
 
     # Dockerfile
     global _dfuser
-    _dfuser = open(dfuser, "r").read() if dfuser else ""
+    try:
+        _dfuser = open(".userDockerCommand", "r").read()
+    except:
+        _dfuser = ""
 
     # MSB
     global _msbname, _msbip
