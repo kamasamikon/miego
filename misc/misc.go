@@ -103,7 +103,7 @@ func MemConsume() {
 // Atoi : atoi, if fail return default value
 func Atoi(a string, def int64) int64 {
 	x, e := strconv.ParseInt(a, 0, 64)
-	if e == nil {
+	if e != nil {
 		return def
 	}
 	return x
