@@ -60,8 +60,39 @@ func UintTime(t time.Time) uint64 {
 	return res
 }
 
+// UintTimeNow : convert time to 20060102150305
+func UintTimeNow() uint64 {
+	t := time.Now()
+
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+	ss := t.Hour()
+	ff := t.Minute()
+	mm := t.Second()
+
+	s := fmt.Sprintf("%04d%02d%02d%02d%02d%02d", nnnn, yy, rr, ss, ff, mm)
+	res, _ := strconv.ParseUint(s, 0, 64)
+
+	return res
+}
+
 // UintDate : convert time to 20060102
 func UintDate(t time.Time) uint {
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+
+	s := fmt.Sprintf("%04d%02d%02d", nnnn, yy, rr)
+	res, _ := strconv.ParseUint(s, 0, 64)
+
+	return uint(res)
+}
+
+// UintDateNow : convert time to 20060102
+func UintDateNow() uint {
+	t := time.Now()
+
 	nnnn := t.Year()
 	yy := t.Month()
 	rr := t.Day()
