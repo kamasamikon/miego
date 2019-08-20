@@ -14,11 +14,12 @@ import (
 	"github.com/kamasamikon/miego/conf"
 )
 
-type router struct {
-	Method  string
-	Path    string
-	Handler string
+type ioInfo struct {
+	Ping interface{}
+	Pong interface{}
 }
+
+var ioInfoDict = make(map[string]*ioInfo)
 
 var htmlHead = []byte(`
 <!DOCTYPE html>
@@ -48,6 +49,24 @@ func Run(addr string) {
 	Default.Run(addr)
 }
 
+// PPSet : Set Helper
+func PPSet(method string, path string, ping interface{}, pong interface{}) {
+	key := fmt.Sprintf("%s@%s", method, path)
+	ioInfoDict[key] = &ioInfo{
+		Ping: ping,
+		Pong: pong,
+	}
+}
+
+// PPGet : Set Helper
+func _PPGet(method string, path string) *ioInfo {
+	key := fmt.Sprintf("%s@%s", method, path)
+	if info, ok := ioInfoDict[key]; ok {
+		return info
+	}
+	return nil
+}
+
 func init() {
 	if conf.Int(0, "gin/releaseMode") == 1 {
 		gin.SetMode(gin.ReleaseMode)
@@ -59,13 +78,28 @@ func init() {
 
 	if conf.Int(1, "gin/debug/routers") == 1 {
 		Default.GET("/debug/routers", func(c *gin.Context) {
-			var routers []router
+			var routers []gin.H
 			for _, x := range Default.Routes() {
-				routers = append(routers, router{
-					Method:  x.Method,
-					Path:    x.Path,
-					Handler: x.Handler,
-				})
+				var ping interface{}
+				var pong interface{}
+				pp := _PPGet(x.Method, x.Path)
+				if pp != nil {
+					ping = pp.Ping
+					pong = pp.Pong
+				}
+
+				r := gin.H{
+					"Method": x.Method,
+					"Path":   x.Path,
+				}
+				if ping != nil {
+					r["Ping"] = ping
+				}
+				if pong != nil {
+					r["Pong"] = pong
+				}
+
+				routers = append(routers, r)
 			}
 			if data, err := json.MarshalIndent(routers, "", "  "); err == nil {
 				c.Data(200, binding.MIMEHTML, htmlHead)

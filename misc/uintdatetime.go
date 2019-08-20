@@ -63,3 +63,20 @@ func UintDateNow() uint {
 
 	return uint(res)
 }
+
+// UintDateStr : convert time to 20060102
+func UintDateStr(date string) uint {
+	t, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return 0
+	}
+
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+
+	s := fmt.Sprintf("%04d%02d%02d", nnnn, yy, rr)
+	res, _ := strconv.ParseUint(s, 0, 64)
+
+	return uint(res)
+}
