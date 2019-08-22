@@ -224,13 +224,13 @@ func Dump() string {
 	for _, v := range mapPathEntry {
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t:%-20s \t:%d", v.refGet, v.refSet, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%d\"", v.refGet, v.refSet, v.path, v.vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t:%-20s \t:%s", v.refGet, v.refSet, v.path, v.vStr))
+			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%s\"", v.refGet, v.refSet, v.path, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t:%-20s \t:%t", v.refGet, v.refSet, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%t\"", v.refGet, v.refSet, v.path, v.vBool))
 		}
 	}
 

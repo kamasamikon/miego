@@ -49,7 +49,11 @@ func Run(addr string) {
 	Default.Run(addr)
 }
 
-// PPSet : Set Helper
+//
+// Set Ping Pong debug information
+//
+
+// PPSet : Set PingPong debug info
 func PPSet(method string, path string, ping interface{}, pong interface{}) {
 	key := fmt.Sprintf("%s@%s", method, path)
 	ioInfoDict[key] = &ioInfo{
@@ -58,7 +62,27 @@ func PPSet(method string, path string, ping interface{}, pong interface{}) {
 	}
 }
 
-// PPGet : Set Helper
+// PPSetPOST : PPSet("POST", ...)
+func PPSetPOST(path string, ping interface{}, pong interface{}) {
+	PPSet("POST", path, ping, pong)
+}
+
+// PPSetGET : PPSet("POST", ...)
+func PPSetGET(path string, ping interface{}, pong interface{}) {
+	PPSet("GET", path, ping, pong)
+}
+
+// PPSetUPDATE : PPSet("POST", ...)
+func PPSetUPDATE(path string, ping interface{}, pong interface{}) {
+	PPSet("UPDATE", path, ping, pong)
+}
+
+// PPSetDELETE : PPSet("POST", ...)
+func PPSetDELETE(path string, ping interface{}, pong interface{}) {
+	PPSet("DELETE", path, ping, pong)
+}
+
+// PPGet : Get PingPong debug info
 func _PPGet(method string, path string) *ioInfo {
 	key := fmt.Sprintf("%s@%s", method, path)
 	if info, ok := ioInfoDict[key]; ok {
@@ -66,6 +90,10 @@ func _PPGet(method string, path string) *ioInfo {
 	}
 	return nil
 }
+
+//
+// Init
+//
 
 func init() {
 	if conf.Int(0, "gin/releaseMode") == 1 {
@@ -101,15 +129,19 @@ func init() {
 
 				routers = append(routers, r)
 			}
-			if data, err := json.MarshalIndent(routers, "", "  "); err == nil {
-				c.Data(200, binding.MIMEHTML, htmlHead)
-				c.Data(200, binding.MIMEHTML, []byte("<pre>"))
-				c.Data(200, binding.MIMEHTML, data)
-				c.Data(200, binding.MIMEHTML, []byte("</pre>"))
-				c.Data(200, binding.MIMEHTML, htmlFoot)
-			} else {
-				c.JSON(200, Default.Routes())
+
+			if c.Query("html") == "1" {
+				if data, err := json.MarshalIndent(routers, "", "  "); err == nil {
+					c.Data(200, binding.MIMEHTML, htmlHead)
+					c.Data(200, binding.MIMEHTML, []byte("<pre>"))
+					c.Data(200, binding.MIMEHTML, data)
+					c.Data(200, binding.MIMEHTML, []byte("</pre>"))
+					c.Data(200, binding.MIMEHTML, htmlFoot)
+					return
+				}
 			}
+
+			c.JSON(200, routers)
 		})
 	}
 

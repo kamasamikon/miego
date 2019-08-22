@@ -21,7 +21,7 @@ func UintTime(t time.Time) uint64 {
 	return res
 }
 
-// UintTimeNow : convert time to 20060102150305
+// UintTimeNow : convert now time to 20060102150305
 func UintTimeNow() uint64 {
 	t := time.Now()
 
@@ -38,7 +38,7 @@ func UintTimeNow() uint64 {
 	return res
 }
 
-// UintDate : convert time to 20060102
+// UintDate : convert date to 20060102
 func UintDate(t time.Time) uint {
 	nnnn := t.Year()
 	yy := t.Month()
@@ -50,7 +50,7 @@ func UintDate(t time.Time) uint {
 	return uint(res)
 }
 
-// UintDateNow : convert time to 20060102
+// UintDateNow : convert now date to 20060102
 func UintDateNow() uint {
 	t := time.Now()
 
