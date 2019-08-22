@@ -22,6 +22,8 @@ type confEntry struct {
 	// vXxx: value for each type
 	//
 	// refGet/refSet: count by Read or Write
+	//
+	// Safe: Not show by dump
 	kind byte
 	path string
 
@@ -31,6 +33,8 @@ type confEntry struct {
 
 	refGet int64
 	refSet int64
+
+	safe bool
 }
 
 // KConfMonitor is a Callback called when wathed entry modified.
@@ -51,35 +55,59 @@ func entryAdd(line string) {
 	}
 
 	path, value := segs[0], segs[1]
-	kind := path[0]
-
-	e := &confEntry{
-		kind: kind,
-		path: path,
+	if path[1] != ':' {
+		return
 	}
 
-	switch kind {
+	e := confEntry{}
+
+	switch path[0] {
 	case 'i':
+		fallthrough
+	case 'I':
+		e.kind = 'i'
+		e.safe = path[0] == 'I'
+		e.path = "i" + path[1:]
+
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			e.vInt = vInt
+		} else {
+			return
 		}
 
 	case 's':
+		fallthrough
+	case 'S':
+		e.kind = 's'
+		e.safe = path[0] == 'S'
+		e.path = "s" + path[1:]
+
 		e.vStr = value
 
 	case 'b':
+		fallthrough
+	case 'B':
+		e.kind = 'b'
+		e.safe = path[0] == 'B'
+		e.path = "b" + path[1:]
+
 		// true: 1, t, T
 		// false: 0, f, F
 		x := value[0]
 		if x == '1' || x == 't' || x == 'T' || x == 'y' || x == 'Y' {
 			e.vBool = true
-		} else {
+		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
 			e.vBool = false
+		} else {
+			return
 		}
+
+	default:
+		return
 	}
 
 	// Simply overwrite the old value.
-	mapPathEntry[path] = e
+	mapPathEntry[e.path] = &e
 }
 
 // Load configure from a file.
@@ -230,6 +258,10 @@ func Dump() string {
 
 	var lines []string
 	for _, v := range cList {
+		if v.safe {
+			continue
+		}
+
 		switch v.kind {
 		case 'i':
 			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%d", v.refGet, v.refSet, v.path, v.vInt))
