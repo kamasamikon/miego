@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -219,20 +220,30 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 
 // Dump : Print all entries
 func Dump() string {
-	var lines []string
-
+	var cList []*confEntry
 	for _, v := range mapPathEntry {
+		cList = append(cList, v)
+	}
+	sort.Slice(cList, func(i int, j int) bool {
+		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
+	})
+
+	var lines []string
+	for _, v := range cList {
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%d\"", v.refGet, v.refSet, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%d", v.refGet, v.refSet, v.path, v.vInt))
 
 		case 's':
 			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%s\"", v.refGet, v.refSet, v.path, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%t\"", v.refGet, v.refSet, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%t", v.refGet, v.refSet, v.path, v.vBool))
 		}
 	}
+
+	// Add the last \n
+	lines = append(lines, "")
 
 	return strings.Join(lines, "\n")
 }
