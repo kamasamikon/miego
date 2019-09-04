@@ -20,6 +20,8 @@ var crI = ansi.ColorCode("green+b:black")
 var crD = ansi.ColorCode("green+h:black")
 var reset = ansi.ColorCode("reset")
 
+var ctrlMap map[string]bool
+
 func klog(color string, class string, formating string, args ...interface{}) {
 
 	filename, line, funcname := "???", 0, "???"
@@ -29,12 +31,16 @@ func klog(color string, class string, formating string, args ...interface{}) {
 		funcname = runtime.FuncForPC(pc).Name()
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
-
-		// filename = filepath.Base(filename)
 	}
 
-	// hash: class: time: file, func, line
-	// hash := class + ":" + time
+	/*
+		{
+			keyA := fmt.Sprintf("%d@%s", line, funcname)
+			keyB := fmt.Sprintf("%d@%s", "*", funcname)
+			keyC := fmt.Sprintf("%d@%s", line, "*")
+			keyD := fmt.Sprintf("%d@%s", "*", "*")
+		}
+	*/
 
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")

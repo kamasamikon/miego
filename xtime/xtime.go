@@ -1,4 +1,4 @@
-package misc
+package xtime
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// UintTime : convert time to 20060102150305
-func UintTime(t time.Time) uint64 {
+// TimeToNum : convert time to 20060102150305
+func TimeToNum(t time.Time) uint64 {
 	nnnn := t.Year()
 	yy := t.Month()
 	rr := t.Day()
@@ -21,8 +21,8 @@ func UintTime(t time.Time) uint64 {
 	return res
 }
 
-// UintTimeNow : convert now time to 20060102150305
-func UintTimeNow() uint64 {
+// TimeNowToNum : convert now time to 20060102150305
+func TimeNowToNum() uint64 {
 	t := time.Now()
 
 	nnnn := t.Year()
@@ -38,8 +38,8 @@ func UintTimeNow() uint64 {
 	return res
 }
 
-// UintDate : convert date to 20060102
-func UintDate(t time.Time) uint {
+// DateToNum : convert date to 20060102
+func DateToNum(t time.Time) uint {
 	nnnn := t.Year()
 	yy := t.Month()
 	rr := t.Day()
@@ -50,8 +50,8 @@ func UintDate(t time.Time) uint {
 	return uint(res)
 }
 
-// UintDateNow : convert now date to 20060102
-func UintDateNow() uint {
+// DateNowToNum : convert now date to 20060102
+func DateNowToNum() uint {
 	t := time.Now()
 
 	nnnn := t.Year()
@@ -64,8 +64,8 @@ func UintDateNow() uint {
 	return uint(res)
 }
 
-// UintDateStr : convert time to 20060102
-func UintDateStr(date string) uint {
+// DashDateToNum : convert time to 20060102
+func DashDateToNum(date string) uint {
 	t, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return 0
@@ -79,4 +79,34 @@ func UintDateStr(date string) uint {
 	res, _ := strconv.ParseUint(s, 0, 64)
 
 	return uint(res)
+}
+
+// NumDateToDash : 20060102 -> 2006-01-02
+func NumDateToDash(date uint) string {
+	// XXX: Parser will check bad time
+	t, err := time.Parse("20060102", fmt.Sprint("%d", date))
+	if err != nil {
+		return ""
+	}
+
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+
+	return fmt.Sprintf("%04d-%02d-%02d", nnnn, yy, rr)
+}
+
+// StrDateToDash : 20060102 -> 2006-01-02
+func StrDateToDash(date string) string {
+	// XXX: Parser will check bad time
+	t, err := time.Parse("20060102", date)
+	if err != nil {
+		return ""
+	}
+
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+
+	return fmt.Sprintf("%04d-%02d-%02d", nnnn, yy, rr)
 }
