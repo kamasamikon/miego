@@ -174,7 +174,8 @@ def run():
     # Remove old container
     #
     if _kill:
-        saferun(("sudo", "docker", "rm", "--force", container))
+        saferun(("sudo", "docker", "stop", container))
+        saferun(("sudo", "docker", "rm", container))
 
     #
     # Run container

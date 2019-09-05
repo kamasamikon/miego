@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/kamasamikon/miego/conf"
@@ -38,6 +41,11 @@ type KService struct {
 
 	// This msa instance
 	CreatedAt int64 `json:"createdAt"`
+
+	//
+	// Process Information
+	//
+	Cmd *exec.Cmd
 }
 
 var service *KService
@@ -88,6 +96,8 @@ func (s *KService) programRun() {
 		// Prepare
 		//
 		cmd := exec.Command(exePath)
+		s.Cmd = cmd
+
 		cmd.Dir = workDir
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, "MS_NAME="+s.ServiceName)
@@ -174,5 +184,14 @@ func main() {
 
 	msbInfoSet()
 	service.programRun()
-	service.regLoop()
+	go service.regLoop()
+
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	fmt.Println("MSA exiting ...")
+
+	if service.Cmd != nil && service.Cmd.Process != nil {
+		service.Cmd.Process.Signal(syscall.SIGINT)
+	}
 }

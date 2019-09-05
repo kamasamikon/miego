@@ -1,9 +1,15 @@
 package xgin
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -40,13 +46,43 @@ var htmlFoot = []byte(`
 // Default :Only and default Engine
 var Default *gin.Engine
 
+// XXX: Copied from gin/examples/graceful-shutdown/...
+func gracefulRun(addr string) {
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: Default,
+	}
+
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("listen: %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT)
+	<-quit
+	fmt.Println("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		fmt.Println("Server Shutdown:", err)
+	}
+	fmt.Println("Server exiting")
+}
+
 // Run :Default listening on localhost:8888
 func Run(addr string) {
 	if addr == "" {
 		port := conf.Int(8888, "ms/port")
 		addr = fmt.Sprintf(":%d", port)
 	}
-	Default.Run(addr)
+	// Default.Run(addr)
+	gracefulRun(addr)
 }
 
 //
