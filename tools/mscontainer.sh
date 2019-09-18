@@ -55,7 +55,8 @@ def dockerRun(name, msbIP, backrun):
     return saferun(cmd)
 
 def dockerKill(name):
-    saferun(("sudo", "docker", "rm", "-f", name))
+    saferun(("sudo", "docker", "stop", name))
+    saferun(("sudo", "docker", "rm", name))
 
 def main():
     if len(sys.argv) == 1 or "--help" in sys.argv:

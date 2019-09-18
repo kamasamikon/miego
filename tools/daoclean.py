@@ -42,9 +42,17 @@ def containerRemove(clist):
         except:
             print("SayBye: NG: ", c.name)
 
+        # stop
+        try:
+            subprocess.check_output(("docker", "stop", c.id))
+            print("Remove: OK: ", c.name)
+        except:
+            print("Remove: NG: ", c.name)
+
+
         # remove
         try:
-            subprocess.check_output(("docker", "rm", "-f", c.id))
+            subprocess.check_output(("docker", "rm", c.id))
             print("Remove: OK: ", c.name)
         except:
             print("Remove: NG: ", c.name)
