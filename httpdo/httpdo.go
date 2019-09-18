@@ -46,7 +46,9 @@ func Post(url string, pingObj interface{}, pongObj interface{}) error {
 	if pongObj == nil {
 		return nil
 	}
-	return json.NewDecoder(r.Body).Decode(pongObj)
+
+	json.NewDecoder(r.Body).Decode(pongObj)
+	return nil
 }
 
 // HTTPGet convert the response to pongObj structure

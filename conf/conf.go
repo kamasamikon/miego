@@ -59,16 +59,19 @@ func entryAdd(line string) {
 		return
 	}
 
-	e := confEntry{}
+	kind, safe, realpath := pathParse(path)
+	if realpath == "" {
+		return
+	}
 
-	switch path[0] {
+	e := confEntry{
+		kind: kind,
+		safe: safe,
+		path: realpath,
+	}
+
+	switch kind {
 	case 'i':
-		fallthrough
-	case 'I':
-		e.kind = 'i'
-		e.safe = path[0] == 'I'
-		e.path = "i" + path[1:]
-
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			e.vInt = vInt
 		} else {
@@ -76,21 +79,9 @@ func entryAdd(line string) {
 		}
 
 	case 's':
-		fallthrough
-	case 'S':
-		e.kind = 's'
-		e.safe = path[0] == 'S'
-		e.path = "s" + path[1:]
-
 		e.vStr = value
 
 	case 'b':
-		fallthrough
-	case 'B':
-		e.kind = 'b'
-		e.safe = path[0] == 'B'
-		e.path = "b" + path[1:]
-
 		// true: 1, t, T
 		// false: 0, f, F
 		x := value[0]
@@ -177,20 +168,56 @@ func Bool(defval bool, paths ...string) bool {
 	return defval
 }
 
+func pathParse(path string) (kind byte, safe bool, realpath string) {
+	switch path[0] {
+	case 'i':
+		fallthrough
+	case 'I':
+		kind = 'i'
+		safe = path[0] == 'I'
+		realpath = "i" + path[1:]
+
+	case 's':
+		fallthrough
+	case 'S':
+		kind = 's'
+		safe = path[0] == 'S'
+		realpath = "s" + path[1:]
+
+	case 'b':
+		fallthrough
+	case 'B':
+		kind = 'b'
+		safe = path[0] == 'B'
+		realpath = "b" + path[1:]
+
+	default:
+		realpath = ""
+	}
+
+	return kind, safe, realpath
+}
+
 // Set : Modify or Add conf entry
 func Set(path string, value interface{}, force bool) {
 	var e *confEntry
 	var ok bool
 
-	kind := path[0]
+	kind, safe, realpath := pathParse(path)
+	if realpath == "" {
+		return
+	}
 
-	e, ok = mapPathEntry[path]
+	// FIXME: Set("B:/aaa/bbb", ...) will makes query failed.
+	e, ok = mapPathEntry[realpath]
 	if !ok {
 		if force {
 			e = &confEntry{
 				kind: kind,
-				path: path,
+				safe: safe,
+				path: realpath,
 			}
+			mapPathEntry[e.path] = e
 		} else {
 			klog.D("path:%s and force:false", path)
 			return
