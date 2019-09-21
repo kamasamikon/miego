@@ -69,7 +69,7 @@ func decrypt(crypted, key []byte) ([]byte, error) {
 }
 
 //[golang ECB 3DES Encrypt]
-func TripleEcbDesEncrypt(origData, key []byte) ([]byte, error) {
+func Encrypt(origData, key []byte) ([]byte, error) {
 	tkey := make([]byte, 24, 24)
 	copy(tkey, key)
 	k1 := tkey[:8]
@@ -99,7 +99,7 @@ func TripleEcbDesEncrypt(origData, key []byte) ([]byte, error) {
 }
 
 //[golang ECB 3DES Decrypt]
-func TripleEcbDesDecrypt(crypted, key []byte) ([]byte, error) {
+func Decrypt(crypted, key []byte) ([]byte, error) {
 	tkey := make([]byte, 24, 24)
 	copy(tkey, key)
 	k1 := tkey[:8]
