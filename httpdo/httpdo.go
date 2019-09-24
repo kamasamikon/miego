@@ -29,7 +29,6 @@ func Post(url string, pingObj interface{}, pongObj interface{}) error {
 			pingString = string(bytes)
 		}
 	}
-	klog.D(pingString)
 
 	r, eb := http.Post(url, MIMEJSON, strings.NewReader(pingString))
 	if eb != nil {
