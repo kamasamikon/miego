@@ -24,7 +24,7 @@ var ctrlMap map[string]bool
 
 var Conf struct {
 	ShortPath bool
-	NoClor    bool
+	NoColor   bool
 }
 
 func klog(color string, class string, formating string, args ...interface{}) {
@@ -38,11 +38,13 @@ func klog(color string, class string, formating string, args ...interface{}) {
 		funcname = strings.TrimPrefix(funcname, ".")
 	}
 
+	cEnd := reset
 	if Conf.ShortPath {
 		filename = filepath.Base(filename)
 	}
-	if Conf.NoClor {
+	if Conf.NoColor {
 		color = ""
+		cEnd = ""
 	}
 
 	/*
@@ -57,7 +59,7 @@ func klog(color string, class string, formating string, args ...interface{}) {
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")
 	nowH := now.Nanosecond() / 1000 / 1000 % 1000
-	fmt.Printf("%s|%s|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", color, class, nowQ, nowH, filename, funcname, line, reset, fmt.Sprintf(formating, args...))
+	fmt.Printf("%s|%s|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", color, class, nowQ, nowH, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
 }
 
 // F :Fatal
