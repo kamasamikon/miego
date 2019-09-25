@@ -22,6 +22,10 @@ var reset = ansi.ColorCode("reset")
 
 var ctrlMap map[string]bool
 
+var Conf struct {
+	ShortPath bool
+}
+
 func klog(color string, class string, formating string, args ...interface{}) {
 
 	filename, line, funcname := "???", 0, "???"
@@ -31,6 +35,10 @@ func klog(color string, class string, formating string, args ...interface{}) {
 		funcname = runtime.FuncForPC(pc).Name()
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
+	}
+
+	if Conf.ShortPath {
+		filename = filepath.Base(filename)
 	}
 
 	/*
