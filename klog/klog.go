@@ -24,6 +24,7 @@ var ctrlMap map[string]bool
 
 var Conf struct {
 	ShortPath bool
+	NoClor    bool
 }
 
 func klog(color string, class string, formating string, args ...interface{}) {
@@ -39,6 +40,9 @@ func klog(color string, class string, formating string, args ...interface{}) {
 
 	if Conf.ShortPath {
 		filename = filepath.Base(filename)
+	}
+	if Conf.NoClor {
+		color = ""
 	}
 
 	/*
