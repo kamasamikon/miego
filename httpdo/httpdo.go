@@ -60,7 +60,7 @@ func Get(url string, pongObj interface{}) error {
 	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
-		klog.E("%d", r.StatusCode)
+		klog.E("URL:%s, Code:%d", url, r.StatusCode)
 		return errors.New(fmt.Sprintf("StatusCode == %d", r.StatusCode))
 	}
 
