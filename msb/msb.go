@@ -366,7 +366,7 @@ func serverRem(c *gin.Context) {
 func main() {
 	spew.Config.Indent = "\t"
 
-	Gin := xgin.New(false)
+	Gin := xgin.Default
 
 	Gin.POST("/service", serverSet)
 
