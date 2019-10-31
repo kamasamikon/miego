@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/kamasamikon/miego/klog"
 )
 
-const MIMEJSON = "application/json;charset=utf-8"
+const mimeJSON = "application/json;charset=utf-8"
 
-// HTTPPost post json data to peer and convert the response to pongObj structure
+// Post : HTTPPost post json data to peer and convert the response to pongObj structure
 func Post(url string, pingObj interface{}, pongObj interface{}) error {
 	var pingString string
 
@@ -30,7 +31,7 @@ func Post(url string, pingObj interface{}, pongObj interface{}) error {
 		}
 	}
 
-	r, eb := http.Post(url, MIMEJSON, strings.NewReader(pingString))
+	r, eb := http.Post(url, mimeJSON, strings.NewReader(pingString))
 	if eb != nil {
 		klog.E(eb.Error())
 		return eb
@@ -50,7 +51,7 @@ func Post(url string, pingObj interface{}, pongObj interface{}) error {
 	return nil
 }
 
-// HTTPGet convert the response to pongObj structure
+// Get : HTTPGet convert the response to pongObj structure
 func Get(url string, pongObj interface{}) error {
 	r, eb := http.Get(url)
 	if eb != nil {
@@ -68,4 +69,25 @@ func Get(url string, pongObj interface{}) error {
 		return nil
 	}
 	return json.NewDecoder(r.Body).Decode(pongObj)
+}
+
+
+// Download : Download and save.
+func Download(url string, filename string) {
+	res, err := http.Get(url)
+	if err != nil {
+		klog.E("http.Get -> %v", err)
+		return
+	}
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		klog.E("ioutil.ReadAll -> %s", err.Error())
+		return
+	}
+	defer res.Body.Close()
+	if err = ioutil.WriteFile(filename, data, 0777); err != nil {
+		klog.E("Error Saving:", filename, err)
+	} else {
+		klog.D("%s => %s:", url, filename)
+	}
 }
