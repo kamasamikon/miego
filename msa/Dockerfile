@@ -1,9 +1,9 @@
-FROM alpine:latest
+FROM alpine:3.9
 
 WORKDIR /root
 
 # RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/main/" > /etc/apk/repositories
-RUN apk update && apk upgrade && rm -fr /var/cache/apk/*
+# RUN apk update && apk upgrade && rm -fr /var/cache/apk/*
 
 COPY ./PRC /etc/localtime
 COPY ./msa .
