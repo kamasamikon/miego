@@ -9,12 +9,19 @@ import (
 
 type PostMap map[string]interface{}
 
-func Map(c *gin.Context) (PostMap, error) {
+func Map(c *gin.Context) PostMap {
+	var m PostMap
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
-		return nil, err
+		return m
 	} else {
-		var m PostMap
 		json.Unmarshal(dat, &m)
-		return m, nil
+		return m
 	}
+}
+
+func (pm PostMap) Get(name string) string {
+	if x, ok := pm[name]; ok {
+		return x.(string)
+	}
+	return ""
 }
