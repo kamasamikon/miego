@@ -1,11 +1,16 @@
 package httpdo
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/kamasamikon/miego/klog"
@@ -14,7 +19,7 @@ import (
 const mimeJSON = "application/json;charset=utf-8"
 
 // Post : HTTPPost post json data to peer and convert the response to pongObj structure
-func Post(url string, pingObj interface{}, pongObj interface{}) error {
+func Post(URL string, pingObj interface{}, pongObj interface{}) error {
 	var pingString string
 
 	if pingObj == nil {
@@ -31,7 +36,7 @@ func Post(url string, pingObj interface{}, pongObj interface{}) error {
 		}
 	}
 
-	r, eb := http.Post(url, mimeJSON, strings.NewReader(pingString))
+	r, eb := http.Post(URL, mimeJSON, strings.NewReader(pingString))
 	if eb != nil {
 		klog.E(eb.Error())
 		return eb
@@ -52,8 +57,8 @@ func Post(url string, pingObj interface{}, pongObj interface{}) error {
 }
 
 // Get : HTTPGet convert the response to pongObj structure
-func Get(url string, pongObj interface{}) error {
-	r, eb := http.Get(url)
+func Get(URL string, pongObj interface{}) error {
+	r, eb := http.Get(URL)
 	if eb != nil {
 		klog.E(eb.Error())
 		return eb
@@ -61,7 +66,7 @@ func Get(url string, pongObj interface{}) error {
 	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
-		klog.E("URL:%s, Code:%d", url, r.StatusCode)
+		klog.E("URL:%s, Code:%d", URL, r.StatusCode)
 		return errors.New(fmt.Sprintf("StatusCode == %d", r.StatusCode))
 	}
 
@@ -71,10 +76,9 @@ func Get(url string, pongObj interface{}) error {
 	return json.NewDecoder(r.Body).Decode(pongObj)
 }
 
-
 // Download : Download and save.
-func Download(url string, filename string) {
-	res, err := http.Get(url)
+func Download(URL string, filename string) {
+	res, err := http.Get(URL)
 	if err != nil {
 		klog.E("http.Get -> %v", err)
 		return
@@ -88,6 +92,49 @@ func Download(url string, filename string) {
 	if err = ioutil.WriteFile(filename, data, 0777); err != nil {
 		klog.E("Error Saving:", filename, err)
 	} else {
-		klog.D("%s => %s:", url, filename)
+		klog.D("%s => %s:", URL, filename)
 	}
+}
+
+// Upload : Upload file to remote
+func Upload(URL string, params map[string]string, paramName, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, filepath.Base(path))
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(part, file)
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequest("POST", URL, body)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("StatusCode")
+	}
+
+	return nil
 }
