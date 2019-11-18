@@ -1,4 +1,4 @@
-package deco
+package xgin
 
 import (
 	"github.com/gin-gonic/gin"

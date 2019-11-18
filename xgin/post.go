@@ -1,4 +1,4 @@
-package post
+package xgin
 
 import (
 	"encoding/json"
