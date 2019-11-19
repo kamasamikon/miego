@@ -77,23 +77,20 @@ func Get(URL string, pongObj interface{}) error {
 }
 
 // Download : Download and save.
-func Download(URL string, filename string) {
+func Download(URL string, filename string) error {
 	res, err := http.Get(URL)
 	if err != nil {
-		klog.E("http.Get -> %v", err)
-		return
+		return err
 	}
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		klog.E("ioutil.ReadAll -> %s", err.Error())
-		return
+		return err
 	}
 	defer res.Body.Close()
 	if err = ioutil.WriteFile(filename, data, 0777); err != nil {
-		klog.E("Error Saving:", filename, err)
-	} else {
-		klog.D("%s => %s:", URL, filename)
+		return err
 	}
+	return nil
 }
 
 // Upload : Upload file to remote
