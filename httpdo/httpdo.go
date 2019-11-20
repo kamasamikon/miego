@@ -124,6 +124,7 @@ func Upload(URL string, params map[string]string, paramName, path string) error 
 	if err != nil {
 		return err
 	}
+	request.Header.Add("Content-Type", writer.FormDataContentType())
 
 	client := &http.Client{}
 	resp, err := client.Do(request)
