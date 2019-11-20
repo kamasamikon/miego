@@ -8,7 +8,7 @@ import (
 	"github.com/kamasamikon/miego/klog"
 )
 
-type HandlerFunc func(string, string)
+type HandlerFunc func(path string, event string)
 
 type WatchChanges struct {
 	watcher *fsnotify.Watcher
