@@ -3,11 +3,12 @@ package wc
 import (
 	"os"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/fsnotify/fsnotify"
 	"github.com/kamasamikon/miego/klog"
 )
 
-type HandlerFunc func(string, string)
+type HandlerFunc func(path string, event string)
 
 type WatchChanges struct {
 	watcher *fsnotify.Watcher
@@ -23,11 +24,11 @@ type WatchChanges struct {
 	done chan bool
 }
 
-func WCNew(names ...string) *WatchChanges {
+func WCNew(names ...string) (*WatchChanges, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		klog.E("error:%s", err.Error())
-		return nil
+		return nil, err
 	}
 
 	wc := &WatchChanges{}
@@ -35,7 +36,7 @@ func WCNew(names ...string) *WatchChanges {
 	wc.done = make(chan bool)
 	wc.watcher = watcher
 
-	return wc
+	return wc, nil
 }
 
 func (wc *WatchChanges) OnEverything(callback HandlerFunc) *WatchChanges {
@@ -75,6 +76,7 @@ func (wc *WatchChanges) Run() error {
 				}
 
 				if wc.onEverything != nil {
+					spew.Dump(event)
 					wc.onEverything(event.Name, "ALL")
 				}
 
