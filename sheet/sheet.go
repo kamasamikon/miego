@@ -16,7 +16,7 @@ type TR struct {
 	thList []*TH
 }
 
-func (tr *TR) AddTH(HTML string, Text string, Span int, Align string) {
+func (tr *TR) AddTHWithAlign(HTML string, Text string, Span int, Align string) {
 	if Align == "" {
 		Align = "left"
 	}
@@ -28,6 +28,10 @@ func (tr *TR) AddTH(HTML string, Text string, Span int, Align string) {
 		Align: Align,
 	}
 	tr.thList = append(tr.thList, &th)
+}
+
+func (tr *TR) AddTH(HTML string, Text string, Span int, Align string) {
+	return tr.AddTHWithAlign(HTML, Text, Span, "")
 }
 
 func (tr *TR) Print(w *strings.Builder) {
