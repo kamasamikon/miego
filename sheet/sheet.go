@@ -6,7 +6,6 @@ import (
 )
 
 type TH struct {
-	HTML  string
 	Text  string
 	Span  int
 	Align string
@@ -16,34 +15,32 @@ type TR struct {
 	thList []*TH
 }
 
-func (tr *TR) AddTHWithAlign(HTML string, Text string, Span int, Align string) {
+func (tr *TR) AddTHFull(Text string, Span int, Align string) *TR {
 	if Align == "" {
 		Align = "left"
 	}
 
 	th := TH{
-		HTML:  HTML,
 		Text:  Text,
 		Span:  Span,
 		Align: Align,
 	}
 	tr.thList = append(tr.thList, &th)
+	return tr
 }
 
-func (tr *TR) AddTH(HTML string, Text string, Span int, Align string) {
-	return tr.AddTHWithAlign(HTML, Text, Span, "")
+func (tr *TR) AddTH(Text string) *TR {
+	return tr.AddTHFull(Text, 1, "")
+}
+
+func (tr *TR) AddTHSpan(Text string, Span int) *TR {
+	return tr.AddTHFull(Text, Span, "")
 }
 
 func (tr *TR) Print(w *strings.Builder) {
 	w.WriteString("<tr>")
 	for _, th := range tr.thList {
-		w.WriteString(fmt.Sprintf("<th colspan=\"%d\" style=\"text-align:%s;\">", th.Span, th.Align))
-		if th.HTML != "" {
-			w.WriteString(th.HTML)
-		} else {
-			w.WriteString(th.Text)
-		}
-		w.WriteString("</th>")
+		w.WriteString(fmt.Sprintf("<th colspan=\"%d\" style=\"text-align:%s;\">%s</th>", th.Span, th.Align, th.Text))
 	}
 	w.WriteString("</tr>")
 }

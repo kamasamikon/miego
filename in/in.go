@@ -9,3 +9,23 @@ func S(s string, arr ...string) bool {
 	}
 	return false
 }
+
+// S : Check 2 in [3, 4, 5, ...]
+func I(i int, arr ...int) bool {
+	for _, t := range arr {
+		if i == t {
+			return true
+		}
+	}
+	return false
+}
+
+// S : Check 2 in [3, 4, 5, ...]
+func C(i byte, arr ...byte) bool {
+	for _, t := range arr {
+		if i == t {
+			return true
+		}
+	}
+	return false
+}
