@@ -12,6 +12,16 @@ import (
 
 type PostMap map[string]interface{}
 
+func MakeMap(v ...interface{}) PostMap {
+	m := make(PostMap)
+
+	for i := 0; i < len(v)/2; i++ {
+		m[v[i].(string)] = v[i+1]
+	}
+
+	return m
+}
+
 func Map(c *gin.Context) PostMap {
 	var m PostMap
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
