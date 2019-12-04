@@ -79,18 +79,24 @@ def createMsaCfg():
     lines = []
 
     # Service Info
+    lines.append("# Service information")
     lines.append("s:/ms/name=%s" % _msname)
     lines.append("s:/ms/version=%s" % _msvern)
     lines.append("i:/ms/port=%s" % _msport)
     lines.append("s:/ms/desc=%s" % _msdesc)
+    lines.append("s:/ms/url/path=/ms/%s/%s" % (_msname, _msvern))
+    lines.append("")
 
     # MSB Info
+    lines.append("# MSB information")
     msbip = _msbip or getMsbIp(_msbname)
     lines.append("s:/msb/host=%s" % msbip)
     lines.append("i:/msb/regWait/ok=5")
     lines.append("i:/msb/regWait/ng=1")
+    lines.append("")
 
     # Project Info
+    lines.append("# Project information")
     lines.append("s:/build/dirname=%s" % os.path.basename(os.getcwd()))
     lines.append("s:/build/time=%s" % time.asctime())
     lines.append("s:/build/version=%s" % headVersion())
