@@ -16,7 +16,7 @@ func MakeMap(v ...interface{}) PostMap {
 	m := make(PostMap)
 
 	for i := 0; i < len(v)/2; i++ {
-		m[v[i].(string)] = v[i+1]
+		m[v[2*i].(string)] = v[2*i+1]
 	}
 
 	return m
