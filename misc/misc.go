@@ -6,8 +6,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
-	"github.com/kamasamikon/miego/klog"
 )
 
 const (
@@ -16,94 +14,6 @@ const (
 	KC_RAND_KIND_UPPER
 	KC_RAND_KIND_ALL
 )
-
-const (
-	NUM = 2
-	LOW = 3
-	UPP = 5
-	PUN = 7
-	ALL = 11
-)
-
-var arrNUM = "0123456789"
-var arrLOW = "abcdefghijklmnopqrstuvwxyz"
-var arrUPP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var arrPUN = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-
-var charMap map[int]string = make(map[int]string)
-
-// Xrand : kind: "nlupa"
-func Xrand(size int, kind string) []byte {
-	num := 0
-
-	//
-	// Parse kind
-	//
-	for c := range kind {
-		if c == 'n' {
-			if num%NUM != 0 {
-				num *= NUM
-			}
-		} else if c == 'l' {
-			if num%LOW != 0 {
-				num *= LOW
-			}
-		} else if c == 'u' {
-			if num%UPP != 0 {
-				num *= UPP
-			}
-		} else if c == 'p' {
-			if num%PUN != 0 {
-				num *= PUN
-			}
-		} else if c == 'a' {
-			num = NUM * LOW * UPP * PUN
-		}
-	}
-
-	if num == 0 {
-		num = NUM
-	}
-
-	//
-	// Load Cache
-	//
-	str, ok := charMap[num]
-	if !ok {
-		tmp := ""
-
-		if num%NUM == 0 {
-			tmp += arrNUM
-		}
-
-		if num%LOW == 0 {
-			tmp += arrLOW
-		}
-
-		if num%UPP == 0 {
-			tmp += arrUPP
-		}
-
-		if num%PUN == 0 {
-			tmp += arrPUN
-		}
-
-		charMap[num] = tmp
-		str = tmp
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	result := make([]byte, size)
-	arrSize := len(str)
-	klog.D("<%s>", str)
-	klog.D("%d", arrSize)
-	for i := 0; i < size; i++ {
-		index := rand.Intn(arrSize)
-		result[i] = uint8(str[index])
-	}
-
-	return result
-}
 
 func Krand(size int, kind int) []byte {
 	ikind, kinds, result := kind, [][]int{[]int{10, 48}, []int{26, 97}, []int{26, 65}}, make([]byte, size)
