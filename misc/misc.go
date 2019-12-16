@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/kamasamikon/miego/klog"
 )
 
 const (
@@ -70,19 +72,19 @@ func Xrand(size int, kind string) []byte {
 	if !ok {
 		tmp := ""
 
-		if num%NUM != 0 {
+		if num%NUM == 0 {
 			tmp += arrNUM
 		}
 
-		if num%LOW != 0 {
+		if num%LOW == 0 {
 			tmp += arrLOW
 		}
 
-		if num%UPP != 0 {
+		if num%UPP == 0 {
 			tmp += arrUPP
 		}
 
-		if num%PUN != 0 {
+		if num%PUN == 0 {
 			tmp += arrPUN
 		}
 
@@ -90,8 +92,11 @@ func Xrand(size int, kind string) []byte {
 		str = tmp
 	}
 
+	rand.Seed(time.Now().UnixNano())
 	result := make([]byte, size)
 	arrSize := len(str)
+	klog.D("<%s>", str)
+	klog.D("%d", arrSize)
 	for i := 0; i < size; i++ {
 		index := rand.Intn(arrSize)
 		result[i] = uint8(str[index])
