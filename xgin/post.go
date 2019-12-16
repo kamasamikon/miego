@@ -23,7 +23,7 @@ func MakeMap(v ...interface{}) PostMap {
 }
 
 func Map(c *gin.Context) PostMap {
-	var m PostMap
+	 m := make(PostMap)
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
 		return m
 	} else {
