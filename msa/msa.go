@@ -62,6 +62,10 @@ func hostnameGet() string {
 
 // GetOutboundIP : Get preferred outbound ip of this machine
 func GetOutboundIP() string {
+	if addr := conf.Str("", "ms/addr"); addr != "" {
+		return addr
+	}
+
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		return ""
