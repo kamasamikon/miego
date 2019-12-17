@@ -60,20 +60,21 @@ def containerRemove(clist):
 @click.command()
 @click.argument('names', nargs=-1)
 @click.option('--count', '-c', type=int, default=1, help="How many left.")
-@click.option('--guess', '-g', is_flag=True, help="Guess from daoker.sh.")
+@click.option('--guess', '-g', is_flag=True, help="Guess from daoker.sh and Makefile.")
 def main(count, names, guess):
     names = names or []
 
     msName = None
-    if guess:
-        try:
-            for line in open("./daoker.sh").readlines():
-                line = line.strip()
-                if line.startswith("msName="):
-                    msName = line[7:].strip()
-            f.close()
-        except:
-            pass
+    if not names or guess:
+        for guessfile in ("./daoker.sh", "Makefile"):
+            try:
+                for line in open(guessfile).readlines():
+                    line = line.strip()
+                    if line.startswith("msName="):
+                        msName = line[7:].strip()
+                f.close()
+            except:
+                pass
 
     if msName:
         names.append(msName)

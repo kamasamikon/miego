@@ -245,6 +245,7 @@ def run():
 @click.option('--msvern', '-v', help="(v1):      Service Version.")
 @click.option('--msport', '-p', help="(8888):    Service Port.")
 @click.option('--msdesc', '-d', help="(null):    Service Description.")
+@click.option('--guess', '-g', is_flag=True, help="Guess from daoker.sh and Makefile.")
 
 # MSB
 @click.option('--msbname', '-m', help="(msb):     MSB container name")
@@ -261,6 +262,7 @@ def run():
 
 def main(foreground, container, sharemode, appendmode, kill,
         msname, msvern, msport, msdesc,
+        guess,
         msbname, msbip,
         env,
         extra,
@@ -286,6 +288,23 @@ def main(foreground, container, sharemode, appendmode, kill,
     _msvern = msvern or "v1"
     _msport = msport or 8888
     _msdesc = msdesc or ""
+    if not msname or guess:
+        for guessfile in ("./daoker.sh", "Makefile"):
+            try:
+                for line in open(guessfile).readlines():
+                    line = line.strip()
+                    if line.startswith("msName="):
+                        _msname = line[7:].strip()
+                    if line.startswith("msVern="):
+                        _msvern = line[7:].strip()
+                    if line.startswith("msPort="):
+                        _msport = line[7:].strip()
+                    if line.startswith("msDesc="):
+                        _msdesc = line[7:].strip()
+                f.close()
+            except:
+                pass
+
 
     # Dockerfile
     global _dfuser
