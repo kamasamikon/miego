@@ -16,8 +16,10 @@ type VCodeItem struct {
 }
 
 type VCodeChecker struct {
-	Map       map[string]*VCodeItem
-	CheckHook func(key string, code string) (bool, error)
+	Map map[string]*VCodeItem
+
+	// return: result, processed
+	CheckHook func(key string, code string) (bool, bool)
 }
 
 func VCodeCheckerNew() *VCodeChecker {
@@ -52,8 +54,8 @@ func (cc VCodeChecker) Add(key string, code string, ttl int64) {
 
 func (cc VCodeChecker) Check(key string, code string) bool {
 	if cc.CheckHook != nil {
-		if ok, err := cc.CheckHook(key, code); err != nil {
-			return ok
+		if passed, processed := cc.CheckHook(key, code); processed == true {
+			return passed
 		}
 	}
 
