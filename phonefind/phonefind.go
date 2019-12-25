@@ -121,7 +121,7 @@ func firstRecordOffset() int32 {
 }
 
 // 二分法查询phone数据
-func Find(phone_num string) (pr *PhoneRecord, err error) {
+func Find(phone_num string, checkMode bool) (pr *PhoneRecord, err error) {
 	if len(phone_num) < 7 || len(phone_num) > 11 {
 		return nil, errors.New("illegal phone length")
 	}
@@ -151,6 +151,10 @@ func Find(phone_num string) (pr *PhoneRecord, err error) {
 		case cur_phone < phone_seven_int32:
 			left = mid + 1
 		default:
+			if checkMode {
+				return nil, nil
+			}
+
 			cbyte := content[record_offset:]
 			end_offset := int32(bytes.Index(cbyte, []byte("\000")))
 			data := bytes.Split(cbyte[:end_offset], []byte("|"))
@@ -166,6 +170,7 @@ func Find(phone_num string) (pr *PhoneRecord, err error) {
 				AreaZone: string(data[3]),
 				CardType: card_str,
 			}
+			err = nil
 			return
 		}
 	}
