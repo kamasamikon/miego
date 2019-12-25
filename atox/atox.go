@@ -31,3 +31,10 @@ func Int(a string, def int) int {
 func Uint(a string, def uint) uint {
 	return uint(Uint64(a, uint64(def)))
 }
+
+func Float(a string, def float64) float64 {
+	if f, err := strconv.ParseFloat(a, 64); err == nil {
+		return f
+	}
+	return def
+}

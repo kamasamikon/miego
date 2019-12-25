@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/atox"
@@ -23,7 +24,7 @@ func MakeMap(v ...interface{}) PostMap {
 }
 
 func Map(c *gin.Context) PostMap {
-	 m := make(PostMap)
+	m := make(PostMap)
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
 		return m
 	} else {
@@ -64,4 +65,25 @@ func (pm PostMap) Bool(name string, defv bool) bool {
 		}
 	}
 	return defv
+}
+
+// List : pm["aa"]="a;b;c" ==> ["a", "b", "c"]
+func (pm PostMap) List(name string, sep string) []string {
+	if x, ok := pm[name]; ok {
+		key := x.(string)
+		return strings.Split(key, sep)
+	}
+	return nil
+}
+
+// List : pm["aa"]="a;c;c" ==> ["a", "c"]
+func (pm PostMap) Set(name string, sep string) map[string]int {
+	set := make(map[string]int)
+	if x, ok := pm[name]; ok {
+		key := x.(string)
+		for _, v := range strings.Split(key, sep) {
+			set[v] = 1
+		}
+	}
+	return set
 }
