@@ -13,6 +13,7 @@ import (
 
 type PostMap map[string]interface{}
 
+// MakeMap : MakeMap("a", "b", "c", 222) => {"a":"b", "c":222}
 func MakeMap(v ...interface{}) PostMap {
 	m := make(PostMap)
 
@@ -23,6 +24,7 @@ func MakeMap(v ...interface{}) PostMap {
 	return m
 }
 
+// Map : Convert gin's request to Map
 func Map(c *gin.Context) PostMap {
 	m := make(PostMap)
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
