@@ -56,6 +56,26 @@ func (pm PostMap) Int(name string, defv int) int {
 	return defv
 }
 
+func (pm PostMap) Uint(name string, defv uint) uint {
+	if x, ok := pm[name]; ok {
+		return atox.Uint(x.(string), defv)
+	}
+	return defv
+}
+func (pm PostMap) Int64(name string, defv int64) int64 {
+	if x, ok := pm[name]; ok {
+		return atox.Int64(x.(string), defv)
+	}
+	return defv
+}
+
+func (pm PostMap) Uint64(name string, defv uint64) uint64 {
+	if x, ok := pm[name]; ok {
+		return atox.Uint64(x.(string), defv)
+	}
+	return defv
+}
+
 func (pm PostMap) Bool(name string, defv bool) bool {
 	if x, ok := pm[name]; ok {
 		c := x.(string)[0]
