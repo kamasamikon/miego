@@ -81,10 +81,18 @@ func DashDateToNum(date string) uint {
 	return uint(res)
 }
 
+func NumTimeToTime(num uint64) (time.Time, error) {
+	return time.Parse("20060102150405", fmt.Sprintf("%d", num))
+}
+
+func NumDateToTime(num uint64) (time.Time, error) {
+	return time.Parse("20060102", fmt.Sprintf("%d", num))
+}
+
 // NumDateToDash : 20060102 -> 2006-01-02
 func NumDateToDash(date uint) string {
 	// XXX: Parser will check bad time
-	t, err := time.Parse("20060102", fmt.Sprint("%d", date))
+	t, err := time.Parse("20060102", fmt.Sprintf("%d", date))
 	if err != nil {
 		return ""
 	}
