@@ -168,25 +168,32 @@ func Bool(defval bool, paths ...string) bool {
 	return defval
 }
 
+// List : get a List entry
+func List(sep string, paths ...string) []string {
+	// path: aaa/bbb
+	for _, path := range paths {
+		key := "s:/" + path
+		if v, ok := mapPathEntry[key]; ok {
+			v.refGet++
+			return strings.Split(v.vStr, sep)
+		}
+	}
+	return nil
+}
+
 func pathParse(path string) (kind byte, safe bool, realpath string) {
 	switch path[0] {
-	case 'i':
-		fallthrough
-	case 'I':
+	case 'i', 'I':
 		kind = 'i'
 		safe = path[0] == 'I'
 		realpath = "i" + path[1:]
 
-	case 's':
-		fallthrough
-	case 'S':
+	case 's', 'S':
 		kind = 's'
 		safe = path[0] == 'S'
 		realpath = "s" + path[1:]
 
-	case 'b':
-		fallthrough
-	case 'B':
+	case 'b', 'B':
 		kind = 'b'
 		safe = path[0] == 'B'
 		realpath = "b" + path[1:]
