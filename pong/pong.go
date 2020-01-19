@@ -1,4 +1,4 @@
-package xgin
+package pong
 
 import (
 	"fmt"
@@ -7,13 +7,13 @@ import (
 )
 
 // JPong : JSON Pong
-type PongBody struct {
+type Body struct {
 	Error   int         `json:"Error"`
 	Message string      `json:"Message"`
 	Data    interface{} `json:"Data"`
 }
 
-func Pong(c *gin.Context, Code int, Error int, Message interface{}, Data interface{}) {
+func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interface{}) {
 	if Data == nil {
 		if _, filename, line, ok := runtime.Caller(2); ok {
 			Data = fmt.Sprintf("%s:%d", filename, line)
@@ -31,17 +31,17 @@ func Pong(c *gin.Context, Code int, Error int, Message interface{}, Data interfa
 		Text = ""
 	}
 
-	c.JSON(Code, &gin.H{
+	c.JSON(Code, &Body{
 		"Error":   Error,
 		"Message": Text,
 		"Data":    Data,
 	})
 }
 
-func PongOK(c *gin.Context, Data interface{}) {
-	Pong(c, 200, 0, "", Data)
+func OK(c *gin.Context, Data interface{}) {
+	Full(c, 200, 0, "", Data)
 }
 
-func PongNG(c *gin.Context, Code int, Error int, Message interface{}) {
-	Pong(c, Code, Error, Message, nil)
+func NG(c *gin.Context, Code int, Error int, Message interface{}) {
+	Full(c, Code, Error, Message, nil)
 }

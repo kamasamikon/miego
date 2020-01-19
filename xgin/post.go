@@ -62,6 +62,7 @@ func (pm PostMap) Uint(name string, defv uint) uint {
 	}
 	return defv
 }
+
 func (pm PostMap) Int64(name string, defv int64) int64 {
 	if x, ok := pm[name]; ok {
 		return atox.Int64(x.(string), defv)
