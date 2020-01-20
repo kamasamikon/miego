@@ -14,7 +14,7 @@ type Body struct {
 }
 
 func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interface{}) {
-	if Data == nil {
+	if Error != 0 && Data == nil {
 		if _, filename, line, ok := runtime.Caller(2); ok {
 			Data = fmt.Sprintf("%s:%d", filename, line)
 		} else {
@@ -32,9 +32,9 @@ func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interfa
 	}
 
 	c.JSON(Code, &Body{
-		"Error":   Error,
-		"Message": Text,
-		"Data":    Data,
+		Error:   Error,
+		Message: Text,
+		Data:    Data,
 	})
 }
 

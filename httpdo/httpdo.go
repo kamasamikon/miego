@@ -35,6 +35,7 @@ func Post(URL string, pingObj interface{}, pongObj interface{}) (n int, err erro
 		}
 	}
 
+	klog.D("<<<%s>>>", pingString)
 	r, err := http.Post(URL, mimeJSON, strings.NewReader(pingString))
 	if err != nil {
 		klog.E(err.Error())
