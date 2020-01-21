@@ -24,7 +24,7 @@ type WatchChanges struct {
 	done chan bool
 }
 
-func WCNew(names ...string) (*WatchChanges, error) {
+func New(names ...string) (*WatchChanges, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		klog.E("error:%s", err.Error())
