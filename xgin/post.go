@@ -2,7 +2,6 @@ package xgin
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -35,11 +34,46 @@ func Map(c *gin.Context) PostMap {
 	}
 }
 
-func (pm PostMap) Get(name string) (string, error) {
-	if x, ok := pm[name]; ok {
-		return x.(string), nil
+// Map : Convert gin's request to Map
+func MapFromQuery(c *gin.Context, useLast bool) PostMap {
+	m := make(PostMap)
+	for k, a := range c.Request.URL.Query() {
+		if useLast {
+			v := a[len(a)-1]
+			m[k] = v
+		} else {
+			m[k] = a[0]
+		}
 	}
-	return "", fmt.Errorf("'%s' not found", name)
+	return m
+}
+
+func (pm PostMap) Merge(other PostMap, safe bool) {
+	if safe {
+		for k, v := range other {
+			if _, ok := pm[k]; !ok {
+				pm[k] = v
+			}
+		}
+	} else {
+		for k, v := range other {
+			pm[k] = v
+		}
+	}
+}
+
+func (pm PostMap) Has(name string) bool {
+	if _, ok := pm[name]; ok {
+		return true
+	}
+	return false
+}
+
+func (pm PostMap) Get(name string) (string, bool) {
+	if x, ok := pm[name]; ok {
+		return x.(string), true
+	}
+	return "", false
 }
 
 func (pm PostMap) Str(name string, defv string) string {
