@@ -27,7 +27,7 @@ func VCodeCheckerNew() *VCodeChecker {
 	cc.Map = make(map[string]*VCodeItem)
 	go func() {
 		for {
-			if cc != nil {
+			if cc == nil {
 				klog.E("VCodeChecker is nul")
 				break
 			}
