@@ -113,12 +113,18 @@ func (pm PostMap) Uint64(name string, defv uint64) uint64 {
 
 func (pm PostMap) Bool(name string, defv bool) bool {
 	if x, ok := pm[name]; ok {
-		c := x.(string)[0]
-		if in.C(c, 'T', 't', 'Y', 'y', '1') {
-			return true
-		}
-		if in.C(c, 'F', 'f', 'N', 'n', '0') {
-			return false
+		if b, ok := x.(bool); ok {
+			return b
+		} else if s, ok := x.(string); ok {
+			c := s[0]
+			if in.C(c, 'T', 't', 'Y', 'y', '1') {
+				return true
+			}
+			if in.C(c, 'F', 'f', 'N', 'n', '0') {
+				return false
+			}
+		} else if i, ok := x.(int); ok {
+			return i != 0
 		}
 	}
 	return defv
