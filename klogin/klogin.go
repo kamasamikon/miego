@@ -24,26 +24,23 @@ type KLogin struct {
 	// Login
 	//
 
-	// Not login, show login page
-	LoginPageName  string       // 登录页面的名字，一般是 login.html
-	LoginPageParam xgin.PostMap // 给页面的参数
-
 	// Login OK
-	LoginRouter      string // default: /login
-	LoginRedirectURL string // 登录成功后，跑去哪里
+	LoginRouter []string // default: /login
 
 	//
 	// Logout
 	//
 
 	// Logout OK
-	LogoutRouter      string // default: /logout
-	LogoutRedirectURL string // 退出登录后，跑去哪里
+	LogoutRouter []string // default: /logout
 
 	//
 	// Call this to verify the login parameters
 	//
 	LoginDataChecker func(c *gin.Context) (sessionItems xgin.PostMap, OKRedirectURL string, NGPageName string, NGPageParam xgin.PostMap, err error)
+
+	BeforeLogin  func(c *gin.Context) (LoginPageName string, LoginPageParam xgin.PostMap)
+	BeforeLogout func(c *gin.Context) (LogoutRedirectURL string)
 }
 
 func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
@@ -55,28 +52,37 @@ func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 			h(c)
 			return
 		}
-		klog.D("isLoggin: NG: %s", spew.Sdump(o.LoginPageParam))
-		c.HTML(200, o.LoginPageName, o.LoginPageParam)
+
+		LoginPageName, LoginPageParam := o.BeforeLogin(c)
+		klog.D("%s", spew.Sdump(LoginPageName))
+		klog.D("%s", spew.Sdump(LoginPageParam))
+		klog.D("isLoggin: NG: %s", spew.Sdump(LoginPageParam))
+		c.HTML(200, LoginPageName, LoginPageParam)
 	}
 }
 
 func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 	session := sessions.Default(c)
 
+	klog.D("%s", key)
 	if val := session.Get(key); val == nil {
 		return "", false
 	} else {
+		spew.Dump(val)
 		return val.(string), true
 	}
 }
 
 func (o *KLogin) doLogin(c *gin.Context) {
-	if sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := o.LoginDataChecker(c); err == nil {
-		if OKRedirectURL == "" {
-			OKRedirectURL = o.LoginRedirectURL
-		}
+	session := sessions.Default(c)
 
-		session := sessions.Default(c)
+	sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := o.LoginDataChecker(c)
+	klog.D("%s", spew.Sdump(sessionItems))
+	klog.D("%s", spew.Sdump(OKRedirectURL))
+	klog.D("%s", spew.Sdump(NGPageName))
+	klog.D("%s", spew.Sdump(NGPageParam))
+	klog.D("%s", spew.Sdump(err))
+	if err == nil {
 		for k, v := range sessionItems {
 			session.Set(k, v)
 		}
@@ -86,31 +92,21 @@ func (o *KLogin) doLogin(c *gin.Context) {
 
 		c.Redirect(302, OKRedirectURL)
 	} else {
-		if NGPageName == "" {
-			NGPageName = o.LoginPageName
-		}
+		session.Clear()
+		session.Save()
 
-		what := gin.H{}
-		if o.LoginPageParam != nil {
-			for k, v := range o.LoginPageParam {
-				what[k] = v
-			}
-		}
-		if NGPageParam != nil {
-			for k, v := range NGPageParam {
-				what[k] = v
-			}
-		}
-
-		c.HTML(200, NGPageName, &what)
+		c.HTML(200, NGPageName, NGPageParam)
 	}
 }
 
 func (o *KLogin) doLogout(c *gin.Context) {
 	session := sessions.Default(c)
+
+	LogoutRedirectURL := o.BeforeLogout(c)
+	klog.D("%s", spew.Sdump(LogoutRedirectURL))
 	session.Clear()
 	session.Save()
-	c.Redirect(302, o.LogoutRedirectURL)
+	c.Redirect(302, LogoutRedirectURL)
 }
 
 func (o *KLogin) Setup(Gin *gin.Engine) {
@@ -127,17 +123,21 @@ func (o *KLogin) Setup(Gin *gin.Engine) {
 	}
 	Gin.Use(sessions.Sessions(o.SessionName, store))
 
-	// Login
-	if o.LoginRouter == "" {
-		o.LoginRouter = "/login"
+	// Routers
+	if o.LoginRouter == nil {
+		Gin.POST("/login", o.doLogin)
+	} else {
+		for _, r := range o.LoginRouter {
+			Gin.POST(r, o.doLogin)
+		}
 	}
-	Gin.POST(o.LoginRouter, o.doLogin)
-
-	// Logout
-	if o.LogoutRouter == "" {
-		o.LogoutRouter = "/logout"
+	if o.LogoutRouter == nil {
+		Gin.GET("/logout", o.doLogout)
+	} else {
+		for _, r := range o.LogoutRouter {
+			Gin.GET(r, o.doLogout)
+		}
 	}
-	Gin.GET(o.LogoutRouter, o.doLogout)
 }
 
 func (o *KLogin) POST(relativePath string, handler gin.HandlerFunc) {
