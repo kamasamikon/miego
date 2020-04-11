@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xgin"
+	"github.com/kamasamikon/miego/xmap"
 	"github.com/twinj/uuid"
 )
 
@@ -37,9 +38,9 @@ type KLogin struct {
 	//
 	// Call this to verify the login parameters
 	//
-	LoginDataChecker func(c *gin.Context) (sessionItems xgin.PostMap, OKRedirectURL string, NGPageName string, NGPageParam xgin.PostMap, err error)
+	LoginDataChecker func(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, err error)
 
-	BeforeLogin  func(c *gin.Context) (LoginPageName string, LoginPageParam xgin.PostMap)
+	BeforeLogin  func(c *gin.Context) (LoginPageName string, LoginPageParam xmap.Map)
 	BeforeLogout func(c *gin.Context) (LogoutRedirectURL string)
 }
 
