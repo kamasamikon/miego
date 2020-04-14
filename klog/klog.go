@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/mgutz/ansi"
 )
 
@@ -100,4 +101,9 @@ func I(formating string, args ...interface{}) {
 // D :Debug message
 func D(formating string, args ...interface{}) {
 	klog(crD, "D", formating, args...)
+}
+
+func Dump(obj interface{}) {
+	s := spew.Sdump(obj)
+	klog(crD, "D", s)
 }

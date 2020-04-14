@@ -55,8 +55,6 @@ func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		}
 
 		LoginPageName, LoginPageParam := o.BeforeLogin(c)
-		klog.D("%s", spew.Sdump(LoginPageName))
-		klog.D("%s", spew.Sdump(LoginPageParam))
 		klog.D("isLoggin: NG: %s", spew.Sdump(LoginPageParam))
 		c.HTML(200, LoginPageName, LoginPageParam)
 	}
@@ -65,7 +63,6 @@ func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 	session := sessions.Default(c)
 
-	klog.D("%s", key)
 	if val := session.Get(key); val == nil {
 		return "", false
 	} else {
@@ -78,11 +75,6 @@ func (o *KLogin) doLogin(c *gin.Context) {
 	session := sessions.Default(c)
 
 	sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := o.LoginDataChecker(c)
-	klog.D("%s", spew.Sdump(sessionItems))
-	klog.D("%s", spew.Sdump(OKRedirectURL))
-	klog.D("%s", spew.Sdump(NGPageName))
-	klog.D("%s", spew.Sdump(NGPageParam))
-	klog.D("%s", spew.Sdump(err))
 	if err == nil {
 		for k, v := range sessionItems {
 			session.Set(k, v)
@@ -104,7 +96,6 @@ func (o *KLogin) doLogout(c *gin.Context) {
 	session := sessions.Default(c)
 
 	LogoutRedirectURL := o.BeforeLogout(c)
-	klog.D("%s", spew.Sdump(LogoutRedirectURL))
 	session.Clear()
 	session.Save()
 	c.Redirect(302, LogoutRedirectURL)
