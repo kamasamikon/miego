@@ -66,9 +66,14 @@ func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 	if val := session.Get(key); val == nil {
 		return "", false
 	} else {
-		spew.Dump(val)
+		klog.Dump(val)
 		return val.(string), true
 	}
+}
+func (o *KLogin) Set(c *gin.Context, key string, val interface{}) {
+	session := sessions.Default(c)
+	session.Set(key, val)
+	session.Save()
 }
 
 func (o *KLogin) doLogin(c *gin.Context) {
