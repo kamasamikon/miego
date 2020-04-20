@@ -107,6 +107,11 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 	return nil
 }
 
+func (m QueryMap) Has(Name string) bool {
+	_, ok := m[Name]
+	return ok
+}
+
 func (m QueryMap) Use(qList []string, Name string, prefix string, NewName string) []string {
 	sa, ok := m[Name]
 	if ok == false {
