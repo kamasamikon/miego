@@ -2,6 +2,7 @@ package xtime
 
 import (
 	"fmt"
+	"github.com/kamasamikon/miego/atox"
 	"time"
 )
 
@@ -26,4 +27,14 @@ func NumToStr(o interface{}) string {
 	}
 
 	return ""
+}
+
+func StrToNum(s string) uint64 {
+	if t, err := time.Parse("2006-01-02", s); err == nil {
+		return atox.Uint64(t.Format("20060102"), 0)
+	}
+	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
+		return atox.Uint64(t.Format("2006002150405"), 0)
+	}
+	return 0
 }

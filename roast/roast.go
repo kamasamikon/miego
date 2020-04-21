@@ -7,6 +7,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kamasamikon/miego/in"
 	"github.com/kamasamikon/miego/xmap"
+	"github.com/kamasamikon/miego/xtime"
 )
 
 // GE, GT, LE, LT, EQ, NE,
@@ -190,6 +191,36 @@ func (m QueryMap) Use(qList []string, Name string, prefix string, NewName string
 		case "NE_DATE":
 			for _, v := range arr {
 				qList = append(qList, p(`%s != DATE("%s")`, Name, v))
+			}
+
+		case "GE_XDATE":
+			for _, v := range arr {
+				qList = append(qList, p(`%s >= %d`, Name, xtime.StrToNum(v)))
+			}
+
+		case "GT_XDATE":
+			for _, v := range arr {
+				qList = append(qList, p(`%s > %d`, Name, xtime.StrToNum(v)))
+			}
+
+		case "LE_XDATE":
+			for _, v := range arr {
+				qList = append(qList, p(`%s <= %d`, Name, xtime.StrToNum(v)))
+			}
+
+		case "LT_XDATE":
+			for _, v := range arr {
+				qList = append(qList, p(`%s < %d`, Name, xtime.StrToNum(v)))
+			}
+
+		case "EQ_XDATE":
+			for _, v := range arr {
+				qList = append(qList, p(`%s = %d`, Name, xtime.StrToNum(v)))
+			}
+
+		case "NE_XDATE":
+			for _, v := range arr {
+				qList = append(qList, p(`%s != %d`, Name, xtime.StrToNum(v)))
 			}
 
 		case "IN":
