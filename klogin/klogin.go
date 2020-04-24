@@ -80,6 +80,7 @@ func (o *KLogin) doLogin(c *gin.Context) {
 	session := sessions.Default(c)
 
 	sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := o.LoginDataChecker(c)
+	klog.D("")
 	if err == nil {
 		for k, v := range sessionItems {
 			session.Set(k, v)
@@ -88,8 +89,11 @@ func (o *KLogin) doLogin(c *gin.Context) {
 		session.Set("UUID", uuid.NewV4().String())
 		session.Save()
 
+		klog.D(OKRedirectURL)
 		c.Redirect(302, OKRedirectURL)
 	} else {
+		klog.Dump(NGPageName)
+		klog.Dump(NGPageParam)
 		session.Clear()
 		session.Save()
 

@@ -78,6 +78,22 @@ func (xm Map) Merge(other Map, safe bool) {
 	}
 }
 
+func (xm Map) Append(safe bool, args ...interface{}) Map {
+	for i := 0; i < len(args)/2; i++ {
+		k := args[2*i].(string)
+		v := args[2*i+1]
+
+		if safe {
+			if _, ok := xm[k]; !ok {
+				xm[k] = v
+			}
+		} else {
+			xm[k] = v
+		}
+	}
+	return xm
+}
+
 func (xm Map) Has(name string) bool {
 	if _, ok := xm[name]; ok {
 		return true
