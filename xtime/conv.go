@@ -19,17 +19,17 @@ func NumToStr(o interface{}) string {
 	if l == 14 {
 		// Second
 		if t, err := time.Parse("20060102150405", timestr); err == nil {
-			return t.Format("2006/01/02 15:04:05")
+			return t.Format("2006-01-02 15:04:05")
 		}
 	} else if l == 12 {
 		// Minute
 		if t, err := time.Parse("200601021504", timestr); err == nil {
-			return t.Format("2006/01/02 15:04")
+			return t.Format("2006-01-02 15:04")
 		}
 	} else if l == 8 {
 		// Day
 		if t, err := time.Parse("20060102", timestr); err == nil {
-			return t.Format("2006/01/02")
+			return t.Format("2006-01-02")
 		}
 	}
 
