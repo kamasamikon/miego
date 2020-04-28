@@ -2,6 +2,7 @@ package roast
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kamasamikon/miego/xmap"
 )
@@ -18,7 +19,8 @@ func OrderLimitOffset2(m xmap.Map) (orderBy string, limit uint, offset uint) {
 	orderBy = ""
 	cmdOrderBy := m.Str("OrderBy", "")
 	if cmdOrderBy != "" {
-		orderBy = fmt.Sprintf("ORDER BY %s", cmdOrderBy)
+		segs := strings.Split(cmdOrderBy, "__")
+		orderBy = fmt.Sprintf("ORDER BY %s", segs[0])
 
 		cmdOrderDir := m.Str("OrderDir", "")
 		if cmdOrderDir == "desc" {

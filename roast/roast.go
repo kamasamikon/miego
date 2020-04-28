@@ -113,7 +113,7 @@ func (m QueryMap) Has(Name string) bool {
 	return ok
 }
 
-func (m QueryMap) Use(qList []string, Name string, prefix string, NewName string) []string {
+func (m QueryMap) Use(qList []string, Name string, Table string, NewName string) []string {
 	sa, ok := m[Name]
 	if ok == false {
 		return qList
@@ -121,8 +121,8 @@ func (m QueryMap) Use(qList []string, Name string, prefix string, NewName string
 	if NewName != "" {
 		Name = NewName
 	}
-	if prefix != "" {
-		Name = prefix + "." + Name
+	if Table != "" {
+		Name = Table + "." + Name
 	}
 
 	p := fmt.Sprintf
