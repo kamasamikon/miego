@@ -64,6 +64,14 @@ func MapAll(c *gin.Context, overwrite bool) Map {
 	return xm
 }
 
+func (xm Map) String() string {
+	if data, err := json.Marshal(xm); err == nil {
+		return string(data)
+	} else {
+		return ""
+	}
+}
+
 func (xm Map) Merge(other Map, safe bool) {
 	if safe {
 		for k, v := range other {
@@ -114,6 +122,9 @@ func (xm Map) Str(name string, defv string) string {
 	}
 	return defv
 }
+func (xm Map) S(name string) string {
+	return xm.Str(name, "")
+}
 
 func (xm Map) Int(name string, defv int) int {
 	if x, ok := xm[name]; ok {
@@ -121,12 +132,18 @@ func (xm Map) Int(name string, defv int) int {
 	}
 	return defv
 }
+func (xm Map) I(name string) int {
+	return xm.Int(name, 0)
+}
 
 func (xm Map) Uint(name string, defv uint) uint {
 	if x, ok := xm[name]; ok {
 		return atox.Uint(x.(string), defv)
 	}
 	return defv
+}
+func (xm Map) U(name string) uint {
+	return xm.Uint(name, 0)
 }
 
 func (xm Map) Int64(name string, defv int64) int64 {
