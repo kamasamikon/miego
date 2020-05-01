@@ -2,32 +2,9 @@ package misc
 
 import (
 	"fmt"
-	"math/rand"
 	"runtime"
 	"sync"
-	"time"
 )
-
-const (
-	KC_RAND_KIND_NUM = iota
-	KC_RAND_KIND_LOWER
-	KC_RAND_KIND_UPPER
-	KC_RAND_KIND_ALL
-)
-
-func Krand(size int, kind int) []byte {
-	ikind, kinds, result := kind, [][]int{[]int{10, 48}, []int{26, 97}, []int{26, 65}}, make([]byte, size)
-	isAll := kind > 2 || kind < 0
-	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < size; i++ {
-		if isAll { // random ikind
-			ikind = rand.Intn(3)
-		}
-		scope, base := kinds[ikind][0], kinds[ikind][1]
-		result[i] = uint8(base + rand.Intn(scope))
-	}
-	return result
-}
 
 func ReverseString(s string) string {
 	runes := []rune(s)

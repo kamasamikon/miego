@@ -64,7 +64,7 @@ func MapAll(c *gin.Context, overwrite bool) Map {
 	return xm
 }
 
-func (xm Map) String() string {
+func (xm Map) Marshal() string {
 	if data, err := json.Marshal(xm); err == nil {
 		return string(data)
 	} else {
