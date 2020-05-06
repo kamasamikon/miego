@@ -36,15 +36,34 @@ func NumToStr(o interface{}) string {
 	return ""
 }
 
-func StrToNum(s string) uint64 {
+func StrToNum(s string, flag byte) uint64 {
+	var tmp string
+
 	if t, err := time.Parse("2006-01-02", s); err == nil {
-		return atox.Uint64(t.Format("20060102"), 0)
+		tmp = t.Format("20060102")
 	}
 	if t, err := time.Parse("2006-01-02 15:04", s); err == nil {
-		return atox.Uint64(t.Format("20060021504"), 0)
+		tmp = t.Format("200601021504")
 	}
 	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
-		return atox.Uint64(t.Format("2006002150405"), 0)
+		tmp = t.Format("20060102150405")
 	}
-	return 0
+
+	tmp += "000000000"
+	switch flag {
+	case 'N', 'n':
+		tmp = tmp[0:4]
+	case 'Y', 'y':
+		tmp = tmp[0:6]
+	case 'R', 'r':
+		tmp = tmp[0:8]
+	case 'S', 's':
+		tmp = tmp[0:10]
+	case 'F', 'f':
+		tmp = tmp[0:12]
+	case 'M', 'm':
+		tmp = tmp[0:14]
+	}
+
+	return atox.Uint64(tmp, 0)
 }

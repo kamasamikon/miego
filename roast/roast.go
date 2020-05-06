@@ -193,34 +193,38 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 				qList = append(qList, p(`%s != DATE("%s")`, Name, v))
 			}
 
-		case "GE_XDATE":
-			for _, v := range arr {
-				qList = append(qList, p(`%s >= %d`, Name, xtime.StrToNum(v)))
+		case "GE_NYRSFM", "GT_NYRSFM", "LE_NYRSFM", "LT_NYRSFM", "EQ_NYRSFM", "NE_NYRSFM":
+			fallthrough
+		case "GE_NYRSF", "GT_NYRSF", "LE_NYRSF", "LT_NYRSF", "EQ_NYRSF", "NE_NYRSF":
+			fallthrough
+		case "GE_NYRS", "GT_NYRS", "LE_NYRS", "LT_NYRS", "EQ_NYRS", "NE_NYRS":
+			fallthrough
+		case "GE_NYR", "GT_NYR", "LE_NYR", "LT_NYR", "EQ_NYR", "NE_NYR":
+			fallthrough
+		case "GE_NY", "GT_NY", "LE_NY", "LT_NY", "EQ_NY", "NE_NY":
+			fallthrough
+		case "GE_N", "GT_N", "LE_N", "LT_N", "EQ_N", "NE_N":
+			segs := strings.Split(kind, "_")
+			var op string
+			switch segs[0] {
+			case "GE":
+				op = ">="
+			case "LE":
+				op = "<="
+			case "GT":
+				op = ">"
+			case "LT":
+				op = "<"
+			case "EQ":
+				op = "="
+			case "NE":
+				op = "!="
 			}
 
-		case "GT_XDATE":
-			for _, v := range arr {
-				qList = append(qList, p(`%s > %d`, Name, xtime.StrToNum(v)))
-			}
+			flag := kind[len(kind)-1]
 
-		case "LE_XDATE":
 			for _, v := range arr {
-				qList = append(qList, p(`%s <= %d`, Name, xtime.StrToNum(v)))
-			}
-
-		case "LT_XDATE":
-			for _, v := range arr {
-				qList = append(qList, p(`%s < %d`, Name, xtime.StrToNum(v)))
-			}
-
-		case "EQ_XDATE":
-			for _, v := range arr {
-				qList = append(qList, p(`%s = %d`, Name, xtime.StrToNum(v)))
-			}
-
-		case "NE_XDATE":
-			for _, v := range arr {
-				qList = append(qList, p(`%s != %d`, Name, xtime.StrToNum(v)))
+				qList = append(qList, p(`%s %s %d`, Name, op, xtime.StrToNum(v, flag)))
 			}
 
 		case "IN":
