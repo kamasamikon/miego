@@ -248,7 +248,7 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 
 		case "LIKE":
 			for _, v := range arr {
-				qList = append(qList, p(`%s LIKE "%s"`, Name, v))
+				qList = append(qList, p(`%s LIKE "%%%s%%"`, Name, v))
 			}
 
 		case "NULL":
