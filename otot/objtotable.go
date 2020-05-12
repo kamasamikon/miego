@@ -35,7 +35,7 @@ func ViaKV(class string, id string, column int, v ...string) string {
 		}
 		k := v[2*i]
 		v := v[2*i+1]
-		lines = append(lines, fmt.Sprintf("<td>%s%s</td>", k, v))
+		lines = append(lines, fmt.Sprintf(`<td><span class="ototKey">%s</span><span class="ototVal">%s</span></td>`, k, v))
 	}
 
 	lines = append(lines, "</tr>")
