@@ -42,6 +42,12 @@ type KLogin struct {
 
 	BeforeLogin  func(c *gin.Context) (LoginPageName string, LoginPageParam xmap.Map)
 	BeforeLogout func(c *gin.Context) (LogoutRedirectURL string)
+
+	//
+	// Before and After check.
+	//
+	BCheckerList []func(h gin.HandlerFunc) gin.HandlerFunc
+	ACheckerList []func(h gin.HandlerFunc) gin.HandlerFunc
 }
 
 func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
@@ -143,14 +149,49 @@ func (o *KLogin) Setup(Gin *gin.Engine) {
 }
 
 func (o *KLogin) POST(relativePath string, handler gin.HandlerFunc) {
-	o.Gin.POST(relativePath, xgin.Decorator(handler, o.isLoggin))
+	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
+	if o.BCheckerList != nil {
+		decors = append(decors, o.BCheckerList...)
+	}
+	decors = append(decors, o.isLoggin)
+	if o.ACheckerList != nil {
+		decors = append(decors, o.ACheckerList...)
+	}
+	o.Gin.POST(relativePath, xgin.Decorator(handler, decors...))
 }
 func (o *KLogin) GET(relativePath string, handler gin.HandlerFunc) {
-	o.Gin.GET(relativePath, xgin.Decorator(handler, o.isLoggin))
+	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
+	if o.BCheckerList != nil {
+		decors = append(decors, o.BCheckerList...)
+	}
+	decors = append(decors, o.isLoggin)
+	if o.ACheckerList != nil {
+		decors = append(decors, o.ACheckerList...)
+	}
+
+	o.Gin.GET(relativePath, xgin.Decorator(handler, decors...))
 }
 func (o *KLogin) PUT(relativePath string, handler gin.HandlerFunc) {
-	o.Gin.PUT(relativePath, xgin.Decorator(handler, o.isLoggin))
+	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
+	if o.BCheckerList != nil {
+		decors = append(decors, o.BCheckerList...)
+	}
+	decors = append(decors, o.isLoggin)
+	if o.ACheckerList != nil {
+		decors = append(decors, o.ACheckerList...)
+	}
+
+	o.Gin.PUT(relativePath, xgin.Decorator(handler, decors...))
 }
 func (o *KLogin) DELETE(relativePath string, handler gin.HandlerFunc) {
-	o.Gin.DELETE(relativePath, xgin.Decorator(handler, o.isLoggin))
+	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
+	if o.BCheckerList != nil {
+		decors = append(decors, o.BCheckerList...)
+	}
+	decors = append(decors, o.isLoggin)
+	if o.ACheckerList != nil {
+		decors = append(decors, o.ACheckerList...)
+	}
+
+	o.Gin.DELETE(relativePath, xgin.Decorator(handler, decors...))
 }
