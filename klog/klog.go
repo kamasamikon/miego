@@ -11,27 +11,24 @@ import (
 	"github.com/mgutz/ansi"
 )
 
-var crF = ansi.ColorCode("red+b:black")
-var crA = ansi.ColorCode("red+h:black")
-var crC = ansi.ColorCode("cyan+b:black")
-var crE = ansi.ColorCode("cyan+h:black")
-var crW = ansi.ColorCode("yellow+b:black")
-var crN = ansi.ColorCode("yellow+h:black")
-var crI = ansi.ColorCode("green+b:black")
-var crD = ansi.ColorCode("green+h:black")
-var reset = ansi.ColorCode("reset")
-
-var ctrlMap map[string]bool
+var ColorType_F = ansi.ColorCode("red+b:black")
+var ColorType_A = ansi.ColorCode("red+h:black")
+var ColorType_C = ansi.ColorCode("cyan+b:black")
+var ColorType_E = ansi.ColorCode("cyan+h:black")
+var ColorType_W = ansi.ColorCode("yellow+b:black")
+var ColorType_N = ansi.ColorCode("yellow+h:black")
+var ColorType_I = ansi.ColorCode("green+b:black")
+var ColorType_D = ansi.ColorCode("green+h:black")
+var ColorType_Reset = ansi.ColorCode("reset")
 
 var Conf struct {
 	ShortPath bool
 	NoColor   bool
 }
 
-func klog(color string, class string, formating string, args ...interface{}) {
-
+func KLog(dep int, color string, class string, formating string, args ...interface{}) {
 	filename, line, funcname := "???", 0, "???"
-	pc, filename, line, ok := runtime.Caller(2)
+	pc, filename, line, ok := runtime.Caller(dep)
 
 	if ok {
 		funcname = runtime.FuncForPC(pc).Name()
@@ -39,7 +36,7 @@ func klog(color string, class string, formating string, args ...interface{}) {
 		funcname = strings.TrimPrefix(funcname, ".")
 	}
 
-	cEnd := reset
+	cEnd := ColorType_Reset
 	if Conf.ShortPath {
 		filename = filepath.Base(filename)
 	}
@@ -47,15 +44,6 @@ func klog(color string, class string, formating string, args ...interface{}) {
 		color = ""
 		cEnd = ""
 	}
-
-	/*
-		{
-			keyA := fmt.Sprintf("%d@%s", line, funcname)
-			keyB := fmt.Sprintf("%d@%s", "*", funcname)
-			keyC := fmt.Sprintf("%d@%s", line, "*")
-			keyD := fmt.Sprintf("%d@%s", "*", "*")
-		}
-	*/
 
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")
@@ -65,45 +53,45 @@ func klog(color string, class string, formating string, args ...interface{}) {
 
 // F :Fatal
 func F(formating string, args ...interface{}) {
-	klog(crF, "F", formating, args...)
+	KLog(2, ColorType_F, "F", formating, args...)
 }
 
 // A :Alert
 func A(formating string, args ...interface{}) {
-	klog(crA, "A", formating, args...)
+	KLog(2, ColorType_A, "A", formating, args...)
 }
 
 // C :Critical conditions
 func C(formating string, args ...interface{}) {
-	klog(crC, "C", formating, args...)
+	KLog(2, ColorType_C, "C", formating, args...)
 }
 
 // E :Error
 func E(formating string, args ...interface{}) {
-	klog(crE, "E", formating, args...)
+	KLog(2, ColorType_E, "E", formating, args...)
 }
 
 // W :Warning
 func W(formating string, args ...interface{}) {
-	klog(crW, "W", formating, args...)
+	KLog(2, ColorType_W, "W", formating, args...)
 }
 
 // N :Notice
 func N(formating string, args ...interface{}) {
-	klog(crN, "N", formating, args...)
+	KLog(2, ColorType_N, "N", formating, args...)
 }
 
 // I :Information
 func I(formating string, args ...interface{}) {
-	klog(crI, "I", formating, args...)
+	KLog(2, ColorType_I, "I", formating, args...)
 }
 
 // D :Debug message
 func D(formating string, args ...interface{}) {
-	klog(crD, "D", formating, args...)
+	KLog(2, ColorType_D, "D", formating, args...)
 }
 
 func Dump(obj interface{}) {
 	s := spew.Sdump(obj)
-	klog(crD, "D", s)
+	KLog(2, ColorType_D, "D", s)
 }

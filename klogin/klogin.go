@@ -72,8 +72,6 @@ func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 	if val := session.Get(key); val == nil {
 		return "", false
 	} else {
-		klog.D(key)
-		klog.Dump(val)
 		return val.(string), true
 	}
 }
@@ -87,7 +85,6 @@ func (o *KLogin) doLogin(c *gin.Context) {
 	session := sessions.Default(c)
 
 	sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := o.LoginDataChecker(c)
-	klog.D("")
 	if err == nil {
 		for k, v := range sessionItems {
 			session.Set(k, v)
