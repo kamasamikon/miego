@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-var numbers []int = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+var numbers []uint = []uint{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
 	47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131,
 	137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223,
 	227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311,
@@ -287,15 +287,15 @@ var numbers []int = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
 */
 
 // Map the Prime and Name
-var mapNamePrime = make(map[string]int)
-var mapPrimeName = make(map[int]string)
+var mapNamePrime = make(map[string]uint)
+var mapPrimeName = make(map[uint]string)
 
-var nextNumberIndex int
+var nextNumberIndex uint
 
 // NamePrimeAdd
-func npAdd(name string) int {
+func NpAdd(name string) uint {
 	if number, ok := mapNamePrime[name]; ok {
-		klog.D("npAdd: %05d == '%s'\n", number, name)
+		klog.D("NpAdd: %05d == '%s'\n", number, name)
 		return number
 	}
 	nextNumber := numbers[nextNumberIndex]
@@ -304,33 +304,33 @@ func npAdd(name string) int {
 	mapNamePrime[name] = nextNumber
 	mapPrimeName[nextNumber] = name
 
-	klog.D("npAdd: %05d == '%s'", nextNumber, name)
+	klog.D("NpAdd: %05d == '%s'", nextNumber, name)
 	return nextNumber
 }
 
-func npNumber(name string) int {
+func NpNum(name string) uint {
 	if number, ok := mapNamePrime[name]; ok {
 		return number
 	}
 	return 0
 }
 
-func npName(number int) string {
+func NpStr(number uint) string {
 	if name, ok := mapPrimeName[number]; ok {
 		return name
 	}
 	return ""
 }
 
-func npDump() {
+func NpDump() {
 	klog.D(">>> Prime Map >>>>>>>>>>>>>>")
 	var nlist []int
 	for number, _ := range mapPrimeName {
-		nlist = append(nlist, number)
+		nlist = append(nlist, int(number))
 	}
 	sort.Sort(sort.IntSlice(nlist))
 	for _, n := range nlist {
-		name := mapPrimeName[n]
+		name := mapPrimeName[uint(n)]
 		klog.D("%4d : %s", n, name)
 	}
 	klog.D("<<< Prime Map <<<<<<<<<<<<<<")
