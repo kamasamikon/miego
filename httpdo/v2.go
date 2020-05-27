@@ -70,19 +70,24 @@ func (c *context) Post() (n int, err error) {
 	}
 
 	if c.pong == nil {
+		klog.F("")
 		return 0, nil
 	}
 
 	if ptr, ok := c.pong.(*string); ok {
 		if buf, err := ioutil.ReadAll(r.Body); err != nil {
+			klog.F("")
 			return 0, err
 		} else {
+			klog.F("")
 			*ptr = string(buf)
 			return 0, nil
 		}
 	} else if ptr, ok := c.pong.(*[]byte); ok {
+		klog.F("")
 		return r.Body.Read(*ptr)
 	} else {
+		klog.F("")
 		return 0, json.NewDecoder(r.Body).Decode(c.pong)
 	}
 }
