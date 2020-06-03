@@ -379,6 +379,12 @@ func main() {
 		c.String(200, templ)
 	})
 
+	Gin.GET("/reload", func(c *gin.Context) {
+		nginxConfWrite()
+		nginxReload()
+		c.String(200, "DONE")
+	})
+
 	go RefreshLoop()
 
 	// XXX: Must be 9100, it is defined in /etc/nginx/nginx.conf
