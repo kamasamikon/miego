@@ -69,28 +69,59 @@ def dockerRun(imageName, msbIP, backrun, append):
     cmd.extend([imageName])
     return saferun(cmd)
 
-def dockerKill(name):
-    saferun(("sudo", "docker", "stop", name))
-    saferun(("sudo", "docker", "rm", name))
+def killContainer(imageName, killFirst, killLast):
+    killFirst = killFirst or "0"
+    killLast = killLast or "99999999999"
+
+    cmd = ["sudo", "docker", "ps", "-aq", "--filter", "ancestor=%s" % imageName]
+    print(">>> ", " ".join(cmd))
+    idList = subprocess.check_output(cmd).strip().decode("utf-8").split()
+    if idList:
+        a = int(killFirst)
+        b = int(killLast)
+        cmd = ["sudo", "docker", "rm", "-f"]
+        cmd.extend(idList[a:b])
+        saferun(cmd)
 
 def main():
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
         print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:kill] [-b:backrun] [-a:append] imageNames ...")
+        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] imageNames ...")
         return
 
     msbIP = msbIPAddress()
 
+    # Kill OLD?
+    killSome, killFirst, killLast = False, "0", "999999999999999"
+    for name in sys.argv[1:]:
+        if name.startswith("-k"):
+            # -k: => container[:]
+            # -k: => container[:]
+            # -k3:-1 => container[3:-1]
+            segs = name[2:].split(":")
+            if len(segs) > 1:
+                killLast = segs[1]
+
+            if len(segs) > 0:
+                killFirst = segs[0]
+
+            killSome = True
+            break
+
+    # Kill OLD?
+    if killSome:
+        for name in sys.argv[1:]:
+            if name[0] == "-":
+                continue
+            killContainer(name, killFirst, killLast)
+    
     backrun = "-b" in sys.argv
-    killold = "-k" in sys.argv
     append  = "-a" in sys.argv
 
     for name in sys.argv[1:]:
         if name[0] == "-":
             continue
-        if killold:
-            dockerKill(name)
         dockerRun(name, msbIP, backrun, append)
 
 if __name__ == "__main__":
