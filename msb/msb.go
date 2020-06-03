@@ -9,10 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/xgin"
 )
 
 // KService : Micro Service definition
@@ -82,12 +80,12 @@ func msSet(s *KService) bool {
 	key := s.toKey()
 	if a, ok := mapServices[key]; ok {
 		if a.CreatedAt != s.CreatedAt {
-			klog.W("U: '%s'.", key)
+			// klog.W("U: '%s'.", key)
 			*a = *s
 			a.RefreshTime = time.Now().UnixNano()
 			return true
 		} else {
-			klog.W("S: '%s'", key)
+			// klog.W("S: '%s'", key)
 			a.RefreshTime = time.Now().UnixNano()
 			return false
 		}
@@ -140,7 +138,7 @@ func RefreshLoop() {
 			nginxConfWrite()
 			nginxReload()
 		}
-		klog.E("Waiting 10 seconds before next loop.")
+		// klog.E("Waiting 10 seconds before next loop.")
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -151,7 +149,8 @@ func RefreshLoop() {
 func genLocationAndUpstream() (string, string) {
 	var serviceGroup = make(map[string][]*KService)
 	for _, v := range mapServices {
-		key := v.ServiceName + "/" + v.Version
+		// key := v.ServiceName + "/" + v.Version
+		key := v.ServiceName
 
 		var group []*KService
 		group, ok := serviceGroup[key]
@@ -167,7 +166,8 @@ func genLocationAndUpstream() (string, string) {
 	var redir strings.Builder
 	for key, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&redir, "        location ^~ /ms/%s/ {\n", key)
+		fmt.Fprintf(&redir, "        #location ^~ /ms/%s/ {\n", key)
+		fmt.Fprintf(&redir, "        location ^~ /%s/ {\n", key)
 		fmt.Fprintf(&redir, "            proxy_pass http://%s.%s/;\n", s.ServiceName, s.Version)
 		fmt.Fprintf(&redir, "        }\n\n")
 	}
@@ -190,7 +190,6 @@ func TemplLoad(path string) string {
 		path = "/etc/nginx/nginx.conf.templ"
 	}
 
-	klog.D("use templ '%s'", path)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		klog.E("TemplLoad NG: %s", err.Error())
@@ -207,8 +206,6 @@ func nginxConfWrite() error {
 	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", lb, -1)
 	templ = strings.Replace(templ, "#@@REDIRECT_LIST@@", us, -1)
 
-	klog.D("%s", templ)
-
 	path := "/etc/nginx/nginx.conf"
 	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {
 		klog.E(err.Error())
@@ -219,7 +216,6 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	klog.D("Reload nginx")
 	cmd := exec.Command("/usr/sbin/nginx", "-s", "reload")
 	err := cmd.Run()
 	if err != nil {
@@ -229,10 +225,7 @@ func nginxReload() {
 
 func serverSet(c *gin.Context) {
 	var s KService
-	err := c.BindJSON(&s)
-	if err != nil {
-		spew.Dump(s)
-	}
+	c.BindJSON(&s)
 
 	if ok := msSet(&s); ok {
 		nginxConfWrite()
@@ -364,9 +357,8 @@ func serverRem(c *gin.Context) {
 }
 
 func main() {
-	spew.Config.Indent = "\t"
-
-	Gin := xgin.Default
+	gin.SetMode(gin.ReleaseMode)
+	Gin := gin.New()
 
 	Gin.POST("/service", serverSet)
 
@@ -381,6 +373,11 @@ func main() {
 	Gin.DELETE("/service/:name/:version", serverRem)
 	Gin.DELETE("/service/:name/:version/:ipaddr", serverRem)
 	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
+
+	Gin.GET("/nginx", func(c *gin.Context) {
+		templ := TemplLoad("/etc/nginx/nginx.conf")
+		c.String(200, templ)
+	})
 
 	go RefreshLoop()
 
