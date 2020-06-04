@@ -62,9 +62,10 @@ def dockerRun(imageName, msbIP, backrun, append):
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
-    volumeMap = volumeGet(container)
-    if volumeMap and volumeMap[0] != "<":
-        cmd.extend(["-v", volumeMap])
+    if not "DontKnowWhy":
+        volumeMap = volumeGet(container)
+        if volumeMap and volumeMap[0] != "<":
+            cmd.extend(["-v", volumeMap])
 
     cmd.extend([imageName])
     return saferun(cmd)
@@ -73,9 +74,10 @@ def killContainer(imageName, killFirst, killLast):
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 
-    cmd = ["sudo", "docker", "ps", "-aq", "--filter", "ancestor=%s" % imageName]
+    cmd = ["sudo", "docker", "ps", "-aq", "--filter", r'''name=\b%s\b|\b%s_.*''' % (imageName, imageName)]
     print(">>> ", " ".join(cmd))
     idList = subprocess.check_output(cmd).strip().decode("utf-8").split()
+    print(idList)
     if idList:
         a = int(killFirst)
         b = int(killLast)
