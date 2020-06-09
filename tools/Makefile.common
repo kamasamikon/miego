@@ -1,0 +1,74 @@
+.PHONY: userDockerCommand userScript build run deploy clean
+
+
+build: userScriptLast userDockerCommandLast
+	@echo "==> Building docker ..."
+	daoker.py -n $(msName) -v $(msVern) -p $(msPort) -d $(msDesc) b
+	@echo "==> Building docker ... DONE"
+
+
+run: build
+	@echo "==> Running docker ..."
+	daoker.py -n $(msName) -v $(msVern) -p $(msPort) -d $(msDesc) r
+
+
+dockerpack: build
+	echo sudo docker save -o one.tar ${msName}
+	sudo docker save -o one.tar ${msName}
+	sudo tar czvf one.tar.gz one.tar
+	sudo chmod a+rwx one.tar.gz
+
+
+deploy: remoteloadms
+
+
+remoteloadms: dockerpack
+	scp one.tar.gz `cat /tmp/.mkREMOTE`:/tmp && ssh `cat /tmp/.mkREMOTE` "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k ${msName}"
+
+
+vet:
+	@go vet
+
+
+clean:
+	@echo "==> Cleanup ..."
+	@rm -fr Dockerfile
+	@rm -fr .userScript
+	@rm -fr .userDockerCommand
+	@rm -fr *.tar *.tar.gz
+	@rm -fr main
+	@rm -fr ms
+	@echo "==> Cleanup ... DONE"
+
+
+userScriptFirst:
+	@echo "==> Writing userScript..."
+	@echo > .userScript -n
+
+
+userScriptLast: userScript
+	@echo >> .userScript "[ -f main.cfg ] && cp -f main.cfg ms/main.cfg || echo -n"
+	@echo >> .userScript "[ -f main.`cat /tmp/.mkCONFIG`.cfg ] && cp -f main.`cat /tmp/.mkCONFIG`.cfg ms/main.cfg || echo -n"
+	@echo >> .userScript "[ -f README.md ] && cp -fr README.md ms/ || echo -n"
+	@echo >> .userScript "[ -d templates ] && cp -fr templates ms/ || echo -n"
+	@echo >> .userScript "[ -d static ] && cp -fr static ms/ || echo -n"
+	@echo "==> Writing userScript... DONE"
+
+
+userDockerCommandFirst:
+	@echo "==> Writing userDockerCommand..."
+	@echo > .userDockerCommand -n
+	@echo >> .userDockerCommand "ENV KCFG_FILES ./msa.cfg:./main.cfg:/tmp/conf/main.cfg"
+
+
+userDockerCommandLast: userDockerCommand
+	@echo "==> Writing userDockerCommand... DONE"
+
+
+define sss
+	echo >> .userScript $(1)
+endef
+
+define ddd
+	echo >> .userDockerCommand $(1)
+endef

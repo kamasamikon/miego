@@ -103,7 +103,7 @@ def createMsaCfg():
     lines.append("i:/build/updated=%d" % isUpdated())
 
     # This is /root/msa.cfg, it will be used fore register
-    with open("msa.cfg", "w") as f:
+    with open("ms/msa.cfg", "w") as f:
         f.writelines([l + "\r\n" for l in lines])
 
 
@@ -135,14 +135,8 @@ def callUserScript():
 def copyMain():
     saferun(["cp", "-frv", "main", "ms"])
 
-    saferun(["touch", "msa.cfg"])
-    saferun(["cp", "-frvL", "msa.cfg", "ms"])
-
-    saferun(["touch", "main.cfg"])
-    saferun(["cp", "-frvL", "main.cfg", "ms"])
-
-    saferun(["touch", "README.md"])
-    saferun(["cp", "-frvL", "README.md", "ms"])
+    saferun(["touch", "ms/main.cfg"])
+    saferun(["touch", "ms/README.md"])
 
     saferun(["cp", "-frvL", "/usr/local/bin/msahere.py", "ms"])
 
