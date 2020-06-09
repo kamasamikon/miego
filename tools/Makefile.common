@@ -1,5 +1,7 @@
 .PHONY: userDockerCommand userScript build run deploy clean
 
+fake:
+	@echo "Interesting..."
 
 build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ..."
