@@ -20,13 +20,6 @@ import (
 	"github.com/kamasamikon/miego/conf"
 )
 
-type ioInfo struct {
-	Ping interface{}
-	Pong interface{}
-}
-
-var ioInfoDict = make(map[string]*ioInfo)
-
 var htmlHead = []byte(`
 <!DOCTYPE html>
 <html>
@@ -86,48 +79,6 @@ func Run(addr string) {
 }
 
 //
-// Set Ping Pong debug information
-//
-
-// PPSet : Set PingPong debug info
-func PPSet(method string, path string, ping interface{}, pong interface{}) {
-	key := fmt.Sprintf("%s@%s", method, path)
-	ioInfoDict[key] = &ioInfo{
-		Ping: ping,
-		Pong: pong,
-	}
-}
-
-// PPSetPOST : PPSet("POST", ...)
-func PPSetPOST(path string, ping interface{}, pong interface{}) {
-	PPSet("POST", path, ping, pong)
-}
-
-// PPSetGET : PPSet("POST", ...)
-func PPSetGET(path string, ping interface{}, pong interface{}) {
-	PPSet("GET", path, ping, pong)
-}
-
-// PPSetUPDATE : PPSet("POST", ...)
-func PPSetUPDATE(path string, ping interface{}, pong interface{}) {
-	PPSet("UPDATE", path, ping, pong)
-}
-
-// PPSetDELETE : PPSet("POST", ...)
-func PPSetDELETE(path string, ping interface{}, pong interface{}) {
-	PPSet("DELETE", path, ping, pong)
-}
-
-// PPGet : Get PingPong debug info
-func _PPGet(method string, path string) *ioInfo {
-	key := fmt.Sprintf("%s@%s", method, path)
-	if info, ok := ioInfoDict[key]; ok {
-		return info
-	}
-	return nil
-}
-
-//
 // Init
 //
 
@@ -144,25 +95,10 @@ func init() {
 		Default.GET("/debug/routers", func(c *gin.Context) {
 			var routers []gin.H
 			for _, x := range Default.Routes() {
-				var ping interface{}
-				var pong interface{}
-				pp := _PPGet(x.Method, x.Path)
-				if pp != nil {
-					ping = pp.Ping
-					pong = pp.Pong
-				}
-
 				r := gin.H{
 					"Method": x.Method,
 					"Path":   x.Path,
 				}
-				if ping != nil {
-					r["Ping"] = ping
-				}
-				if pong != nil {
-					r["Pong"] = pong
-				}
-
 				routers = append(routers, r)
 			}
 
