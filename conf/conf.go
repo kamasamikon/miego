@@ -205,6 +205,14 @@ func pathParse(path string) (kind byte, safe bool, realpath string) {
 	return kind, safe, realpath
 }
 
+func Names() []string {
+	var names []string
+	for k, _ := range mapPathEntry {
+		names = append(names, k)
+	}
+	return names
+}
+
 // Set : Modify or Add conf entry
 func Set(path string, value interface{}, force bool) {
 	var e *confEntry
