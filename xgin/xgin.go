@@ -2,12 +2,12 @@ package xgin
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,6 +18,7 @@ import (
 	"github.com/gomarkdown/markdown/html"
 
 	"github.com/kamasamikon/miego/conf"
+	"github.com/kamasamikon/miego/page"
 )
 
 var htmlHead = []byte(`
@@ -25,7 +26,7 @@ var htmlHead = []byte(`
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>README</title>
 </head>
 <body>
@@ -93,27 +94,26 @@ func init() {
 
 	if conf.Int(1, "gin/debug/routers") == 1 {
 		Default.GET("/debug/routers", func(c *gin.Context) {
-			var routers []gin.H
-			for _, x := range Default.Routes() {
-				r := gin.H{
-					"Method": x.Method,
-					"Path":   x.Path,
-				}
-				routers = append(routers, r)
-			}
-
 			if c.Query("html") == "1" {
-				if data, err := json.MarshalIndent(routers, "", "  "); err == nil {
-					c.Data(200, binding.MIMEHTML, htmlHead)
-					c.Data(200, binding.MIMEHTML, []byte("<pre>"))
-					c.Data(200, binding.MIMEHTML, data)
-					c.Data(200, binding.MIMEHTML, []byte("</pre>"))
-					c.Data(200, binding.MIMEHTML, htmlFoot)
-					return
+				var lines []string
+				lines = append(lines, "| Method | Path |")
+				lines = append(lines, "| ---- | ---- |")
+				for _, x := range Default.Routes() {
+					lines = append(lines, fmt.Sprintf("| %s | %s |", x.Method, x.Path))
 				}
+				html := fmt.Sprintf(page.Markdown, strings.Join(lines, "\\n"))
+				c.Data(200, "text/html", []byte(html))
+			} else {
+				var routers []gin.H
+				for _, x := range Default.Routes() {
+					r := gin.H{
+						"Method": x.Method,
+						"Path":   x.Path,
+					}
+					routers = append(routers, r)
+				}
+				c.JSON(200, routers)
 			}
-
-			c.JSON(200, routers)
 		})
 	}
 

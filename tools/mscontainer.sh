@@ -62,10 +62,9 @@ def dockerRun(imageName, msbIP, backrun, append):
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
-    if not "DontKnowWhy":
-        volumeMap = volumeGet(container)
-        if volumeMap and volumeMap[0] != "<":
-            cmd.extend(["-v", volumeMap])
+    volumeMap = volumeGet(container)
+    if volumeMap and volumeMap[0] != "<":
+        cmd.extend(["-v", volumeMap])
 
     cmd.extend([imageName])
     return saferun(cmd)
