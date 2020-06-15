@@ -8,6 +8,7 @@ var Markdown = `
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
   <title>Markdown</title>
   <style>
+    html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
     table { padding: 0px; word-break: initial; }
     table { border-collapse: collapse; border-spacing: 0px; width: 100%%; overflow: auto; break-inside: auto; text-align: left; }
     table tr { border-top: 1px solid rgb(223, 226, 229); margin: 0px; padding: 0px; }
