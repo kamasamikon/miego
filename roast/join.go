@@ -9,7 +9,7 @@ import (
 func AND(qList []string) string {
 	var andClause string
 	if qList != nil {
-		andClause = fmt.Sprintf("AND %s", strings.Join(qList, " AND "))
+		andClause = strings.Join(qList, " AND ")
 	}
 	return andClause
 }
