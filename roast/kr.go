@@ -14,17 +14,22 @@ type Column struct {
 	OutputName string
 }
 
-type MatchLine struct {
+type JoinInfo struct {
 	LineAnd string
 	LineNon string
+	AndList []string
+}
+
+type WhereInfo struct {
+	Preset  string
 	AndList []string
 }
 
 type QueryStatement struct {
 	ColumnList []*Column
 
-	MatchList []*MatchLine
-	WhereLine *MatchLine
+	JoinList  []*JoinInfo
+	WhereLine *WhereInfo
 
 	FromLine string
 
@@ -47,16 +52,15 @@ func (s *QueryStatement) Column(TableAlias string, Field string, Default string,
 }
 
 func (s *QueryStatement) Match(LineAnd string, LineNon string, AndList []string) {
-	s.MatchList = append(s.MatchList, &MatchLine{
+	s.JoinList = append(s.JoinList, &JoinInfo{
 		LineAnd: LineAnd,
 		LineNon: LineNon,
 		AndList: AndList,
 	})
 }
-func (s *QueryStatement) Where(LineAnd string, LineNon string, AndList []string) {
-	s.WhereLine = &MatchLine{
-		LineAnd: LineAnd,
-		LineNon: LineNon,
+func (s *QueryStatement) Where(Preset string, AndList []string) {
+	s.WhereLine = &WhereInfo{
+		Preset:  Preset,
 		AndList: AndList,
 	}
 }
@@ -65,12 +69,14 @@ func (s *QueryStatement) From(FromLine string) {
 	s.FromLine = FromLine
 }
 
-func (s *QueryStatement) String(mp xmap.Map) string {
+func (s *QueryStatement) String(mp xmap.Map, FoundRows bool) string {
 	var lines []string
 
 	// HEAD
 	lines = append(lines, "SELECT")
-	lines = append(lines, "SQL_CALC_FOUND_ROWS")
+	if FoundRows {
+		lines = append(lines, "SQL_CALC_FOUND_ROWS")
+	}
 
 	// Output fields
 	var sublines []string
@@ -86,11 +92,15 @@ func (s *QueryStatement) String(mp xmap.Map) string {
 	}
 	lines = append(lines, strings.Join(sublines, ",\n"))
 
-	// From
+	//
+	// From: SELECT * __FROM__ TableA
+	//
 	lines = append(lines, s.FromLine)
 
+	//
 	// Join
-	for _, j := range s.MatchList {
+	//
+	for _, j := range s.JoinList {
 		if j.AndList != nil {
 			userAdd := AND(j.AndList)
 
@@ -104,18 +114,24 @@ func (s *QueryStatement) String(mp xmap.Map) string {
 		}
 	}
 
+	//
 	// Where
+	//
 	w := s.WhereLine
 	if w.AndList != nil {
 		userAdd := AND(w.AndList)
 
-		if w.LineAnd == "" {
-			lines = append(lines, "    "+userAdd)
+		if w.Preset != "" {
+			lines = append(lines, "WHERE "+w.Preset+" AND "+userAdd)
 		} else {
-			lines = append(lines, "    "+w.LineAnd+" AND "+userAdd)
+			lines = append(lines, "WHERE "+userAdd)
 		}
 	} else {
-		lines = append(lines, w.LineNon)
+		if w.Preset != "" {
+			lines = append(lines, "WHERE "+w.Preset)
+		} else {
+			lines = append(lines, "")
+		}
 	}
 
 	// OrderBy etc
