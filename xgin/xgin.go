@@ -28,6 +28,9 @@ var htmlHead = []byte(`
     <meta charset="utf-8">
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>README</title>
+    <style>
+      html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    </style>
 </head>
 <body>
 `)
