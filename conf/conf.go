@@ -48,7 +48,8 @@ var mapPathEntry = make(map[string]*confEntry)
 var mapPathMonitors = make(map[string]*confMonitors)
 
 // Load file from configure
-func entryAdd(line string) {
+func EntryAdd(line string) {
+	line = strings.TrimSpace(line)
 	segs := strings.SplitN(line, "=", 2)
 	if len(segs) < 2 {
 		return
@@ -111,14 +112,13 @@ func Load(fileName string) error {
 
 	buf := bufio.NewReader(f)
 	for {
-		line, err := buf.ReadString('\n')
-		line = strings.TrimSpace(line)
-		entryAdd(line)
-		if err != nil {
+		if line, err := buf.ReadString('\n'); err != nil {
 			if err == io.EOF {
 				return nil
 			}
 			return err
+		} else {
+			EntryAdd(line)
 		}
 	}
 }
