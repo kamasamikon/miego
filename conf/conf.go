@@ -322,6 +322,39 @@ func Dump() string {
 	return strings.Join(lines, "\n")
 }
 
+func DumpRaw() string {
+	var cList []*confEntry
+	for _, v := range mapPathEntry {
+		cList = append(cList, v)
+	}
+	sort.Slice(cList, func(i int, j int) bool {
+		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
+	})
+
+	var lines []string
+	for _, v := range cList {
+		if v.safe {
+			continue
+		}
+
+		switch v.kind {
+		case 'i':
+			lines = append(lines, fmt.Sprintf("%s=%d", v.refGet, v.refSet, v.path, v.vInt))
+
+		case 's':
+			lines = append(lines, fmt.Sprintf("%s=%s", v.refGet, v.refSet, v.path, v.vStr))
+
+		case 'b':
+			lines = append(lines, fmt.Sprintf("%s=%t", v.refGet, v.refSet, v.path, v.vBool))
+		}
+	}
+
+	// Add the last \n
+	lines = append(lines, "")
+
+	return strings.Join(lines, "\n")
+}
+
 func init() {
 	cfgList := os.Getenv("KCFG_FILES")
 	files := strings.Split(cfgList, ":")
