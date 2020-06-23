@@ -80,7 +80,9 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	setGen := func(s string) map[string]int {
 		set := make(map[string]int)
 		for _, v := range strings.Split(s, ":") {
-			set[v] = 1
+			if v != "" {
+				set[v] = 1
+			}
 		}
 		return set
 	}
