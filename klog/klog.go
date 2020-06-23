@@ -26,7 +26,7 @@ var Conf struct {
 	NoColor   bool
 }
 
-func KLog(dep int, color string, class string, formating string, args ...interface{}) {
+func KLog(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
 	filename, line, funcname := "???", 0, "???"
 	pc, filename, line, ok := runtime.Caller(dep)
 
@@ -36,12 +36,12 @@ func KLog(dep int, color string, class string, formating string, args ...interfa
 		funcname = strings.TrimPrefix(funcname, ".")
 	}
 
-	cEnd := ColorType_Reset
-	if Conf.ShortPath {
+	if shortPath {
 		filename = filepath.Base(filename)
 	}
-	if Conf.NoColor {
-		color = ""
+
+	cEnd := ColorType_Reset
+	if color == "" {
 		cEnd = ""
 	}
 
@@ -53,45 +53,81 @@ func KLog(dep int, color string, class string, formating string, args ...interfa
 
 // F :Fatal
 func F(formating string, args ...interface{}) {
-	KLog(2, ColorType_F, "F", formating, args...)
+	color := ColorType_F
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "F", formating, args...)
 }
 
 // A :Alert
 func A(formating string, args ...interface{}) {
-	KLog(2, ColorType_A, "A", formating, args...)
+	color := ColorType_A
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "A", formating, args...)
 }
 
 // C :Critical conditions
 func C(formating string, args ...interface{}) {
-	KLog(2, ColorType_C, "C", formating, args...)
+	color := ColorType_C
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "C", formating, args...)
 }
 
 // E :Error
 func E(formating string, args ...interface{}) {
-	KLog(2, ColorType_E, "E", formating, args...)
+	color := ColorType_E
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "E", formating, args...)
 }
 
 // W :Warning
 func W(formating string, args ...interface{}) {
-	KLog(2, ColorType_W, "W", formating, args...)
+	color := ColorType_W
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "W", formating, args...)
 }
 
 // N :Notice
 func N(formating string, args ...interface{}) {
-	KLog(2, ColorType_N, "N", formating, args...)
+	color := ColorType_N
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "N", formating, args...)
 }
 
 // I :Information
 func I(formating string, args ...interface{}) {
-	KLog(2, ColorType_I, "I", formating, args...)
+	color := ColorType_I
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "I", formating, args...)
 }
 
 // D :Debug message
 func D(formating string, args ...interface{}) {
-	KLog(2, ColorType_D, "D", formating, args...)
+	color := ColorType_D
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(2, Conf.ShortPath, color, "D", formating, args...)
 }
 
 func Dump(obj interface{}) {
+	color := ColorType_D
+	if Conf.NoColor {
+		color = ""
+	}
 	s := spew.Sdump(obj)
-	KLog(2, ColorType_D, "D", s)
+	KLog(2, true, color, "D", s)
 }

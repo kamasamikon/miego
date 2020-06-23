@@ -99,7 +99,7 @@ func (xm Map) Dump(keys ...string) {
 	for _, k := range keys {
 		if v, ok := xm[k]; ok {
 			sdump := spew.Sdump(v)
-			klog.KLog(2, klog.ColorType_D, "D", fmtLine, k, sdump[0:len(sdump)-1])
+			klog.KLog(2, true, klog.ColorType_D, "D", fmtLine, k, sdump[0:len(sdump)-1])
 		}
 	}
 }
