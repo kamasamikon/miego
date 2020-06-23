@@ -104,6 +104,12 @@ func (xm Map) Dump(keys ...string) {
 	}
 }
 
+func (xm Map) Merge(other Map) {
+	for k, v := range other {
+		xm[k] = v
+	}
+}
+
 func (xm Map) SafeMerge(other Map) {
 	for k, v := range other {
 		if _, ok := xm[k]; !ok {
