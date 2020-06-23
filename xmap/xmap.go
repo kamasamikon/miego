@@ -96,12 +96,55 @@ func (xm Map) Dump(keys ...string) {
 
 	fmtLine := fmt.Sprintf(" %%%ds : %%s", width)
 
+	var lines []string
+	lines = append(lines, "")
 	for _, k := range keys {
 		if v, ok := xm[k]; ok {
 			sdump := spew.Sdump(v)
-			klog.KLog(2, true, klog.ColorType_D, "D", fmtLine, k, sdump[0:len(sdump)-1])
+			lines = append(lines, fmt.Sprintf(fmtLine, k, sdump[0:len(sdump)-1]))
 		}
 	}
+	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, "\r\n"))
+}
+
+func (xm Map) DumpSkip(skipKeys ...string) {
+	var keys []string
+
+	for k, _ := range xm {
+		found := false
+		for _, x := range skipKeys {
+			if x == k {
+				found = true
+				break
+			}
+		}
+		if !found {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+
+	width := 1
+	for _, s := range keys {
+		if len(s) > width {
+			width = len(s)
+		}
+	}
+	if width > 20 {
+		width = 20
+	}
+
+	fmtLine := fmt.Sprintf(" %%%ds : %%s", width)
+
+	var lines []string
+	lines = append(lines, "")
+	for _, k := range keys {
+		if v, ok := xm[k]; ok {
+			sdump := spew.Sdump(v)
+			lines = append(lines, fmt.Sprintf(fmtLine, k, sdump[0:len(sdump)-1]))
+		}
+	}
+	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, "\r\n"))
 }
 
 func (xm Map) Merge(other Map) {
