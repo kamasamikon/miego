@@ -76,49 +76,38 @@ func (xm Map) Marshal() string {
 	}
 }
 
-func (xm Map) Dump(keys ...string) {
-	if keys == nil {
-		for k, _ := range xm {
-			keys = append(keys, k)
+func (xm Map) Dump(title string, wlist string, blist string) {
+	setGen := func(s string) map[string]int {
+		set := make(map[string]int)
+		for _, v := range strings.Split(s, ":") {
+			set[v] = 1
 		}
-		sort.Strings(keys)
+		return set
+	}
+	setHas := func(s string, arr map[string]int) bool {
+		_, ok := arr[s]
+		return ok
 	}
 
-	width := 1
-	for _, s := range keys {
-		if len(s) > width {
-			width = len(s)
-		}
-	}
-	if width > 20 {
-		width = 20
-	}
+	// While and Black
+	wkeys := setGen(wlist)
+	bkeys := setGen(blist)
 
-	fmtLine := fmt.Sprintf(" %%%ds : %%s", width)
-
-	var lines []string
-	lines = append(lines, "")
-	for _, k := range keys {
-		if v, ok := xm[k]; ok {
-			sdump := spew.Sdump(v)
-			lines = append(lines, fmt.Sprintf(fmtLine, k, sdump[0:len(sdump)-1]))
-		}
-	}
-	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, "\r\n"))
-}
-
-func (xm Map) DumpSkip(skipKeys ...string) {
+	// Keys in use
 	var keys []string
 
 	for k, _ := range xm {
-		found := false
-		for _, x := range skipKeys {
-			if x == k {
-				found = true
-				break
+		if len(bkeys) != 0 {
+			if setHas(k, bkeys) {
+				continue
 			}
 		}
-		if !found {
+
+		if len(wkeys) != 0 {
+			if setHas(k, wkeys) {
+				keys = append(keys, k)
+			}
+		} else {
 			keys = append(keys, k)
 		}
 	}
@@ -137,14 +126,15 @@ func (xm Map) DumpSkip(skipKeys ...string) {
 	fmtLine := fmt.Sprintf(" %%%ds : %%s", width)
 
 	var lines []string
-	lines = append(lines, "")
+	lines = append(lines, title)
+	lines = append(lines, "\r\n")
 	for _, k := range keys {
 		if v, ok := xm[k]; ok {
 			sdump := spew.Sdump(v)
-			lines = append(lines, fmt.Sprintf(fmtLine, k, sdump[0:len(sdump)-1]))
+			lines = append(lines, fmt.Sprintf(fmtLine, k, sdump))
 		}
 	}
-	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, "\r\n"))
+	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, ""))
 }
 
 func (xm Map) Merge(other Map) {
