@@ -92,31 +92,45 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	}
 
 	// While and Black
-	wkeys := setGen(wlist)
-	bkeys := setGen(blist)
+	wSet := setGen(wlist)
+	bSet := setGen(blist)
 
 	// Keys in use
 	var keys []string
 
 	for k, _ := range xm {
-		if len(bkeys) != 0 {
-			if setHas(k, bkeys) {
+		if len(bSet) != 0 {
+			if setHas(k, bSet) {
 				continue
 			}
 		}
 
-		if len(wkeys) != 0 {
-			if setHas(k, wkeys) {
+		if len(wSet) != 0 {
+			if setHas(k, wSet) {
 				keys = append(keys, k)
 			}
 		} else {
 			keys = append(keys, k)
 		}
 	}
-	sort.Strings(keys)
 
+	var wKeys []string
+	if len(wSet) != 0 {
+		for _, s := range strings.Split(wlist, ":") {
+			if setHas(s, wSet) {
+				wKeys = append(wKeys, s)
+			}
+		}
+	} else {
+		sort.Strings(keys)
+		wKeys = keys
+	}
+
+	//
+	// Calc the width of key column
+	//
 	width := 1
-	for _, s := range keys {
+	for _, s := range wKeys {
 		if len(s) > width {
 			width = len(s)
 		}
@@ -127,15 +141,30 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 
 	fmtLine := fmt.Sprintf(" %%%ds : %%s", width)
 
+	//
+	// Collect fields to output string
+	//
 	var lines []string
 	lines = append(lines, title)
 	lines = append(lines, "\r\n")
-	for _, k := range keys {
+	for _, k := range wKeys {
+		if k == "" {
+			continue
+		}
+		if len(wSet) != 0 {
+			if _, ok := wSet[k]; !ok {
+				continue
+			}
+		}
 		if v, ok := xm[k]; ok {
 			sdump := spew.Sdump(v)
 			lines = append(lines, fmt.Sprintf(fmtLine, k, sdump))
 		}
 	}
+
+	//
+	// Print out
+	//
 	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, ""))
 }
 
