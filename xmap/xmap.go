@@ -2,12 +2,16 @@ package xmap
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/atox"
 	"github.com/kamasamikon/miego/in"
+	"github.com/kamasamikon/miego/klog"
 )
 
 type Map map[string]interface{}
@@ -72,9 +76,31 @@ func (xm Map) Marshal() string {
 	}
 }
 
-func (xm Map) Merge(other Map) {
-	for k, v := range other {
-		xm[k] = v
+func (xm Map) Dump(keys ...string) {
+	if keys == nil {
+		for k, _ := range xm {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+	}
+
+	width := 1
+	for _, s := range keys {
+		if len(s) > width {
+			width = len(s)
+		}
+	}
+	if width > 20 {
+		width = 20
+	}
+
+	fmtLine := fmt.Sprintf(" %%%ds : %%s", width)
+
+	for _, k := range keys {
+		if v, ok := xm[k]; ok {
+			sdump := spew.Sdump(v)
+			klog.KLog(2, klog.ColorType_D, "D", fmtLine, k, sdump[0:len(sdump)-1])
+		}
 	}
 }
 
