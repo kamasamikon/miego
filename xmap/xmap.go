@@ -80,7 +80,9 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	setGen := func(s string) map[string]int {
 		set := make(map[string]int)
 		for _, v := range strings.Split(s, ":") {
-			set[v] = 1
+			if v != "" {
+				set[v] = 1
+			}
 		}
 		return set
 	}
@@ -92,13 +94,17 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	// While and Black
 	wkeys := setGen(wlist)
 	bkeys := setGen(blist)
+	spew.Dump(wkeys)
+	spew.Dump(bkeys)
 
 	// Keys in use
 	var keys []string
 
 	for k, _ := range xm {
+		klog.D("K: %s", k)
 		if len(bkeys) != 0 {
 			if setHas(k, bkeys) {
+				klog.D("%s in bkeys(%s)", k, spew.Sdump(bkeys))
 				continue
 			}
 		}
@@ -111,6 +117,7 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 			keys = append(keys, k)
 		}
 	}
+	spew.Dump(keys)
 	sort.Strings(keys)
 
 	width := 1
