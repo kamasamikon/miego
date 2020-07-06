@@ -33,6 +33,8 @@ type QueryStatement struct {
 
 	FromLine string
 
+	GroupByLine string
+
 	OrderBy string
 	Limit   uint
 	Offset  uint
@@ -63,6 +65,11 @@ func (s *QueryStatement) Where(Preset string, AndList []string) {
 		Preset:  Preset,
 		AndList: AndList,
 	}
+}
+
+// s.GroupBy("GROUP BY AAA")
+func (s *QueryStatement) GroupBy(GroupByLine string) {
+	s.GroupByLine = GroupByLine
 }
 
 func (s *QueryStatement) From(FromLine string) {
@@ -132,6 +139,10 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows bool) string {
 		} else {
 			lines = append(lines, "")
 		}
+	}
+
+	if s.GroupByLine != "" {
+		lines = append(lines, s.GroupByLine)
 	}
 
 	// OrderBy etc

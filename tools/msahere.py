@@ -31,6 +31,9 @@ def currentDir():
 def msbIPAddress():
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb"))
 
+def volumeGet(container):
+    return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", container))
+
 def dockerGateway():
     cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
@@ -43,6 +46,19 @@ def dockerRun(name, pwd, msbIP, backrun):
     cmd.extend(["-v", "%s:/root/ms" % pwd])
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
+
+    for k,v in os.environ.items():
+        # -v : MHV_aaa=bbb => -v "aaa:bbb"
+        # -e : MHE_aaa=bbb => -e "aaa=bbb"
+        if k.startswith("MHV_"):
+            cmd.extend(["-v", "%s:%s" % (k[4:], v)])
+        if k.startswith("MHE_"):
+            cmd.extend(["-e", "%s=%s" % (k[4:], v)])
+
+    volumeMap = volumeGet(name)
+    if volumeMap and volumeMap[0] != "<":
+        cmd.extend(["-v", volumeMap])
+
     cmd.extend(["msa"])
     return saferun(cmd)
 
