@@ -85,6 +85,7 @@ def main():
     if killold:
         dockerKill(name)
 
+    name = name + ".localrun"
     dockerRun(name, pwd, msbIP, backrun)
 
 if __name__ == "__main__":

@@ -4,6 +4,8 @@ import subprocess
 import os
 import sys
 
+MSBNAME = "msb"
+SUFFIX = ""
 
 def saferun(cmd, debug=True):
     try:
@@ -21,7 +23,7 @@ def currentDir():
     return os.path.realpath(os.getcwd())
 
 def msbIPAddress():
-    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", "msb"))
+    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", MSBNAME))
 
 def volumeGet(container):
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", container))
@@ -31,7 +33,7 @@ def dockerGateway():
     return saferun(cmd)
 
 def dockerRun(imageName, msbIP, backrun, append):
-    container = imageName
+    container = imageName + SUFFIX
     if append:
         index = 0
         tmpName = container
@@ -85,17 +87,29 @@ def killContainer(imageName, killFirst, killLast):
         saferun(cmd)
 
 def main():
+    global MSBNAME
+
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
         print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] imageNames ...")
+        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msb=MSBName] imageNames ...")
         return
+
+    x = os.environ.get("MSBNAME")
+    if x:
+        MSBNAME = x
 
     msbIP = msbIPAddress()
 
     # Kill OLD?
     killSome, killFirst, killLast = False, "0", "999999999999999"
     for name in sys.argv[1:]:
+        if name.startswith("--msb="):
+            MSBNAME = name[6:]
+
+        if name.startswith("--suffix="):
+            SUFFIX = name[9:]
+
         if name.startswith("-k"):
             # -k: => container[:]
             # -k: => container[:]
