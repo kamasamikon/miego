@@ -40,7 +40,7 @@ def dockerRun(imageName, msbIP, backrun, append):
         while True:
             tmpName = container if index == 0 else container + "_%d" % index
             index += 1
-            cmd = ["sudo", "docker", "ps", "-aq", "--filter", "name=^/%s$" % tmpName]
+            cmd = ["sudo", "docker", "ps", "-aq", "--filter", r"""name=^/%s$""" % tmpName]
             print(">>> ", " ".join(cmd))
             if not subprocess.check_output(cmd):
                 break
@@ -72,10 +72,11 @@ def dockerRun(imageName, msbIP, backrun, append):
     return saferun(cmd)
 
 def killContainer(imageName, killFirst, killLast):
+    container = imageName + SUFFIX
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 
-    cmd = ["sudo", "docker", "ps", "-aq", "--filter", r'''name=\b%s\b|\b%s_.*''' % (imageName, imageName)]
+    cmd = ["sudo", "docker", "ps", "-aq", "--filter", r'''name=\b%s\b|\b%s_.*''' % (container, container)]
     print(">>> ", " ".join(cmd))
     idList = subprocess.check_output(cmd).strip().decode("utf-8").split()
     print(idList)
@@ -88,6 +89,7 @@ def killContainer(imageName, killFirst, killLast):
 
 def main():
     global MSBNAME
+    global SUFFIX
 
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
@@ -101,15 +103,24 @@ def main():
 
     msbIP = msbIPAddress()
 
-    # Kill OLD?
-    killSome, killFirst, killLast = False, "0", "999999999999999"
+
+    #
+    # Another MSB?
+    #
     for name in sys.argv[1:]:
         if name.startswith("--msb="):
             MSBNAME = name[6:]
+            continue
 
         if name.startswith("--suffix="):
             SUFFIX = name[9:]
+            continue
 
+    #
+    # Kill OLD?
+    #
+    killSome, killFirst, killLast = False, "0", "999999999999999"
+    for name in sys.argv[1:]:
         if name.startswith("-k"):
             # -k: => container[:]
             # -k: => container[:]
@@ -121,16 +132,12 @@ def main():
             if len(segs) > 0:
                 killFirst = segs[0]
 
-            killSome = True
+            for xname in sys.argv[1:]:
+                if xname[0] == "-":
+                    continue
+                killContainer(xname, killFirst, killLast)
             break
 
-    # Kill OLD?
-    if killSome:
-        for name in sys.argv[1:]:
-            if name[0] == "-":
-                continue
-            killContainer(name, killFirst, killLast)
-    
     backrun = "-b" in sys.argv
     append  = "-a" in sys.argv
 
