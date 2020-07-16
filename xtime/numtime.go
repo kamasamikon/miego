@@ -38,6 +38,26 @@ func TimeNowToNum() uint64 {
 	return res
 }
 
+// DashTimeToNum : convert now time to 20060102150305
+func DashTimeToNum(stime string) uint64 {
+	t, err := time.Parse("2006-01-02 15:04:05", stime)
+	if err != nil {
+		return 0
+	}
+
+	nnnn := t.Year()
+	yy := t.Month()
+	rr := t.Day()
+	ss := t.Hour()
+	ff := t.Minute()
+	mm := t.Second()
+
+	s := fmt.Sprintf("%04d%02d%02d%02d%02d%02d", nnnn, yy, rr, ss, ff, mm)
+	res, _ := strconv.ParseUint(s, 0, 64)
+
+	return res
+}
+
 // DateToNum : convert date to 20060102
 func DateToNum(t time.Time) uint {
 	nnnn := t.Year()

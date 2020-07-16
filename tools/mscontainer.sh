@@ -101,9 +101,6 @@ def main():
     if x:
         MSBNAME = x
 
-    msbIP = msbIPAddress()
-
-
     #
     # Another MSB?
     #
@@ -115,6 +112,8 @@ def main():
         if name.startswith("--suffix="):
             SUFFIX = name[9:]
             continue
+
+    msbIP = msbIPAddress()
 
     #
     # Kill OLD?
