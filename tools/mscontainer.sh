@@ -25,8 +25,8 @@ def currentDir():
 def msbIPAddress():
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", MSBNAME))
 
-def volumeGet(container):
-    return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", container))
+def volumeGet(imageName):
+    return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", imageName))
 
 def dockerGateway():
     cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
@@ -64,7 +64,7 @@ def dockerRun(imageName, msbIP, backrun, append):
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
-    volumeMap = volumeGet(container)
+    volumeMap = volumeGet(imageName)
     if volumeMap and volumeMap[0] != "<":
         cmd.extend(["-v", volumeMap])
 
