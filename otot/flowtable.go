@@ -6,11 +6,11 @@ import (
 )
 
 type FlowTableItem struct {
-	HTML    string
-	colspan int
-	rowspan int
-	class   string
-	style   string
+	HTML     string
+	colspan  int
+	rowspan  int
+	class    string
+	styleMap map[string]string
 }
 
 func (i *FlowTableItem) SetHTML(x string) *FlowTableItem {
@@ -29,8 +29,13 @@ func (i *FlowTableItem) SetClass(x string) *FlowTableItem {
 	i.class = x
 	return i
 }
-func (i *FlowTableItem) SetStyle(x string) *FlowTableItem {
-	i.style = x
+
+func (i *FlowTableItem) SetStyle(k string, v string) *FlowTableItem {
+	i.styleMap[k] = v
+	return i
+}
+func (i *FlowTableItem) RemStyle(k string) *FlowTableItem {
+	delete(i.styleMap, k)
 	return i
 }
 
@@ -38,7 +43,7 @@ type FlowTable struct {
 	ID     string
 	Class  string
 	Column int
-	Items  []FlowTableItem
+	Items  []*FlowTableItem
 }
 
 func FlowTableNew(ID string, Class string, Column int) *FlowTable {
@@ -50,42 +55,60 @@ func FlowTableNew(ID string, Class string, Column int) *FlowTable {
 }
 
 func (ft *FlowTable) AddOne(HTML string) *FlowTableItem {
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    HTML,
 		colspan: 1,
 		rowspan: 1,
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *FlowTableItem {
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    HTML,
 		colspan: colspan,
 		rowspan: rowspan,
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 
 // AddLabel : shortcut
 func (ft *FlowTable) AddLabel(Label string) *FlowTableItem {
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
 		colspan: 1,
 		rowspan: 1,
-		style:   "text-align:right; vertical-align:middle;",
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "right",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 
 // AddInput : shortcut
 func (ft *FlowTable) AddInput(Model string, colspan int) *FlowTableItem {
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    fmt.Sprintf(`<input v-model="%s" class="input">`, Model),
 		colspan: colspan,
 		rowspan: 1,
-		style:   "text-align:left; vertical-align:middle;",
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 
 // AddSelect : shortcut
@@ -103,65 +126,77 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *FlowTableItem {
 	Lines = append(Lines, `  </select>`)
 	Lines = append(Lines, `</div>`)
 
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    strings.Join(Lines, "\n"),
 		colspan: 1,
 		rowspan: 1,
-		style:   "text-align:left; vertical-align:middle;",
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 
 // AddDate : shortcut
 func (ft *FlowTable) AddDate(Model string) *FlowTableItem {
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    fmt.Sprintf(`<input v-model.trim="%s" data-default-date="" class="flatpickr input flatpickr-input active">`, Model),
 		colspan: 1,
 		rowspan: 1,
-		style:   "text-align:left; vertical-align:middle;",
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 
-// AddAddress : shortcut
-func (ft *FlowTable) AddAddress(Province string, City string, District string, Address string, colspan int) *FlowTableItem {
+// AddAddress : Must set Model and Value
+func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string, Address string, vProvince string, vCity string, vDistrict string) *FlowTableItem {
 	var Lines []string
 
 	sp := fmt.Sprintf
 
 	Lines = append(Lines, `<div class="distpicker " data-toggle="distpicker">`)
 
-	if Province != "" {
+	if mProvince != "" {
 		Lines = append(Lines, `<span class="select">`)
-		Lines = append(Lines, sp(`<select v-model.trim="%s" data-province=""></select>`, Province))
+		Lines = append(Lines, sp(`<select v-model.trim="%s" data-province="%s"></select>`, mProvince, vProvince))
 		Lines = append(Lines, `</span>`)
 	}
 
-	if Province != "" {
+	if mCity != "" {
 		Lines = append(Lines, `<span class="select">`)
-		Lines = append(Lines, sp(`<select v-model.trim="%s" data-city=""></select>`, City))
+		Lines = append(Lines, sp(`<select v-model.trim="%s" data-city="%s"></select>`, mCity, vCity))
 		Lines = append(Lines, `</span>`)
 	}
 
-	if Province != "" {
+	if mDistrict != "" {
 		Lines = append(Lines, `<span class="select">`)
-		Lines = append(Lines, sp(`<select v-model.trim="%s" data-district=""></select>`, District))
+		Lines = append(Lines, sp(`<select v-model.trim="%s" data-district="%s"></select>`, mDistrict, vDistrict))
 		Lines = append(Lines, `</span>`)
 	}
 
-	if Province != "" {
+	if Address != "" {
 		Lines = append(Lines, sp(`<input v-model.trim="%s" class="input">`, Address))
 	}
 
 	Lines = append(Lines, `</div>`)
 
-	ft.Items = append(ft.Items, FlowTableItem{
+	item := FlowTableItem{
 		HTML:    strings.Join(Lines, "\n"),
-		colspan: colspan,
+		colspan: 1,
 		rowspan: 1,
-		class:   "text-align:right; vertical-align:middle;",
-	})
-	return &ft.Items[len(ft.Items)-1]
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
 }
 
 func (ft *FlowTable) Gen() string {
@@ -178,13 +213,19 @@ func (ft *FlowTable) Gen() string {
 		colspan := s.colspan
 		rowspan := s.rowspan
 		class := s.class
-		style := s.style
+		styleMap := s.styleMap
 
 		if cols+colspan > ft.Column {
 			cols = 0
 			lines = append(lines, "</tr>")
 			lines = append(lines, "<tr>")
 		}
+
+		var style string
+		for k, v := range styleMap {
+			style += fmt.Sprintf("%s:%s;", k, v)
+		}
+
 		line := fmt.Sprintf(
 			`<td rowspan="%d" colspan="%d" class="%s" style="%s">%s</td>`,
 			rowspan, colspan, class, style, HTML,
