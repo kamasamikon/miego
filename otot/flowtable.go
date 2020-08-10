@@ -82,6 +82,21 @@ func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *FlowTableIt
 }
 
 // AddLabel : shortcut
+func (ft *FlowTable) AddTitle(Title string) *FlowTableItem {
+	item := FlowTableItem{
+		HTML:    fmt.Sprintf(`<p class="is-size-5" style="font-weight: bold;">%s</p>`, Title),
+		colspan: ft.Column,
+		rowspan: 1,
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
+}
+
+// AddLabel : shortcut
 func (ft *FlowTable) AddLabel(Label string) *FlowTableItem {
 	item := FlowTableItem{
 		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
@@ -202,7 +217,7 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 func (ft *FlowTable) Gen() string {
 	var lines []string
 
-	lines = append(lines, fmt.Sprintf(`<table id="%s" class="%s table is-fullwidth is-narrow">`, ft.ID, ft.Class))
+	lines = append(lines, fmt.Sprintf(`<table id="%s" class="table is-fullwidth is-narrow %s">`, ft.ID, ft.Class))
 	lines = append(lines, "<tbody>")
 
 	cols := 0
