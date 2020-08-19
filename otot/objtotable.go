@@ -24,7 +24,7 @@ func Convert(key string, val string, obj interface{}) string {
 func ViaKV(class string, id string, column int, v ...string) string {
 	var lines []string
 
-	lines = append(lines, fmt.Sprintf(`<table id="%s" class="%s table is-fullwidth">`, id, class))
+	lines = append(lines, fmt.Sprintf(`<table id="%s" class="table is-fullwidth %s">`, id, class))
 	lines = append(lines, "<tbody>")
 	for i := 0; i < len(v)/2; i++ {
 		if i%column == 0 {
@@ -48,7 +48,7 @@ func ViaKV(class string, id string, column int, v ...string) string {
 func ViaS(class string, id string, column int, v ...string) string {
 	var lines []string
 
-	lines = append(lines, fmt.Sprintf(`<table id="%s" class="%s table is-fullwidth">`, id, class))
+	lines = append(lines, fmt.Sprintf(`<table id="%s" class="table is-fullwidth %s">`, id, class))
 	lines = append(lines, "<tbody>")
 	for i := 0; i < len(v); i++ {
 		if i%column == 0 {

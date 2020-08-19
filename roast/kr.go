@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xmap"
 )
 
@@ -53,6 +54,10 @@ func (s *QueryStatement) Column(TableAlias string, Field string, Default string,
 	})
 }
 
+func (s *QueryStatement) ColumnClear() {
+	s.ColumnList = nil
+}
+
 func (s *QueryStatement) Match(LineAnd string, LineNon string, AndList []string) {
 	s.JoinList = append(s.JoinList, &JoinInfo{
 		LineAnd: LineAnd,
@@ -91,9 +96,17 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows bool) string {
 		var sss string
 		if c.Field[0] == '@' {
 			field := c.Field[1:len(c.Field)]
-			sss = fmt.Sprintf(`    DISTINCT(%s.%s) AS %s`, c.TableAlias, field, c.OutputName)
+			if c.TableAlias == "" {
+				sss = fmt.Sprintf(`    DISTINCT(%s) AS %s`, field, c.OutputName)
+			} else {
+				sss = fmt.Sprintf(`    DISTINCT(%s.%s) AS %s`, c.TableAlias, field, c.OutputName)
+			}
 		} else {
-			sss = fmt.Sprintf(`    IFNULL(%s.%s, "%s") AS %s`, c.TableAlias, c.Field, c.Default, c.OutputName)
+			if c.TableAlias == "" {
+				sss = fmt.Sprintf(`    IFNULL(%s, "%s") AS %s`, c.Field, c.Default, c.OutputName)
+			} else {
+				sss = fmt.Sprintf(`    IFNULL(%s.%s, "%s") AS %s`, c.TableAlias, c.Field, c.Default, c.OutputName)
+			}
 		}
 		sublines = append(sublines, sss)
 	}
@@ -154,5 +167,7 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows bool) string {
 	// Something else
 	s.OrderBy, s.Limit, s.Offset = OrderLimitOffset2(mp)
 
-	return strings.Join(lines, "\n")
+	res := strings.Join(lines, "\n")
+	klog.D("%s", res)
+	return res
 }

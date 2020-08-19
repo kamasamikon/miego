@@ -81,7 +81,7 @@ func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *FlowTableIt
 	return &item
 }
 
-// AddLabel : shortcut
+// AddTitle : shortcut
 func (ft *FlowTable) AddTitle(Title string) *FlowTableItem {
 	item := FlowTableItem{
 		HTML:    fmt.Sprintf(`<p class="is-size-5" style="font-weight: bold;">%s</p>`, Title),

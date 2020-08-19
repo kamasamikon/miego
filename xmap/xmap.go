@@ -165,7 +165,7 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	//
 	// Print out
 	//
-	klog.KLog(2, true, klog.ColorType_D, "D", strings.Join(lines, ""))
+	klog.KLog(2, false, klog.ColorType_W, "D", strings.Join(lines, ""))
 }
 
 func (xm Map) Merge(other Map) {
