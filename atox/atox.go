@@ -2,10 +2,16 @@ package atox
 
 import (
 	"strconv"
+	"strings"
 )
+
+func trimZero(r rune) bool {
+	return r == '0'
+}
 
 // Atoi : atoi, if fail return default value
 func Int64(a string, def int64) int64 {
+	a = strings.TrimLeftFunc(a, trimZero)
 	x, e := strconv.ParseInt(a, 0, 64)
 	if e != nil {
 		return def
@@ -15,6 +21,7 @@ func Int64(a string, def int64) int64 {
 
 // Atoi : atoi, if fail return default value
 func Uint64(a string, def uint64) uint64 {
+	a = strings.TrimLeftFunc(a, trimZero)
 	x, e := strconv.ParseUint(a, 0, 64)
 	if e != nil {
 		return def

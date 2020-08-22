@@ -155,9 +155,9 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *FlowTableItem {
 }
 
 // AddDate : shortcut
-func (ft *FlowTable) AddDate(Model string) *FlowTableItem {
+func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *FlowTableItem {
 	item := FlowTableItem{
-		HTML:    fmt.Sprintf(`<input v-model.trim="%s" data-default-date="" class="flatpickr input flatpickr-input active">`, Model),
+		HTML:    fmt.Sprintf(`<input v-model.trim="%s" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`, Model, minDate, maxDate),
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
