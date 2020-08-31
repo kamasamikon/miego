@@ -32,6 +32,12 @@ deploy: remoteloadms
 remoteloadms: dockerpack
 	@echo
 	@echo
+	@echo ">>>> /tmp/.mkREMOTE"
+	@cat /tmp/.mkREMOTE
+	@echo ">>>> /tmp/.msbName"
+	@cat /tmp/.msbName
+	@echo ">>>> /tmp/.msSUFFIX"
+	@cat /tmp/.msSUFFIX
 	@echo ">>>>>>>>>>>>> remoteloadms <<<<<<<<<<<<<"
 	( \
 		touch /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
