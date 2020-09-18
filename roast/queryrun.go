@@ -9,19 +9,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Query : dsn:dsn prefix in conf
-func Query(dsn string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
-	//
-	// Go
-	//
-	rdb, err := sql.Open("mysql", DSN(dsn))
-	if err != nil {
-		klog.E(err.Error())
-		return 0, err
-	}
-	defer rdb.Close()
-
-	rows, err := rdb.Query(queryStmt.String(mp, FoundRows))
+func QueryByDB(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
+	rows, err := db.Query(queryStmt.String(mp, FoundRows))
 	if err != nil {
 		klog.E(err.Error())
 		return 0, err
@@ -50,11 +39,12 @@ func Query(dsn string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, r
 	//
 	// Get Rows count
 	//
-	res, err := rdb.Query(`SELECT FOUND_ROWS()`)
+	res, err := db.Query(`SELECT FOUND_ROWS()`)
 	if err != nil {
 		klog.E(err.Error())
 		return 0, err
 	}
+	defer res.Close()
 
 	res.Next()
 
@@ -65,4 +55,16 @@ func Query(dsn string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, r
 	}
 
 	return atox.Int(lines, 0), nil
+}
+
+// Query : dsn:dsn prefix in conf
+func QueryByDSN(dsn string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
+	db, err := sql.Open("mysql", DSN(dsn))
+	if err != nil {
+		klog.E(err.Error())
+		return 0, err
+	}
+	defer db.Close()
+
+	return QueryByDB(db, queryStmt, mp, FoundRows, rowScanner)
 }
