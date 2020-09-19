@@ -3,6 +3,7 @@ package xgin
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -94,6 +95,18 @@ func init() {
 		gin.SetMode(gin.DebugMode)
 		Default = gin.Default()
 	}
+
+	Default.SetFuncMap(template.FuncMap{
+		"formatAsDate":  formatAsDate,
+		"ToHTML":        ToHTML,
+		"ToJS":          ToJS,
+		"Choice":        Choice,
+		"ToAttr":        ToAttr,
+		"ntimeToString": ntimeToString,
+		"MPGet":         MPGet,
+		"MapChoice":     MapChoice,
+		"SubStr":        SubStr,
+	})
 
 	if conf.Int(1, "gin/debug/routers") == 1 {
 		Default.GET("/debug/routers", func(c *gin.Context) {
