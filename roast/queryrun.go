@@ -57,9 +57,21 @@ func QueryByDB(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows boo
 	return atox.Int(lines, 0), nil
 }
 
-// Query : dsn:dsn prefix in conf
+// QueryByDSN :
 func QueryByDSN(dsn string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
-	db, err := sql.Open("mysql", DSN(dsn))
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		klog.E(err.Error())
+		return 0, err
+	}
+	defer db.Close()
+
+	return QueryByDB(db, queryStmt, mp, FoundRows, rowScanner)
+}
+
+// QueryByConf : QueryByConf("db")
+func QueryByConf(prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
+	db, err := sql.Open("mysql", DSN(prefix))
 	if err != nil {
 		klog.E(err.Error())
 		return 0, err

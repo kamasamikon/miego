@@ -84,9 +84,6 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 				s = t
 			}
 		}
-		if s == "" {
-			continue
-		}
 
 		var Name string
 		var Kind string

@@ -12,9 +12,10 @@ const (
 )
 
 type TableHeader struct {
+	// 记录的序列号而已
 	ID uint `gorm:"Column:ID;primary_key"`
 
-	// NewAt: 这个时间应该是什么？UTC？国外访问？
+	// NewAt: 记录的添加时间
 	NewAt uint64 `gorm:"Column:NewAt"`
 	NewBy string `gorm:"Column:NewBy"`
 

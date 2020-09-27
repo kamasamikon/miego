@@ -2,6 +2,7 @@ package nvn
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kamasamikon/miego/conf"
 )
@@ -52,7 +53,7 @@ func Add(n int, s string, class string) {
 }
 
 func LoadConf() {
-	for _, name := range conf.Name() {
+	for _, name := range conf.Names() {
 		segs := strings.Split(name, "/")
 		// segs := ["i:", "nvn", "<class>", "<name>"]
 		// i:/nvn/Role/管理员=1
@@ -66,13 +67,13 @@ func LoadConf() {
 	}
 }
 
-func Dump() {
+func Dump() string {
 	var lines []string
 
 	for k, v := range mapInt {
 		segs := strings.Split(k, "___")
 		class, s := segs[0], segs[1]
-		lines = append(lines, fmt.Sprintf("%s\t %s:%d", class, s, v)
+		lines = append(lines, fmt.Sprintf("%s\t %s:%d", class, s, v))
 	}
 
 	lines = append(lines, "")
