@@ -81,8 +81,8 @@ func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *FlowTableIt
 	return &item
 }
 
-// AddTitle : shortcut
-func (ft *FlowTable) AddTitle(Title string) *FlowTableItem {
+// AddTitle : shortcut, AddTitle Bold font
+func (ft *FlowTable) AddTitleB(Title string) *FlowTableItem {
 	item := FlowTableItem{
 		HTML:    fmt.Sprintf(`<p class="is-size-5" style="font-weight: bold;">%s</p>`, Title),
 		colspan: ft.Column,
@@ -104,6 +104,20 @@ func (ft *FlowTable) AddLabel(Label string) *FlowTableItem {
 		rowspan: 1,
 		styleMap: map[string]string{
 			"text-align":     "right",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
+}
+
+func (ft *FlowTable) AddTitle(Label string) *FlowTableItem {
+	item := FlowTableItem{
+		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
+		colspan: 1,
+		rowspan: 1,
+		styleMap: map[string]string{
+			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}

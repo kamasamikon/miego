@@ -123,6 +123,15 @@ func D(formating string, args ...interface{}) {
 	KLog(2, Conf.ShortPath, color, "D", formating, args...)
 }
 
+// DD :Debug message with depth
+func DD(depth int, formating string, args ...interface{}) {
+	color := ColorType_D
+	if Conf.NoColor {
+		color = ""
+	}
+	KLog(depth, Conf.ShortPath, color, "D", formating, args...)
+}
+
 func Dump(obj interface{}) {
 	color := ColorType_D
 	if Conf.NoColor {

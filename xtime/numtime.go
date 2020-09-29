@@ -8,31 +8,15 @@ import (
 
 // TimeToNum : convert time to 20060102150305
 func TimeToNum(t time.Time) uint64 {
-	nnnn := t.Year()
-	yy := t.Month()
-	rr := t.Day()
-	ss := t.Hour()
-	ff := t.Minute()
-	mm := t.Second()
-
-	s := fmt.Sprintf("%04d%02d%02d%02d%02d%02d", nnnn, yy, rr, ss, ff, mm)
+	s := t.Format("20060102150405")
 	res, _ := strconv.ParseUint(s, 0, 64)
-
 	return res
 }
 
 // TimeNowToNum : convert now time to 20060102150305
 func TimeNowToNum() uint64 {
 	t := time.Now()
-
-	nnnn := t.Year()
-	yy := t.Month()
-	rr := t.Day()
-	ss := t.Hour()
-	ff := t.Minute()
-	mm := t.Second()
-
-	s := fmt.Sprintf("%04d%02d%02d%02d%02d%02d", nnnn, yy, rr, ss, ff, mm)
+	s := t.Format("20060102150405")
 	res, _ := strconv.ParseUint(s, 0, 64)
 
 	return res
@@ -45,14 +29,7 @@ func DashTimeToNum(stime string) uint64 {
 		return 0
 	}
 
-	nnnn := t.Year()
-	yy := t.Month()
-	rr := t.Day()
-	ss := t.Hour()
-	ff := t.Minute()
-	mm := t.Second()
-
-	s := fmt.Sprintf("%04d%02d%02d%02d%02d%02d", nnnn, yy, rr, ss, ff, mm)
+	s := t.Format("20060102150405")
 	res, _ := strconv.ParseUint(s, 0, 64)
 
 	return res
@@ -60,11 +37,7 @@ func DashTimeToNum(stime string) uint64 {
 
 // DateToNum : convert date to 20060102
 func DateToNum(t time.Time) uint {
-	nnnn := t.Year()
-	yy := t.Month()
-	rr := t.Day()
-
-	s := fmt.Sprintf("%04d%02d%02d", nnnn, yy, rr)
+	s := t.Format("20060102")
 	res, _ := strconv.ParseUint(s, 0, 64)
 
 	return uint(res)
@@ -73,12 +46,7 @@ func DateToNum(t time.Time) uint {
 // DateNowToNum : convert now date to 20060102
 func DateNowToNum() uint {
 	t := time.Now()
-
-	nnnn := t.Year()
-	yy := t.Month()
-	rr := t.Day()
-
-	s := fmt.Sprintf("%04d%02d%02d", nnnn, yy, rr)
+	s := t.Format("20060102")
 	res, _ := strconv.ParseUint(s, 0, 64)
 
 	return uint(res)
@@ -90,12 +58,7 @@ func DashDateToNum(date string) uint {
 	if err != nil {
 		return 0
 	}
-
-	nnnn := t.Year()
-	yy := t.Month()
-	rr := t.Day()
-
-	s := fmt.Sprintf("%04d%02d%02d", nnnn, yy, rr)
+	s := t.Format("20060102")
 	res, _ := strconv.ParseUint(s, 0, 64)
 
 	return uint(res)

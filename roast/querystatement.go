@@ -200,6 +200,6 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows bool) string {
 	s.OrderBy, s.Limit, s.Offset = OrderLimitOffset2(mp)
 
 	res := strings.Join(lines, "\n")
-	klog.D("%s", res)
+	klog.DD(3, "%s", res)
 	return res
 }
