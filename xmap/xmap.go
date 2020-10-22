@@ -165,7 +165,7 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	//
 	// Print out
 	//
-	klog.KLog(2, false, klog.ColorType_W, "D", strings.Join(lines, ""))
+	klog.KLog(2, false, klog.ColorType_W, "X", strings.Join(lines, ""))
 }
 
 func (xm Map) Merge(other Map) {
@@ -187,6 +187,14 @@ func (xm Map) Put(args ...interface{}) Map {
 		k := args[2*i].(string)
 		v := args[2*i+1]
 		xm[k] = v
+	}
+	return xm
+}
+
+func (xm Map) PutKeys(defval string, args ...interface{}) Map {
+	for i := 0; i < len(args); i++ {
+		k := args[i].(string)
+		xm[k] = defval
 	}
 	return xm
 }

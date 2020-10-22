@@ -9,7 +9,7 @@ type FlowTableItem struct {
 	HTML     string
 	colspan  int
 	rowspan  int
-	class    string
+	class    map[string]int
 	styleMap map[string]string
 }
 
@@ -25,8 +25,13 @@ func (i *FlowTableItem) SetRowSpan(x int) *FlowTableItem {
 	i.rowspan = x
 	return i
 }
-func (i *FlowTableItem) SetClass(x string) *FlowTableItem {
-	i.class = x
+
+func (i *FlowTableItem) SetClass(k string) *FlowTableItem {
+	i.class[k] = 1
+	return i
+}
+func (i *FlowTableItem) RemClass(k string) *FlowTableItem {
+	delete(i.class, k)
 	return i
 }
 
@@ -241,8 +246,6 @@ func (ft *FlowTable) Gen() string {
 		HTML := s.HTML
 		colspan := s.colspan
 		rowspan := s.rowspan
-		class := s.class
-		styleMap := s.styleMap
 
 		if cols+colspan > ft.Column {
 			cols = 0
@@ -251,8 +254,14 @@ func (ft *FlowTable) Gen() string {
 		}
 
 		var style string
-		for k, v := range styleMap {
+		for k, v := range s.styleMap {
 			style += fmt.Sprintf("%s:%s;", k, v)
+		}
+
+		var class string
+		for k, _ := range s.class {
+			class += k
+			class += " "
 		}
 
 		line := fmt.Sprintf(
