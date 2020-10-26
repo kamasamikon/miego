@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type FlowTableItem struct {
+type TD struct {
 	HTML     string
 	colspan  int
 	rowspan  int
@@ -13,42 +13,46 @@ type FlowTableItem struct {
 	styleMap map[string]string
 }
 
-func (i *FlowTableItem) SetHTML(x string) *FlowTableItem {
-	i.HTML = x
-	return i
+func (td *TD) SetHTML(x string) *TD {
+	td.HTML = x
+	return td
 }
-func (i *FlowTableItem) SetColSpan(x int) *FlowTableItem {
-	i.colspan = x
-	return i
+func (td *TD) SetColSpan(x int) *TD {
+	td.colspan = x
+	return td
 }
-func (i *FlowTableItem) SetRowSpan(x int) *FlowTableItem {
-	i.rowspan = x
-	return i
-}
-
-func (i *FlowTableItem) SetClass(k string) *FlowTableItem {
-	i.class[k] = 1
-	return i
-}
-func (i *FlowTableItem) RemClass(k string) *FlowTableItem {
-	delete(i.class, k)
-	return i
+func (td *TD) SetRowSpan(x int) *TD {
+	td.rowspan = x
+	return td
 }
 
-func (i *FlowTableItem) SetStyle(k string, v string) *FlowTableItem {
-	i.styleMap[k] = v
-	return i
+func (td *TD) SetClass(k string) *TD {
+	td.class[k] = 1
+	return td
 }
-func (i *FlowTableItem) RemStyle(k string) *FlowTableItem {
-	delete(i.styleMap, k)
-	return i
+func (td *TD) RemClass(k string) *TD {
+	delete(td.class, k)
+	return td
+}
+
+func (td *TD) SetStyle(kv ...string) *TD {
+	for i := 0; i < len(kv)/2; i++ {
+		td.styleMap[kv[2*i]] = kv[2*i+1]
+	}
+	return td
+}
+func (td *TD) RemStyle(k ...string) *TD {
+	for i := 0; i < len(k); i++ {
+		delete(td.styleMap, k[i])
+	}
+	return td
 }
 
 type FlowTable struct {
 	ID     string
 	Class  string
 	Column int
-	Items  []*FlowTableItem
+	Items  []*TD
 }
 
 func FlowTableNew(ID string, Class string, Column int) *FlowTable {
@@ -59,8 +63,12 @@ func FlowTableNew(ID string, Class string, Column int) *FlowTable {
 	}
 }
 
-func (ft *FlowTable) AddOne(HTML string) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) Last() *TD {
+	return ft.Items[len(ft.Items)-1]
+}
+
+func (ft *FlowTable) AddOne(HTML string) *TD {
+	item := TD{
 		HTML:    HTML,
 		colspan: 1,
 		rowspan: 1,
@@ -72,8 +80,8 @@ func (ft *FlowTable) AddOne(HTML string) *FlowTableItem {
 	ft.Items = append(ft.Items, &item)
 	return &item
 }
-func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *TD {
+	item := TD{
 		HTML:    HTML,
 		colspan: colspan,
 		rowspan: rowspan,
@@ -87,8 +95,8 @@ func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *FlowTableIt
 }
 
 // AddTitle : shortcut, AddTitle Bold font
-func (ft *FlowTable) AddTitleB(Title string) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) AddTitleB(Title string) *TD {
+	item := TD{
 		HTML:    fmt.Sprintf(`<p class="is-size-5" style="font-weight: bold;">%s</p>`, Title),
 		colspan: ft.Column,
 		rowspan: 1,
@@ -102,8 +110,8 @@ func (ft *FlowTable) AddTitleB(Title string) *FlowTableItem {
 }
 
 // AddLabel : shortcut
-func (ft *FlowTable) AddLabel(Label string) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) AddLabel(Label string) *TD {
+	item := TD{
 		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
 		colspan: 1,
 		rowspan: 1,
@@ -116,8 +124,8 @@ func (ft *FlowTable) AddLabel(Label string) *FlowTableItem {
 	return &item
 }
 
-func (ft *FlowTable) AddTitle(Label string) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) AddTitle(Label string) *TD {
+	item := TD{
 		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
 		colspan: 1,
 		rowspan: 1,
@@ -131,8 +139,8 @@ func (ft *FlowTable) AddTitle(Label string) *FlowTableItem {
 }
 
 // AddInput : shortcut
-func (ft *FlowTable) AddInput(Model string, colspan int) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) AddInput(Model string, colspan int) *TD {
+	item := TD{
 		HTML:    fmt.Sprintf(`<input v-model="%s" class="input">`, Model),
 		colspan: colspan,
 		rowspan: 1,
@@ -146,7 +154,7 @@ func (ft *FlowTable) AddInput(Model string, colspan int) *FlowTableItem {
 }
 
 // AddSelect : shortcut
-func (ft *FlowTable) AddSelect(Model string, kv ...string) *FlowTableItem {
+func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 	var Lines []string
 
 	sp := fmt.Sprintf
@@ -160,7 +168,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *FlowTableItem {
 	Lines = append(Lines, `  </select>`)
 	Lines = append(Lines, `</div>`)
 
-	item := FlowTableItem{
+	item := TD{
 		HTML:    strings.Join(Lines, "\n"),
 		colspan: 1,
 		rowspan: 1,
@@ -174,8 +182,8 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *FlowTableItem {
 }
 
 // AddDate : shortcut
-func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *FlowTableItem {
-	item := FlowTableItem{
+func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
+	item := TD{
 		HTML:    fmt.Sprintf(`<input v-model.trim="%s" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`, Model, minDate, maxDate),
 		colspan: 1,
 		rowspan: 1,
@@ -189,7 +197,7 @@ func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *Flow
 }
 
 // AddAddress : Must set Model and Value
-func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string, Address string, vProvince string, vCity string, vDistrict string) *FlowTableItem {
+func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string, Address string, vProvince string, vCity string, vDistrict string) *TD {
 	var Lines []string
 
 	sp := fmt.Sprintf
@@ -220,7 +228,7 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 
 	Lines = append(Lines, `</div>`)
 
-	item := FlowTableItem{
+	item := TD{
 		HTML:    strings.Join(Lines, "\n"),
 		colspan: 1,
 		rowspan: 1,
