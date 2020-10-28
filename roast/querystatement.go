@@ -78,6 +78,9 @@ func QueryStatementNew() *QueryStatement {
 }
 
 func (s *QueryStatement) Column(TableAlias string, Field string, Default string, OutputName string) {
+	if OutputName == "" {
+		OutputName = Field
+	}
 	s.ColumnList = append(s.ColumnList, &Column{
 		TableAlias: TableAlias,
 		Field:      Field,
