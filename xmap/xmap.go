@@ -28,6 +28,15 @@ func Make(v ...interface{}) Map {
 }
 
 // Map : Convert gin's request to Map
+func MapData(data []byte) Map {
+	xm := make(Map)
+	if err := json.Unmarshal(data, &xm); err != nil {
+		klog.E(err.Error())
+	}
+	return xm
+}
+
+// Map : Convert gin's request to Map
 func MapBody(c *gin.Context) Map {
 	xm := make(Map)
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
