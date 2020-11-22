@@ -123,8 +123,8 @@ func Load(fileName string) error {
 	}
 }
 
-// Exists : Check if a entry exists
-func Exists(path string) bool {
+// Has : Check if a entry exists
+func Has(path string) bool {
 	_, ok := mapPathEntry[path]
 	return ok
 }
