@@ -125,38 +125,40 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bo
 	return atox.Int(lines, 0), nil
 }
 
-func Query(dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
-	var db *sql.DB
+func Query(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
 	var err error
 
-	if dsn != "" {
-		db, err = sql.Open("mysql", dsn)
-	} else {
-		db, err = sql.Open("mysql", DSN(prefix))
+	if db == nil {
+		if dsn != "" {
+			db, err = sql.Open("mysql", dsn)
+		} else {
+			db, err = sql.Open("mysql", DSN(prefix))
+		}
+		if err != nil {
+			klog.E(err.Error())
+			return 0, err
+		}
+		defer db.Close()
 	}
-	if err != nil {
-		klog.E(err.Error())
-		return 0, err
-	}
-	defer db.Close()
 
 	return ViaScanner(db, queryStmt, mp, FoundRows, rowScanner)
 }
 
-func QueryToMap(dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
-	var db *sql.DB
+func QueryToMap(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
 	var err error
 
-	if dsn != "" {
-		db, err = sql.Open("mysql", dsn)
-	} else {
-		db, err = sql.Open("mysql", DSN(prefix))
+	if db == nil {
+		if dsn != "" {
+			db, err = sql.Open("mysql", dsn)
+		} else {
+			db, err = sql.Open("mysql", DSN(prefix))
+		}
+		if err != nil {
+			klog.E(err.Error())
+			return nil, 0, err
+		}
+		defer db.Close()
 	}
-	if err != nil {
-		klog.E(err.Error())
-		return nil, 0, err
-	}
-	defer db.Close()
 
 	return ViaMap(db, queryStmt, mp, FoundRows)
 }
