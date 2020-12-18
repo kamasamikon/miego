@@ -84,7 +84,8 @@ def createMsaCfg():
     lines.append("s:/ms/version=%s" % _msvern)
     lines.append("i:/ms/port=%s" % _msport)
     lines.append("s:/ms/desc=%s" % _msdesc)
-    lines.append("s:/ms/url/path=/ms/%s/%s" % (_msname, _msvern))
+    # lines.append("s:/ms/url/path=/ms/%s/%s" % (_msname, _msvern))
+    lines.append("s:/ms/url/path=/%s" % _msname)
     lines.append("")
 
     # MSB Info

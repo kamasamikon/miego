@@ -11,14 +11,14 @@ type KCallFrame struct {
 	// node: who process the data
 	// data: data returned by upstreamNode.Processor()
 	// dataFormat: uint
-	// dataId: GUID of the data if the data been saved to database.
+	// DataID: GUID of the data if the data been saved to database.
 	// NewAt: Timestamp this frame created.
 	Caller     *KCallFrame
 	Node       *KNode
 	Data       []byte
 	DataFormat uint
 	Hint       uint
-	DataId     string
+	DataID     string
 	NewAt      int64
 }
 
@@ -29,12 +29,12 @@ func NewCallFrame(caller *KCallFrame, thisNode *KNode, data []byte, dataFormat u
 		Data:       data,
 		DataFormat: dataFormat,
 		Hint:       hint,
-		DataId:     "TODO: Id of DB?",
+		DataID:     "TODO: Id of DB?",
 		NewAt:      time.Now().UnixNano(),
 	}
 
 	// TODO: Save the data to database;
-	// TODO: Create dataId
+	// TODO: Create DataID
 
 	return f
 }

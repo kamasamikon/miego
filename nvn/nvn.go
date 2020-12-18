@@ -52,12 +52,15 @@ func Add(n int, s string, class string) {
 	mapStr[key] = s
 }
 
-func LoadConf() {
+func LoadConf(prefix string) {
+	if prefix == "" {
+		prefix = "nvn"
+	}
 	for _, name := range conf.Names() {
 		segs := strings.Split(name, "/")
 		// segs := ["i:", "nvn", "<class>", "<name>"]
-		// i:/nvn/Role/管理员=1
-		if len(segs) == 4 && segs[0] == "i:" && segs[1] == "nvn" {
+		// i:/nvn/Role/管理员=1	=> nvn.Add(1, "管理员", "Role")
+		if len(segs) == 4 && segs[0] == "i:" && segs[1] == prefix {
 			n := conf.Int(0, name)
 			class := segs[2]
 			s := segs[3]

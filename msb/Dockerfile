@@ -29,6 +29,7 @@ COPY nginx.conf.templ /etc/nginx/nginx.conf
 COPY ./PRC /etc/localtime
 COPY ./msb /root/msb
 
+VOLUME /var/lib/nginx/tmp/client_body
 
 ### #####################################################################
 ## Run
