@@ -38,9 +38,10 @@ func VCodeCheckerNew() *VCodeChecker {
 	return cc
 }
 
-func (cc VCodeChecker) Rand(key string, codeLen int, codeKind string, ttl int64) {
+func (cc VCodeChecker) Rand(key string, codeLen int, codeKind string, ttl int64) string {
 	code := string(xrand.Rand(codeLen, codeKind))
 	cc.Add(key, code, ttl)
+	return code
 }
 
 // Add : ttl: seconds

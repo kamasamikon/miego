@@ -1,5 +1,9 @@
 package roast
 
+import (
+	"github.com/kamasamikon/miego/xtime"
+)
+
 const (
 	// 没有被删除
 	RemWhy_NotRem = 0
@@ -23,4 +27,13 @@ type TableHeader struct {
 	RemAt  uint64 `gorm:"Column:RemAt"`
 	RemBy  string `gorm:"Column:RemBy"`
 	RemWhy int    `gorm:"Column:RemWhy"`
+}
+
+func Setup(h *TableHeader, NewBy string) {
+	h.ID = 0
+	h.NewAt = xtime.TimeNowToNum()
+	h.NewBy = NewBy
+	h.RemAt = 0
+	h.RemBy = ""
+	h.RemWhy = 0
 }
