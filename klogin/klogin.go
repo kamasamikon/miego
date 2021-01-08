@@ -7,10 +7,11 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/twinj/uuid"
+
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xgin"
 	"github.com/kamasamikon/miego/xmap"
-	"github.com/twinj/uuid"
 )
 
 type KLogin struct {
@@ -40,7 +41,7 @@ type KLogin struct {
 	//
 	LoginDataChecker func(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, err error)
 
-	BeforeLogin  func(c *gin.Context) (LoginPageName string, LoginPageParam xmap.Map)
+	BeforeLogin  func(c *gin.Context) (StatusCode int, LoginPageName string, LoginPageParam xmap.Map)
 	BeforeLogout func(c *gin.Context) (LogoutRedirectURL string)
 
 	//
@@ -55,14 +56,20 @@ func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		session := sessions.Default(c)
 		UUID := session.Get("UUID")
 		if UUID != nil {
-			klog.D("isLoggin: OK: UUID: %s", UUID.(string))
+			klog.D("IsLoggin: OK: UUID: %s", UUID.(string))
 			h(c)
 			return
 		}
 
-		LoginPageName, LoginPageParam := o.BeforeLogin(c)
-		klog.D("isLoggin: NG: %s", spew.Sdump(LoginPageParam))
-		c.HTML(200, LoginPageName, LoginPageParam)
+		// Return Status or Login page
+		StatusCode, LoginPageName, LoginPageParam := o.BeforeLogin(c)
+		if LoginPageName == "" {
+			klog.D("IsLoggin: NG: JSON: %s", spew.Sdump(LoginPageParam))
+			c.JSON(StatusCode, LoginPageParam)
+		} else {
+			klog.D("IsLoggin: NG: HTML: %s", spew.Sdump(LoginPageParam))
+			c.HTML(StatusCode, LoginPageName, LoginPageParam)
+		}
 	}
 }
 
@@ -75,9 +82,14 @@ func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 		return val.(string), true
 	}
 }
+
 func (o *KLogin) Set(c *gin.Context, key string, val interface{}) {
 	session := sessions.Default(c)
 	session.Set(key, val)
+}
+
+func (o *KLogin) Save(c *gin.Context) {
+	session := sessions.Default(c)
 	session.Save()
 }
 
