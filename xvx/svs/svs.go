@@ -7,12 +7,15 @@ import (
 	"github.com/kamasamikon/miego/conf"
 )
 
-// Name VS Number
+// String VS String
 
+// "aaa" VS "AAA"
+// Class__aaa => AAA
+// Class__AAA => aaa
 var mapsvs map[string]string
 
 func S(s string, class string) string {
-	key := fmt.Sprintf("%s___%s", class, s)
+	key := class + "__" + s
 	if s, ok := mapsvs[key]; ok {
 		return s
 	}
@@ -20,10 +23,10 @@ func S(s string, class string) string {
 }
 
 func Add(sa string, sb string, class string) {
-	a := fmt.Sprintf("%s___%s", class, sa)
-	b := fmt.Sprintf("%s___%s", class, sb)
-	mapsvs[a] = b
-	mapsvs[b] = a
+	a := class + "__" + sa
+	b := class + "__" + sb
+	mapsvs[a] = sb
+	mapsvs[b] = sa
 }
 
 func LoadConf(prefix string) {
@@ -53,7 +56,6 @@ func Dump() string {
 
 	// k: cls_a v: cls_b
 	for a, b := range mapsvs {
-
 		segs_a := strings.Split(a, "___")
 		class_a, sa := segs_a[0], segs_a[1]
 
