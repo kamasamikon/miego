@@ -2,9 +2,25 @@ package misc
 
 import (
 	"fmt"
+	"io/ioutil"
 	"runtime"
 	"sync"
+
+	"crypto/md5"
+	"encoding/hex"
 )
+
+func MD5file(path string) string {
+	ctx := md5.New()
+
+	if data, err := ioutil.ReadFile(path); err != nil {
+		return ""
+	} else {
+		ctx.Write(data)
+	}
+
+	return hex.EncodeToString(ctx.Sum(nil))
+}
 
 func ReverseString(s string) string {
 	runes := []rune(s)
