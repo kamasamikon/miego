@@ -84,7 +84,6 @@ def createMsaCfg():
     lines.append("s:/ms/version=%s" % _msvern)
     lines.append("i:/ms/port=%s" % _msport)
     lines.append("s:/ms/desc=%s" % _msdesc)
-    # lines.append("s:/ms/url/path=/ms/%s/%s" % (_msname, _msvern))
     lines.append("s:/ms/url/path=/%s" % _msname)
     lines.append("")
 
@@ -104,8 +103,8 @@ def createMsaCfg():
     lines.append("i:/build/updated=%d" % isUpdated())
 
     # This is /root/msa.cfg, it will be used fore register
-    with open("ms/msa.cfg", "w") as f:
-        f.writelines([l + "\r\n" for l in lines])
+    with open("ms/msa.cfg", "a") as f:
+        f.writelines(["\r\n" + l for l in lines])
 
 
 def createDockerfile():

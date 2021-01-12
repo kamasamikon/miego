@@ -88,6 +88,7 @@ userScriptFirst:
 
 
 userScriptLast: userScript
+	@echo >> .userScript "[ -f msa.cfg ] && cp -f msa.cfg ms/msa.cfg || echo -n"
 	@echo >> .userScript "[ -f main.cfg ] && cp -f main.cfg ms/main.cfg || echo -n"
 	@echo >> .userScript "[ -f main.`cat /tmp/.mkCONFIG`.cfg ] && cp -f main.`cat /tmp/.mkCONFIG`.cfg ms/main.cfg || echo -n"
 	@echo >> .userScript "[ -f README.md ] && cp -fr README.md ms/ || echo -n"

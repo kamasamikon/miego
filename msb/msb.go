@@ -35,6 +35,9 @@ type KService struct {
 	// This msa instance
 	CreatedAt int64 `json:"createdAt"`
 
+	// Kind: grpc? http?
+	Kind string `json:"kind"`
+
 	//
 	// Additional part
 	//
@@ -45,7 +48,6 @@ type KService struct {
 	//
 	CreatedWhen string `json:"createdWhen"`
 	RefreshWhen string `json:"refreshWhen"`
-	// URL         string `json:"URL"`
 }
 
 // All the service queue here.
@@ -61,10 +63,6 @@ func msPretty(s *KService, c *gin.Context) {
 	now := time.Now().UnixNano()
 	ago := int(now-s.RefreshTime) / 1e9
 	s.RefreshWhen = fmt.Sprintf("%d seconds ago.", ago)
-
-	// The request is delivered by proxy, can not get correct host.
-	// URL := c.Request.URL
-	// s.URL = fmt.Sprintf("%s://%s/ms/%s/%s/", URL.Scheme, URL.Host, s.ServiceName, s.Version)
 }
 
 func hashKey(serviceName string, version string, ipAddr string, port int) string {
@@ -80,12 +78,10 @@ func msSet(s *KService) bool {
 	key := s.toKey()
 	if a, ok := mapServices[key]; ok {
 		if a.CreatedAt != s.CreatedAt {
-			// klog.W("U: '%s'.", key)
 			*a = *s
 			a.RefreshTime = time.Now().UnixNano()
 			return true
 		} else {
-			// klog.W("S: '%s'", key)
 			a.RefreshTime = time.Now().UnixNano()
 			return false
 		}
@@ -138,7 +134,6 @@ func RefreshLoop() {
 			nginxConfWrite()
 			nginxReload()
 		}
-		// klog.E("Waiting 10 seconds before next loop.")
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -146,10 +141,9 @@ func RefreshLoop() {
 /////////////////////////////////////////////////////////////////////////
 // Nginx
 
-func genLocationAndUpstream() (string, string) {
+func genLocationAndUpstream() (string, string, string) {
 	var serviceGroup = make(map[string][]*KService)
 	for _, v := range mapServices {
-		// key := v.ServiceName + "/" + v.Version
 		key := v.ServiceName
 
 		var group []*KService
@@ -163,26 +157,32 @@ func genLocationAndUpstream() (string, string) {
 		serviceGroup[key] = group
 	}
 
-	var redir strings.Builder
+	var redirListHttp strings.Builder
+	var redirListGrpc strings.Builder
 	for key, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&redir, "        #location ^~ /ms/%s/ {\n", key)
-		fmt.Fprintf(&redir, "        location ^~ /%s/ {\n", key)
-		fmt.Fprintf(&redir, "            proxy_pass http://%s.%s/;\n", s.ServiceName, s.Version)
-		fmt.Fprintf(&redir, "        }\n\n")
+		if s.Kind == "http" {
+			fmt.Fprintf(&redirListHttp, "        location ^~ /%s/ {\n", key)
+			fmt.Fprintf(&redirListHttp, "            proxy_pass http://%s.%s/;\n", s.ServiceName, s.Version)
+			fmt.Fprintf(&redirListHttp, "        }\n\n")
+		} else if s.Kind == "grpc" {
+			fmt.Fprintf(&redirListGrpc, "        location ^~ /%s/ {\n", key)
+			fmt.Fprintf(&redirListGrpc, "            grpc_pass grpc://%s.%s/;\n", s.ServiceName, s.Version)
+			fmt.Fprintf(&redirListGrpc, "        }\n\n")
+		}
 	}
 
-	var upstr strings.Builder
+	var upsList strings.Builder
 	for _, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&upstr, "    upstream %s.%s {\n", s.ServiceName, s.Version)
+		fmt.Fprintf(&upsList, "    upstream %s.%s {\n", s.ServiceName, s.Version)
 		for _, a := range group {
-			fmt.Fprintf(&upstr, "        server %s:%d;\n", a.IPAddr, a.Port)
+			fmt.Fprintf(&upsList, "        server %s:%d;\n", a.IPAddr, a.Port)
 		}
-		fmt.Fprintf(&upstr, "    }\n\n")
+		fmt.Fprintf(&upsList, "    }\n\n")
 	}
 
-	return redir.String(), upstr.String()
+	return redirListHttp.String(), redirListGrpc.String(), upsList.String()
 }
 
 func TemplLoad(path string) string {
@@ -199,12 +199,13 @@ func TemplLoad(path string) string {
 }
 
 func nginxConfWrite() error {
-	us, lb := genLocationAndUpstream()
+	redirListHttp, redirListGrpc, upsList := genLocationAndUpstream()
 
 	templ := TemplLoad("")
 
-	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", lb, -1)
-	templ = strings.Replace(templ, "#@@REDIRECT_LIST@@", us, -1)
+	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", upsList, -1)
+	templ = strings.Replace(templ, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
+	templ = strings.Replace(templ, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
 
 	path := "/etc/nginx/nginx.conf"
 	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {

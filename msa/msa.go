@@ -42,6 +42,9 @@ type KService struct {
 	// This msa instance
 	CreatedAt int64 `json:"createdAt"`
 
+	// Kind: grpc? http?
+	Kind string `json:"kind"`
+
 	//
 	// Process Information
 	//
@@ -173,6 +176,7 @@ func main() {
 		ServiceName: conf.Str("demo", "ms/name"),
 		Version:     conf.Str("v1", "ms/version"),
 		Desc:        conf.Str("TODO: FILL DESC.", "ms/desc"),
+		Kind:        conf.Str("http", "ms/kind"),
 
 		IPAddr: GetOutboundIP(),
 		Port:   int(conf.Int(8888, "ms/port")),
