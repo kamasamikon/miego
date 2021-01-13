@@ -106,11 +106,17 @@ userDockerCommandFirst:
 userDockerCommandLast: userDockerCommand
 	@echo "==> Writing userDockerCommand... DONE"
 
+# appendline fileName line
+define append
+	echo >> $(1) $(2)
+endef
 
+# append line to .userScript
 define sss
 	echo >> .userScript $(1)
 endef
 
+# append line to .userDockerCommand
 define ddd
 	echo >> .userDockerCommand $(1)
 endef
