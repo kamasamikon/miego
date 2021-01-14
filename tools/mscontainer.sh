@@ -6,6 +6,7 @@ import sys
 
 MSBNAME = "msb"
 SUFFIX = ""
+MSBADDR = ""
 
 def saferun(cmd, debug=True):
     try:
@@ -90,6 +91,7 @@ def killContainer(imageName, killFirst, killLast):
 def main():
     global MSBNAME
     global SUFFIX
+    global MSBADDR
 
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
@@ -113,7 +115,13 @@ def main():
             SUFFIX = name[9:]
             continue
 
-    msbIP = msbIPAddress()
+        if name.startswith("--msbAddr="):
+            MSBADDR = name[10:]
+
+    if MSBADDR:
+        msbIP = MSBADDR
+    else:
+        msbIP = msbIPAddress()
 
     #
     # Kill OLD?

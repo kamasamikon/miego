@@ -5,14 +5,9 @@ worker_processes 1;
 error_log /tmp/error.log;
 pid /run/nginx.pid;
 
-
-
-
-
 events {
     worker_connections 1024;
 }
-
 
 http {
     # Basic Settings
@@ -52,25 +47,24 @@ http {
     include mime.types;
 
     server {
+        # Logging
+        access_log /tmp/access.log mylog;
+        root /root;
+
         listen 1443 ssl http2;
 
-        ssl_certificate ssl/cert.pem;
-        ssl_certificate_key ssl/key.pem;
-
-        location / {
-            grpc_pass grpc://localhost:50051;
-        }
+        ssl_certificate /etc/nginx/msb.pem;
+        ssl_certificate_key /etc/nginx/msb.key;
 
 #@@REDIRECT_LIST_GRPC@@
     }
 
     server {
         # Logging
-        # access_log /tmp/access.log mylog;
+        access_log /tmp/access.log mylog;
         root /root;
 
         listen 80;
-        ssl off;
 
         default_type text/html;
         add_header X-Cache-Status $upstream_cache_status;

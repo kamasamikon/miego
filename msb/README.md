@@ -9,3 +9,30 @@
 `daorun.sh` 这个是从原来的msb中拷贝过来的。就是把镜像msb启动，启动前要删除老的msb，同时生成的容器的名字也叫做msb。
 
 结论就是，依次运行上边三个脚本就可以把msb跑起来了。
+
+nginx.conf.full.templ 是完整的nginx.conf文件，相当于/etc/nginx/nginx.conf。
+nginx.conf.server.templ 相当于/etc/nginx/conf.d/目录下的文件。
+
+### 容器模式
+
+- 修改msb.conf
+- 检查Dockerfile、msb.conf、nginx.conf.temp，保证这几个是一致的。
+- **./makedocker.sh**生成容器。
+- **./daorun.sh -d** 生成并运行容器。
+
+### 独立模式
+
+- 复制需要的文件
+  - `cp msb.pem /etc/nginx/`
+  - `cp msb.key /etc/nginx/`
+  - `cp nginx.conf.server.templ /etc/nginx/conf.d/msb.conf`
+  - `cp nginx.conf.server.templ /etc/nginx/conf.d/msb.conf.templ`
+- 修改msb.conf
+- `s:/msb/nginx/conf=/etc/nginx/conf.d/msb.conf`
+- `s:/msb/nginx/templ=/etc/nginx/conf.d/msb.conf.templ`
+- `s:/msb/nginx/exec=/usr/sbin/nginx`
+- **./makesrc.sh**生成MSB程序。
+- 直接运行。
+
+http --verify=no https://127.0.0.1/msb/service
+验证服务列表

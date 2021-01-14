@@ -2,7 +2,12 @@
 
 ./makedocker.sh
 
-sudo docker rm --force msb
+cName=msb.grpc
 
-echo ">>>> " sudo docker run --restart=always -it $@ --name msb -p 9080:80 msb:latest
-sudo docker run --restart=always -it $@ --name msb -p 9080:80 msb:latest
+#iName=msb.slim
+iName=msb
+
+sudo docker rm --force $cName
+
+echo ">>>> " sudo docker run --restart=always -it $@ --name $cName -p 9080:80 $iName
+sudo docker run --restart=always -it $@ --name $cName -p 9080:80 $iName

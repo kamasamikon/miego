@@ -1,0 +1,40 @@
+
+    upstream msb {
+        server 127.0.0.1:9100;
+    }
+
+#@@UPSTREAM_LIST@@
+
+    # Includes
+    include mime.types;
+
+    server {
+        # Logging
+        access_log /tmp/access.log;
+        root /root;
+
+        listen 1443 ssl http2;
+
+        ssl_certificate /etc/nginx/msb.pem;
+        ssl_certificate_key /etc/nginx/msb.key;
+
+#@@REDIRECT_LIST_GRPC@@
+    }
+
+    server {
+        # Logging
+        access_log /tmp/access.log;
+        root /root;
+
+        listen 80;
+
+        default_type text/html;
+        add_header X-Cache-Status $upstream_cache_status;
+
+        location ^~ /msb/ {
+            proxy_pass http://msb/;
+        }
+
+#@@REDIRECT_LIST_HTTP@@
+    }
+

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/klog"
 )
 
@@ -167,7 +168,7 @@ func genLocationAndUpstream() (string, string, string) {
 			fmt.Fprintf(&redirListHttp, "        }\n\n")
 		} else if s.Kind == "grpc" {
 			fmt.Fprintf(&redirListGrpc, "        location ^~ /%s/ {\n", key)
-			fmt.Fprintf(&redirListGrpc, "            grpc_pass grpc://%s.%s/;\n", s.ServiceName, s.Version)
+			fmt.Fprintf(&redirListGrpc, "            grpc_pass grpc://%s.%s;\n", s.ServiceName, s.Version)
 			fmt.Fprintf(&redirListGrpc, "        }\n\n")
 		}
 	}
@@ -186,10 +187,6 @@ func genLocationAndUpstream() (string, string, string) {
 }
 
 func TemplLoad(path string) string {
-	if path == "" {
-		path = "/etc/nginx/nginx.conf.templ"
-	}
-
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		klog.E("TemplLoad NG: %s", err.Error())
@@ -199,15 +196,18 @@ func TemplLoad(path string) string {
 }
 
 func nginxConfWrite() error {
+	// 1. Load templ nginx.conf
+	// 2. Insert services information to templ
+	// 3. Write back to nginx.conf
 	redirListHttp, redirListGrpc, upsList := genLocationAndUpstream()
 
-	templ := TemplLoad("")
+	templ := TemplLoad(conf.Str("/etc/nginx/nginx.conf.templ", "msb/nginx/templ"))
 
 	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", upsList, -1)
 	templ = strings.Replace(templ, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
 	templ = strings.Replace(templ, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
 
-	path := "/etc/nginx/nginx.conf"
+	path := conf.Str("/etc/nginx/nginx.conf", "msb/nginx/conf")
 	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {
 		klog.E(err.Error())
 		return err
@@ -217,7 +217,8 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	cmd := exec.Command("/usr/sbin/nginx", "-s", "reload")
+	nginx := conf.Str("/usr/sbin/nginx", "msb/nginx/exec")
+	cmd := exec.Command(nginx, "-s", "reload")
 	err := cmd.Run()
 	if err != nil {
 		klog.E(err.Error())
@@ -358,6 +359,12 @@ func serverRem(c *gin.Context) {
 }
 
 func main() {
+	// s:/msb/nginx/conf=/etc/nginx/nginx.conf
+	// s:/msb/nginx/templ=/etc/nginx/nginx.conf
+	// s:/msb/nginx/exec=/usr/sbin/nginx
+	conf.Load("./etc/msb.cfg")
+	conf.Load("./msb.cfg")
+
 	gin.SetMode(gin.ReleaseMode)
 	Gin := gin.New()
 
