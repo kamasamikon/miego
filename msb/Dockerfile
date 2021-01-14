@@ -1,8 +1,7 @@
 
-FROM smebberson/alpine-nginx
+FROM nginx:1.19.6-alpine
+# FROM smebberson/alpine-nginx
 # FROM alpine
-# FROM centos:7
-# FROM frolvlad/alpine-python3
 # FROM openresty/openresty
 
 WORKDIR /root
