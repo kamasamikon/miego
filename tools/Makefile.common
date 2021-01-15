@@ -5,13 +5,13 @@ fake:
 
 build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ..."
-	daoker.py -n $(msName) -v $(msVern) -p $(msPort) -d $(msDesc) b
+	daoker.py -n $(msName) -v $(msVern) -p $(msPort) -d $(msDesc) --msabase=$(msaBase) b
 	@echo "==> Building docker ... DONE"
 
 
 run: build
 	@echo "==> Running docker ..."
-	daoker.py -n $(msName) -v $(msVern) -p $(msPort) -d $(msDesc) r
+	daoker.py -n $(msName) -v $(msVern) -p $(msPort) -d $(msDesc) --msabase=$(msaBase) r
 
 
 dockerpack: build

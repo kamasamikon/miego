@@ -9,7 +9,7 @@ import time
 
 
 dfTempl = '''
-FROM msa
+FROM %s
 
 # >>> User part >>>
 
@@ -39,6 +39,9 @@ _dfuser = None
 # MSB
 _msbname = None
 _msbip = None
+
+# MSA
+_msabase = None
 
 # Docker environ
 _env = None
@@ -108,7 +111,7 @@ def createMsaCfg():
 
 
 def createDockerfile():
-    text = dfTempl % _dfuser
+    text = dfTempl % (_msabase, _dfuser)
     with open("Dockerfile", "w") as f:
         f.write(text)
 
@@ -245,6 +248,9 @@ def run():
 @click.option('--msbname', '-m', help="(msb):     MSB container name")
 @click.option('--msbip', '-i', help="(byGuess): MSB ip address.")
 
+# MSA
+@click.option('--msabase', '-b', help="(msa):     MSA base image")
+
 # Docker environ
 @click.option('--env', '-e', help="(null):    Environ passed to docker.", multiple=True)
 
@@ -258,6 +264,7 @@ def main(foreground, container, sharemode, appendmode, kill,
         msname, msvern, msport, msdesc,
         guess,
         msbname, msbip,
+        msabase,
         env,
         extra,
         cmds):
@@ -311,6 +318,10 @@ def main(foreground, container, sharemode, appendmode, kill,
     global _msbname, _msbip
     _msbname = msbname or "msb"
     _msbip = msbip
+
+    # MSA
+    global _msabase
+    _msabase = msabase or "msa"
 
     # Docker environ
     global _env
