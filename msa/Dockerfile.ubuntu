@@ -1,5 +1,4 @@
 FROM ubuntu
-FROM alpine
 
 WORKDIR /root
 
