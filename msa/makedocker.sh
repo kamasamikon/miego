@@ -1,5 +1,8 @@
 #!/bin/sh
 
+Type=$1
+
 ./makesrc.sh
 upx msa
-sudo docker build -t msa .
+echo sudo docker build -f Dockerfile.$Type -t msa .
+sudo docker build -f Dockerfile.$Type -t msa-$Type .

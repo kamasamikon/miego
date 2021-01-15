@@ -1,4 +1,5 @@
-FROM alpine:3.9
+FROM ubuntu
+FROM alpine
 
 WORKDIR /root
 
