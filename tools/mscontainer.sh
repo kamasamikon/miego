@@ -78,7 +78,6 @@ def killContainer(imageName, killFirst, killLast):
     killLast = killLast or "99999999999"
 
     cmd = ["sudo", "docker", "ps", "-aq", "--filter", r'''name=\b%s\b|\b%s_.*''' % (container, container)]
-    print(">>> ", " ".join(cmd))
     idList = subprocess.check_output(cmd).strip().decode("utf-8").split()
     print(idList)
     if idList:
@@ -129,7 +128,6 @@ def main():
     else:
         msbIP = msbIPAddress()
 
-
     backrun = "-b" in sys.argv
     append  = "-a" in sys.argv
 
@@ -140,13 +138,15 @@ def main():
         msNames.append(name)
 
     if not msNames:
-        msNames.append(os.environ.get("MS_NAME"))
+        x = os.environ.get("MS_NAME")
+        if x:
+            msNames.append(x)
 
     #
     # Kill OLD?
     #
     killSome, killFirst, killLast = False, "0", "999999999999999"
-    for name in msNames:
+    for name in sys.argv[1:]:
         if name.startswith("-k"):
             # -k: => container[:]
             # -k: => container[:]
@@ -158,7 +158,7 @@ def main():
             if len(segs) > 0:
                 killFirst = segs[0]
 
-            for xname in sys.argv[1:]:
+            for xname in msNames:
                 if xname[0] == "-":
                     continue
                 killContainer(xname, killFirst, killLast)
