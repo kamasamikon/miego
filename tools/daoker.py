@@ -321,7 +321,7 @@ def main(foreground, container, sharemode, appendmode, kill,
 
     # MSA
     global _msabase
-    _msabase = msabase or "msa"
+    _msabase = msabase or "msa-alpine"
 
     # Docker environ
     global _env
