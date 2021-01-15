@@ -23,31 +23,25 @@ COPY ms/ ./ms
 # Run
 _foreground = None
 _container = None
-_sharemode = None
-_appendmode = None
+_shareMode = None
+_appendMode = None
 _kill = True
 
 # Service
-_msname = None
-_msvern = None
-_msport = None
-_msdesc = None
+_msName = None
+_msKind = None
+_msVern = None
+_msPort = None
+_msDesc = None
 
 # Dockerfile
 _dfuser = None
 
-# MSB
-_msbname = None
-_msbip = None
-
 # MSA
-_msabase = None
+_msaBase = None
 
 # Docker environ
 _env = None
-
-# build or run
-_cmds = None
 
 # extra options, -x '-v aaa:bbb'
 _extra = []
@@ -67,33 +61,21 @@ def isUpdated():
     except:
         return False
 
-
-def getMsbIp(msbName=None):
-    msbName = msbName or "msb"
-    cmd = ("sudo", "docker", "inspect", "--format", '{{ .NetworkSettings.IPAddress }}', msbName)
-    print(">>> ", " ".join(cmd))
-    try:
-        return subprocess.check_output(cmd).strip().decode("utf-8")
-    except:
-        return ""
-
-
 def createMsaCfg():
     lines = []
 
     # Service Info
     lines.append("# Service information")
-    lines.append("s:/ms/name=%s" % _msname)
-    lines.append("s:/ms/version=%s" % _msvern)
-    lines.append("i:/ms/port=%s" % _msport)
-    lines.append("s:/ms/desc=%s" % _msdesc)
-    lines.append("s:/ms/url/path=/%s" % _msname)
+    lines.append("s:/ms/name=%s" % _msName)
+    lines.append("s:/ms/kind=%s" % _msKind)
+    lines.append("s:/ms/version=%s" % _msVern)
+    lines.append("i:/ms/port=%s" % _msPort)
+    lines.append("s:/ms/desc=%s" % _msDesc)
+    lines.append("s:/ms/url/path=/%s" % _msName)
     lines.append("")
 
     # MSB Info
     lines.append("# MSB information")
-    msbip = _msbip or getMsbIp(_msbname)
-    lines.append("s:/msb/host=%s" % msbip)
     lines.append("i:/msb/regWait/ok=5")
     lines.append("i:/msb/regWait/ng=1")
     lines.append("")
@@ -111,7 +93,7 @@ def createMsaCfg():
 
 
 def createDockerfile():
-    text = dfTempl % (_msabase, _dfuser)
+    text = dfTempl % (_msaBase, _dfuser)
     with open("Dockerfile", "w") as f:
         f.write(text)
 
@@ -151,7 +133,7 @@ def build():
     createDockerfile()
     copyMain()
 
-    cmd = ["sudo", "docker", "build", "-t", _msname, "."]
+    cmd = ["sudo", "docker", "build", "-t", _msName, "."]
     for e in _extra:
         segs = shlex.split(e)
         cmd.extend(segs)
@@ -163,145 +145,96 @@ def dockerGateway():
     print(">>> ", " ".join(cmd))
     return subprocess.check_output(cmd).strip().decode("utf-8")
 
-def run():
-    '''Run docker image'''
-
-    foreground = _foreground
-    container = _container
-    sharemode = _sharemode
-
-    msbip = _msbip or getMsbIp(_msbname)
-    container = container or _msname
-
-    #
-    # Remove old container
-    #
-    if _kill:
-        saferun(("sudo", "docker", "stop", container))
-        saferun(("sudo", "docker", "rm", container))
-
-    #
-    # Run container
-    #
-    if _appendmode:
-        index = 0
-        name = container
-        while True:
-            name = container if index == 0 else container + "_%d" % index
-            index += 1
-            cmd = ["sudo", "docker", "ps", "-aq", "--filter", "name=^/%s$" % name]
-            print(">>> ", " ".join(cmd))
-            if not subprocess.check_output(cmd):
-                break
-        container = name
-        print(container)
-
-    # -v: ms: conf.Load("/tmp/conf/main.cfg")
-    cmd = [
-            "sudo",
-            "docker",
-            "run",
-            "-it",
-            "--restart=always",
-            "--log-opt", "max-size=2m",
-            "--log-opt", "max-file=5",
-            "--name", container,
-            "-v", "/tmp/.conf.%s:/tmp/conf" % container
-            ]
-    for e in _env:
-        cmd.append("-e")
-        cmd.append(e)
-
-    for e in _extra:
-        segs = shlex.split(e)
-        cmd.extend(segs)
-
-    if not _foreground:
-        cmd.append("-d")
-
-    if sharemode:
-        cmd.extend(("-v", os.getcwd() + "/ms:/root/ms"))
-
-    cmd.extend(("-e", "MSBHOST=%s" % msbip))
-    cmd.extend(("-e", "DOCKER_GATEWAY=%s" % dockerGateway()))
-    cmd.append("%s:latest" % _msname)
-    saferun(cmd)
-
-
 @click.command()
 
 # Run
 @click.option('--foreground', '-f', is_flag=True, help="(False):   Run docker foreground.")
 @click.option('--container', '-c', help="($msName): Container name.")
-@click.option('--sharemode', '-s', is_flag=True, help="(False):   -v PWD/ms:/root/ms.")
-@click.option('--appendmode', '-a', is_flag=True, help="(False):   New contaner.")
+@click.option('--share-mode', '-s', is_flag=True, help="(False):   -v PWD/ms:/root/ms.")
+@click.option('--append-mode', '-a', is_flag=True, help="(False):   New contaner.")
 @click.option('--kill', '-k', is_flag=True, type=bool, default=False, help="(False):   Kill old container.")
 
 # Service
-@click.option('--msname', '-n', help="(demo):    Service Name.")
-@click.option('--msvern', '-v', help="(v1):      Service Version.")
-@click.option('--msport', '-p', help="(8888):    Service Port.")
-@click.option('--msdesc', '-d', help="(null):    Service Description.")
+@click.option('--ms-name', '-n', help="(demo):    Service Name.")
+@click.option('--ms-kind', '-k', help="(http):    Service Type, grpc or http.")
+@click.option('--ms-vern', '-v', help="(v1):      Service Version.")
+@click.option('--ms-port', '-p', help="(8888):    Service Port.")
+@click.option('--ms-desc', '-d', help="(null):    Service Description.")
 @click.option('--guess', '-g', is_flag=True, help="Guess from daoker.sh and Makefile.")
 
 # MSB
-@click.option('--msbname', '-m', help="(msb):     MSB container name")
-@click.option('--msbip', '-i', help="(byGuess): MSB ip address.")
+@click.option('--msb-name', '-m', help="(msb):     MSB container name")
+@click.option('--msb-ip', '-i', help="(byGuess): MSB ip address.")
 
 # MSA
-@click.option('--msabase', '-b', help="(msa):     MSA base image")
+@click.option('--msa-base', '-b', help="(msa):     MSA base image")
 
 # Docker environ
 @click.option('--env', '-e', help="(null):    Environ passed to docker.", multiple=True)
 
-# build or run
-@click.argument('cmds', nargs=-1)
-
 # extra docker options
 @click.option('--extra', '-x', help="(null):    extra docker options.", multiple=True)
 
-def main(foreground, container, sharemode, appendmode, kill,
-        msname, msvern, msport, msdesc,
+def main(foreground, container, share_mode, append_mode, kill,
+        ms_name, ms_kind, ms_vern, ms_port, ms_desc,
         guess,
-        msbname, msbip,
-        msabase,
+        msb_name, msb_ip,
+        msa_base,
         env,
         extra,
-        cmds):
+        ):
     '''CMDS: build|b=build, run|r=run.'''
 
+    foreground = foreground
+    container = container
+    shareMode = share_mode
+    appendMode = append_mode
+    kill = kill
+    msName = ms_name
+    msKind = ms_kind
+    msVern = ms_vern
+    msPort = ms_port
+    msDesc = ms_desc
+    guess = guess
+    msbName = msb_name
+    msaBase = msa_base
+    env = env
+    extra = extra
 
+    print(shareMode)
+    print(appendMode)
     #
     # Set global
     #
 
     # Run
-    global _foreground, _container, _sharemode, _appendmode, _kill
+    global _foreground, _container, _shareMode, _appendMode, _kill
     _foreground = foreground
     _container = container
-    _sharemode = sharemode
-    _appendmode = appendmode
+    _shareMode = shareMode
+    _appendMode = appendMode
     _kill = kill
 
     # Service
-    global _msname, _msvern, _msport, _msdesc
-    _msname = msname or "demo"
-    _msvern = msvern or "v1"
-    _msport = msport or 8888
-    _msdesc = msdesc or ""
-    if not msname or guess:
+    global _msName, _msKind, _msVern, _msPort, _msDesc
+    _msName = msName or "demo"
+    _msKind = msKind or "http"
+    _msVern = msVern or "v1"
+    _msPort = msPort or 8888
+    _msDesc = msDesc or ""
+    if not msName or guess:
         for guessfile in ("./daoker.sh", "Makefile"):
             try:
                 for line in open(guessfile).readlines():
                     line = line.strip()
                     if line.startswith("msName="):
-                        _msname = line[7:].strip()
+                        _msName = line[7:].strip()
                     if line.startswith("msVern="):
-                        _msvern = line[7:].strip()
+                        _msVern = line[7:].strip()
                     if line.startswith("msPort="):
-                        _msport = line[7:].strip()
+                        _msPort = line[7:].strip()
                     if line.startswith("msDesc="):
-                        _msdesc = line[7:].strip()
+                        _msDesc = line[7:].strip()
                 f.close()
             except:
                 pass
@@ -314,14 +247,9 @@ def main(foreground, container, sharemode, appendmode, kill,
     except:
         _dfuser = ""
 
-    # MSB
-    global _msbname, _msbip
-    _msbname = msbname or "msb"
-    _msbip = msbip
-
     # MSA
-    global _msabase
-    _msabase = msabase or "msa-alpine"
+    global _msaBase
+    _msaBase = msaBase or "msa-alpine"
 
     # Docker environ
     global _env
@@ -331,21 +259,10 @@ def main(foreground, container, sharemode, appendmode, kill,
     global _extra
     _extra = extra or []
 
-    # build or run
-    global _cmds
-    _cmds = cmds or ["build", "run"]
-
     #
     # Go
     #
-    for cmd in _cmds:
-        if cmd in ("build", "b"):
-            build()
-            continue
-
-        if cmd in ("run", "r"):
-            run()
-            continue
+    build()
 
 if __name__ == "__main__":
     sys.exit(main())

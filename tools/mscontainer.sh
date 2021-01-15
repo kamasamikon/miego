@@ -4,9 +4,9 @@ import subprocess
 import os
 import sys
 
-MSBNAME = "msb"
-SUFFIX = ""
-MSBADDR = ""
+MSB_NAME = "msb"
+MS_SUFFIX = ""
+MSB_ADDR = ""
 
 def saferun(cmd, debug=True):
     try:
@@ -24,7 +24,7 @@ def currentDir():
     return os.path.realpath(os.getcwd())
 
 def msbIPAddress():
-    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", MSBNAME))
+    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", MSB_NAME))
 
 def volumeGet(imageName):
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", imageName))
@@ -34,7 +34,7 @@ def dockerGateway():
     return saferun(cmd)
 
 def dockerRun(imageName, msbIP, backrun, append):
-    container = imageName + SUFFIX
+    container = imageName + MS_SUFFIX
     if append:
         index = 0
         tmpName = container
@@ -73,7 +73,7 @@ def dockerRun(imageName, msbIP, backrun, append):
     return saferun(cmd)
 
 def killContainer(imageName, killFirst, killLast):
-    container = imageName + SUFFIX
+    container = imageName + MS_SUFFIX
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 
@@ -89,45 +89,64 @@ def killContainer(imageName, killFirst, killLast):
         saferun(cmd)
 
 def main():
-    global MSBNAME
-    global SUFFIX
-    global MSBADDR
+    global MSB_NAME
+    global MS_SUFFIX
+    global MSB_ADDR
 
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
         print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msb=MSBName] imageNames ...")
+        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=MSBName] [--msbAddr=MSBAddr] imageNames ...")
         return
 
-    x = os.environ.get("MSBNAME")
+    x = os.environ.get("MSB_NAME")
     if x:
-        MSBNAME = x
+        MSB_NAME = x
+    x = os.environ.get("MS_SUFFIX")
+    if x:
+        MS_SUFFIX = x
+    x = os.environ.get("MSB_ADDR")
+    if x:
+        MSB_ADDR = x
 
     #
     # Another MSB?
     #
     for name in sys.argv[1:]:
-        if name.startswith("--msb="):
-            MSBNAME = name[6:]
+        if name.startswith("--msbName="):
+            MSB_NAME = name[6:]
             continue
 
         if name.startswith("--suffix="):
-            SUFFIX = name[9:]
+            MS_SUFFIX = name[9:]
             continue
 
         if name.startswith("--msbAddr="):
-            MSBADDR = name[10:]
+            MSB_ADDR = name[10:]
 
-    if MSBADDR:
-        msbIP = MSBADDR
+    if MSB_ADDR:
+        msbIP = MSB_ADDR
     else:
         msbIP = msbIPAddress()
+
+
+    backrun = "-b" in sys.argv
+    append  = "-a" in sys.argv
+
+    msNames = []
+    for name in sys.argv[1:]:
+        if name[0] == "-":
+            continue
+        msNames.append(name)
+
+    if not msNames:
+        msNames.append(os.environ.get("MS_NAME"))
 
     #
     # Kill OLD?
     #
     killSome, killFirst, killLast = False, "0", "999999999999999"
-    for name in sys.argv[1:]:
+    for name in msNames:
         if name.startswith("-k"):
             # -k: => container[:]
             # -k: => container[:]
@@ -145,12 +164,7 @@ def main():
                 killContainer(xname, killFirst, killLast)
             break
 
-    backrun = "-b" in sys.argv
-    append  = "-a" in sys.argv
-
-    for name in sys.argv[1:]:
-        if name[0] == "-":
-            continue
+    for name in msNames:
         dockerRun(name, msbIP, backrun, append)
 
 if __name__ == "__main__":
