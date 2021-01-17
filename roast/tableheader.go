@@ -38,7 +38,7 @@ func Setup(h *TableHeader, NewBy string) {
 	h.RemWhy = 0
 }
 
-type TableHeaderNew struct {
+type TableHeaderLong struct {
 	// 记录的序列号而已
 	ID uint `gorm:"Column:ID;primary_key"`
 
@@ -55,7 +55,7 @@ type TableHeaderNew struct {
 	UUID  string `gorm:"Column:UUID"`
 }
 
-func SetupNew(h *TableHeaderNew, InsBy string) {
+func SetupLong(h *TableHeaderLong, InsBy string) {
 	h.ID = 0
 	h.InsAt = xtime.TimeNowToNum()
 	h.InsBy = InsBy
