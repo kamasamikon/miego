@@ -37,3 +37,32 @@ func Setup(h *TableHeader, NewBy string) {
 	h.RemBy = ""
 	h.RemWhy = 0
 }
+
+type TableHeaderNew struct {
+	// 记录的序列号而已
+	ID uint `gorm:"Column:ID;primary_key"`
+
+	// InsAt: 记录的添加时间
+	InsAt uint64 `gorm:"Column:InsAt"`
+	InsBy string `gorm:"Column:InsBy"`
+
+	// See RemWhy_Delete etc.
+	RemAt  uint64 `gorm:"Column:RemAt"`
+	RemBy  string `gorm:"Column:RemBy"`
+	RemWhy int    `gorm:"Column:RemWhy"`
+
+	NewAt uint64 `gorm:"Column:NewAt"`
+	UUID  string `gorm:"Column:UUID"`
+}
+
+func SetupNew(h *TableHeaderNew, InsBy string) {
+	h.ID = 0
+	h.InsAt = xtime.TimeNowToNum()
+	h.InsBy = InsBy
+	h.RemAt = 0
+	h.RemBy = ""
+	h.RemWhy = 0
+	if h.NewAt == 0 {
+		h.NewAt = h.InsAt
+	}
+}
