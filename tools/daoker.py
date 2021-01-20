@@ -49,8 +49,8 @@ _extra = []
 
 def headVersion():
     try:
-        cmd = ("git", "show-ref", "HEAD")
-        return subprocess.check_output(cmd).strip().decode().split()[0]
+        cmd = ("git", "log", "-n", "1")
+        return subprocess.check_output(cmd).strip().decode().split()[1]
     except:
         return "NA"
 
@@ -156,7 +156,7 @@ def dockerGateway():
 
 # Service
 @click.option('--ms-name', '-n', help="(demo):    Service Name.")
-@click.option('--ms-kind', '-k', help="(http):    Service Type, grpc or http.")
+@click.option('--ms-kind', '-t', help="(http):    Service Type, grpc or http.")
 @click.option('--ms-vern', '-v', help="(v1):      Service Version.")
 @click.option('--ms-port', '-p', help="(8888):    Service Port.")
 @click.option('--ms-desc', '-d', help="(null):    Service Description.")
