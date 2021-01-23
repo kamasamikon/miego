@@ -1,6 +1,7 @@
 #!/bin/bash
 
-REMOTE=root@106.75.49.211
+# REMOTE=root@106.75.49.211
+REMOTE=root@117.50.95.113
 
 sudo docker save -o msb.tar msb
 

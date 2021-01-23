@@ -157,11 +157,33 @@ func DD(depth int, formating string, args ...interface{}) {
 	KLog(depth, Conf.ShortPath, color, "D", formating, args...)
 }
 
-func Dump(obj interface{}) {
+func Dump(obj interface{}, strPart ...interface{}) {
 	color := ColorType_D
 	if Conf.NoColor {
 		color = ""
 	}
-	s := spew.Sdump(obj)
+
+	var s string
+	strPartLen := len(strPart)
+
+	switch strPartLen {
+	case 0:
+		s = spew.Sdump(obj)
+
+	case 1:
+		s = strPart[0].(string)
+		s += spew.Sdump(obj)
+
+	default:
+		fmtPart := strPart[0].(string)
+		argPart := strPart[1:len(strPart)]
+		s = fmt.Sprintf(fmtPart, argPart...)
+		s += spew.Sdump(obj)
+	}
+
 	KLog(2, Conf.ShortPath, color, "D", s)
+}
+
+func init() {
+	spew.Config.Indent = "    "
 }
