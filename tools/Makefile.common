@@ -52,7 +52,7 @@ remoteloadms: dockerpack
 		export msbName=`cat /tmp/.msbName`; \
 		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
 		scp one.tar.gz $${mkREMOTE}:/tmp ; \
-		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --msb=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
+		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
 	)
 	@echo "<<<<<<<<<<<<< remoteloadms >>>>>>>>>>>>>"
 	@echo
@@ -67,7 +67,7 @@ localloadms: dockerpack
 		touch /tmp/.msbName /tmp/.msSUFFIX; \
 		export msbName=`cat /tmp/.msbName`; \
 		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
-		mscontainer.sh -b -k --msb=$${msbName} --suffix=$${msSUFFIX} ${msName}; \
+		mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}; \
 	)
 	@echo "<<<<<<<<<<<<< localloadms >>>>>>>>>>>>>"
 	@echo

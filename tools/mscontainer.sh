@@ -113,7 +113,7 @@ def main():
     #
     for name in sys.argv[1:]:
         if name.startswith("--msbName="):
-            MSB_NAME = name[6:]
+            MSB_NAME = name[10:]
             continue
 
         if name.startswith("--suffix="):

@@ -376,4 +376,10 @@ func init() {
 			}
 		}
 	}
+	for _, argv := range os.Args {
+		if strings.HasPrefix(argv, "--kfg-item=") {
+			item := argv[11:]
+			EntryAdd(item)
+		}
+	}
 }
