@@ -30,7 +30,7 @@ func Bye(session *mgo.Session) {
 }
 
 func Hey() *mgo.Session {
-	addr := conf.Str("dds-2ze1a633d27d8ee41722-pub.mongodb.rds.aliyuncs.com", "db/mg/addr")
+	addr := conf.Str("", "db/mg/addr")
 	port := conf.Int(3717, "db/mg/port")
 
 	// Dial
@@ -44,7 +44,7 @@ func Hey() *mgo.Session {
 
 	// Login
 	if user := conf.Str("root", "db/mg/user"); user != "" {
-		pass := conf.Str("4qU8UPEKWfqgUSkfxv3x", "db/mg/pass")
+		pass := conf.Str("", "db/mg/pass")
 		auth := conf.Str("SCRAM-SHA-1", "db/mg/auth")
 
 		err = session.Login(&mgo.Credential{
