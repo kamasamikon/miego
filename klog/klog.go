@@ -181,7 +181,7 @@ func Dump(obj interface{}, strPart ...interface{}) {
 		s += spew.Sdump(obj)
 	}
 
-	KLog(2, Conf.ShortPath, color, "D", s)
+	KLog(2, Conf.ShortPath, color, "D", "%s", s)
 }
 
 func init() {
