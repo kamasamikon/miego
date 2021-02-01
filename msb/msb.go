@@ -206,6 +206,9 @@ func nginxConfWrite() error {
 
 	tmpl := TemplLoad(conf.Str("/etc/nginx/nginx.conf.tmpl", "msb/nginx/tmpl"))
 
+	port := conf.Int(9100, "msb/port")
+	tmpl = strings.Replace(tmpl, "@@MSBPORT@@", fmt.Sprintf("%d", port), -1)
+
 	tmpl = strings.Replace(tmpl, "#@@UPSTREAM_LIST@@", upsList, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
@@ -220,11 +223,13 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	nginx := conf.Str("/usr/sbin/nginx", "msb/nginx/exec")
-	cmd := exec.Command(nginx, "-s", "reload")
-	err := cmd.Run()
-	if err != nil {
-		klog.E(err.Error())
+	if reload := conf.Bool(true, "msb/nginx/reload"); reload == true {
+		nginx := conf.Str("/usr/sbin/nginx", "msb/nginx/exec")
+		cmd := exec.Command(nginx, "-s", "reload")
+		err := cmd.Run()
+		if err != nil {
+			klog.E(err.Error())
+		}
 	}
 }
 
@@ -232,7 +237,6 @@ func serverSet(c *gin.Context) {
 	var s KService
 	c.BindJSON(&s)
 
-	klog.Dump(s)
 	if ok := msSet(&s); ok {
 		nginxConfWrite()
 		nginxReload()
@@ -391,6 +395,11 @@ func main() {
 		c.String(200, tmpl)
 	})
 
+	Gin.GET("/conf", func(c *gin.Context) {
+		data := conf.DumpRaw()
+		c.String(200, data)
+	})
+
 	Gin.GET("/reload", func(c *gin.Context) {
 		nginxConfWrite()
 		nginxReload()
@@ -399,6 +408,6 @@ func main() {
 
 	go RefreshLoop()
 
-	// XXX: Must be 9100, it is defined in /etc/nginx/nginx.conf
-	Gin.Run(":9100")
+	port := conf.Int(9100, "msb/port")
+	Gin.Run(fmt.Sprintf(":%d", port))
 }
