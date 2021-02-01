@@ -12,10 +12,10 @@ if [ -x /usr/local/openresty/bin/openresty ]; then
     setcfg s:/msb/nginx/tmpl /etc/nginx/conf.d/msb.conf.tmpl
     setcfg s:/msb/nginx/exec /usr/local/openresty/bin/openresty
 
-    # copy nginx files, use server.tmpl
+    # copy nginx files, use grpc.tmpl
     rm /etc/nginx/conf.d/default.conf
-    cp /root/nginx.conf.server.tmpl /etc/nginx/conf.d/msb.conf
-    cp /root/nginx.conf.server.tmpl /etc/nginx/conf.d/msb.conf.tmpl
+    cp /root/nginx.conf.grpc.tmpl /etc/nginx/conf.d/msb.conf
+    cp /root/nginx.conf.grpc.tmpl /etc/nginx/conf.d/msb.conf.tmpl
 
     # run
     /usr/local/openresty/bin/openresty &
@@ -25,9 +25,9 @@ else
     setcfg s:/msb/nginx/tmpl /etc/nginx/nginx.conf.tmpl
     setcfg s:/msb/nginx/exec /usr/sbin/nginx
 
-    # copy nginx files, use full.tmpl
-    cp /root/nginx.conf.full.tmpl /etc/nginx/nginx.conf
-    cp /root/nginx.conf.full.tmpl /etc/nginx/nginx.conf.tmpl
+    # copy nginx files, use http.tmpl
+    cp /root/nginx.conf.http.tmpl /etc/nginx/conf.d/msb.conf
+    cp /root/nginx.conf.http.tmpl /etc/nginx/conf.d/msb.conf.tmpl
 
     # run
     nginx &

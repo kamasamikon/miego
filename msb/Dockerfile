@@ -8,9 +8,8 @@ WORKDIR /root
 
 RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main/" > /etc/apk/repositories
 
-# No neccessary to copy nginx.conf.server.tmpl
-COPY nginx.conf.full.tmpl .
-COPY nginx.conf.server.tmpl .
+COPY nginx.conf.http.tmpl .
+COPY nginx.conf.grpc.tmpl .
 
 COPY msb.cfg /etc/msb.cfg
 
