@@ -1,5 +1,6 @@
 
-FROM nginx:1.19.6-alpine
+FROM openresty/openresty:alpine
+# FROM nginx:1.19.6-alpine
 # FROM smebberson/alpine-nginx
 
 WORKDIR /root

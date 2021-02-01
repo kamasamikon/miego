@@ -203,6 +203,9 @@ func nginxConfWrite() error {
 
 	templ := TemplLoad(conf.Str("/etc/nginx/nginx.conf.templ", "msb/nginx/templ"))
 
+	port := conf.Int(9100, "msb/port")
+	templ = strings.Replace(templ, "@@MSBPORT@@", fmt.Sprintf("%d", port), -1)
+
 	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", upsList, -1)
 	templ = strings.Replace(templ, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
 	templ = strings.Replace(templ, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
@@ -217,11 +220,13 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	nginx := conf.Str("/usr/sbin/nginx", "msb/nginx/exec")
-	cmd := exec.Command(nginx, "-s", "reload")
-	err := cmd.Run()
-	if err != nil {
-		klog.E(err.Error())
+	if reload := conf.Bool(true, "msb/nginx/reload"); reload == true {
+		nginx := conf.Str("/usr/sbin/nginx", "msb/nginx/exec")
+		cmd := exec.Command(nginx, "-s", "reload")
+		err := cmd.Run()
+		if err != nil {
+			klog.E(err.Error())
+		}
 	}
 }
 
@@ -395,6 +400,6 @@ func main() {
 
 	go RefreshLoop()
 
-	// XXX: Must be 9100, it is defined in /etc/nginx/nginx.conf
-	Gin.Run(":9100")
+	port := conf.Int(9100, "msb/port")
+	Gin.Run(fmt.Sprintf(":%d", port))
 }
