@@ -5,7 +5,7 @@ fake:
 
 build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ..."
-	daoker.py --ms-name=$(msName) --ms-vern=$(msVern) --ms-port=$(msPort) --ms-desc=$(msDesc) --ms-kind=$(msKind) --msa-base=$(msaBase) 
+	daoker.py --ms-name=$(msName) --ms-vern=$(msVern) --ms-port=$(msPort) --ms-desc=$(msDesc) --ms-upstream=$(msUpstream) --ms-kind=$(msKind) --msa-base=$(msaBase)
 	@echo "==> Building docker ... DONE"
 
 run: build

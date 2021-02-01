@@ -139,9 +139,10 @@ func (ft *FlowTable) AddTitle(Label string) *TD {
 }
 
 // AddInput : shortcut
-func (ft *FlowTable) AddInput(Model string, colspan int) *TD {
+func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
+	xxx := strings.Join(others, " ")
 	item := TD{
-		HTML:    fmt.Sprintf(`<input v-model="%s" class="input">`, Model),
+		HTML:    fmt.Sprintf(`<input v-model="%s" class="input" %s>`, Model, xxx),
 		colspan: colspan,
 		rowspan: 1,
 		styleMap: map[string]string{
