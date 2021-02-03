@@ -16,8 +16,6 @@ import (
 
 	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/klog"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 // KService : Micro Service definition
@@ -26,6 +24,7 @@ type KService struct {
 	ServiceName string `json:"serviceName"`
 	Version     string `json:"version"`
 	Desc        string `json:"desc"`
+	Upstream    string `json:"upstream"`
 
 	// ipAddress
 	IPAddr string `json:"ipAddr"`
@@ -150,7 +149,7 @@ func (s *KService) regLoop() {
 	waitNG := time.Duration(conf.Int(1, "msb/regWait/ng"))
 
 	j, _ := json.Marshal(&s)
-	klog.D("KService: %s", spew.Sdump(s))
+	klog.Dump(s, "KService: ")
 
 	msRegURL := "http://" + msbHost + "/msb/service"
 	for {
@@ -175,7 +174,8 @@ func main() {
 	service = &KService{
 		ServiceName: conf.Str("demo", "ms/name"),
 		Version:     conf.Str("v1", "ms/version"),
-		Desc:        conf.Str("TODO: FILL DESC.", "ms/desc"),
+		Desc:        conf.Str("", "ms/desc"),
+		Upstream:    conf.Str("", "ms/upstream"),
 		Kind:        conf.Str("http", "ms/kind"),
 
 		IPAddr: GetOutboundIP(),

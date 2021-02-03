@@ -10,8 +10,8 @@
 
 结论就是，依次运行上边三个脚本就可以把msb跑起来了。
 
-nginx.conf.full.templ 是完整的nginx.conf文件，相当于/etc/nginx/nginx.conf。
-nginx.conf.server.templ 相当于/etc/nginx/conf.d/目录下的文件。
+nginx.conf.full.tmpl 是完整的nginx.conf文件，相当于/etc/nginx/nginx.conf。
+nginx.conf.server.tmpl 相当于/etc/nginx/conf.d/目录下的文件。
 
 ### 容器模式
 
@@ -25,11 +25,11 @@ nginx.conf.server.templ 相当于/etc/nginx/conf.d/目录下的文件。
 - 复制需要的文件
   - `cp msb.pem /etc/nginx/`
   - `cp msb.key /etc/nginx/`
-  - `cp nginx.conf.server.templ /etc/nginx/conf.d/msb.conf`
-  - `cp nginx.conf.server.templ /etc/nginx/conf.d/msb.conf.templ`
+  - `cp nginx.conf.server.tmpl /etc/nginx/conf.d/msb.conf`
+  - `cp nginx.conf.server.tmpl /etc/nginx/conf.d/msb.conf.tmpl`
 - 修改msb.conf
 - `s:/msb/nginx/conf=/etc/nginx/conf.d/msb.conf`
-- `s:/msb/nginx/templ=/etc/nginx/conf.d/msb.conf.templ`
+- `s:/msb/nginx/tmpl=/etc/nginx/conf.d/msb.conf.tmpl`
 - `s:/msb/nginx/exec=/usr/sbin/nginx`
 - **./makesrc.sh**生成MSB程序。
 - 直接运行。

@@ -1,0 +1,24 @@
+
+    upstream msb {
+        server 127.0.0.1:@@MSBPORT@@;
+    }
+
+#@@UPSTREAM_LIST@@
+
+    server {
+        # Logging
+        access_log /tmp/access.log;
+        root /root;
+
+        listen 80;
+
+        default_type text/html;
+        add_header X-Cache-Status $upstream_cache_status;
+
+        location ^~ /msb/ {
+            proxy_pass http://msb/;
+        }
+
+#@@REDIRECT_LIST_HTTP@@
+    }
+

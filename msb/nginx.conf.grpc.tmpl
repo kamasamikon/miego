@@ -10,13 +10,21 @@
         access_log /tmp/access.log;
         root /root;
 
-        # listen 1443 ssl http2;
-        listen 1443 http2;
+        # listen 443 ssl http2;
+        listen 443 http2;
 
         # ssl_certificate /etc/nginx/msb.pem;
         # ssl_certificate_key /etc/nginx/msb.key;
 
-#@@REDIRECT_LIST_GRPC@@
+        location / {
+            set $target '';
+            access_by_lua '
+                local uri = ngx.var.request_uri
+                uri = string.gsub(uri, "/", "__")
+                ngx.var.target = uri
+                ';
+            grpc_pass grpc://$target;
+        }
     }
 
     server {

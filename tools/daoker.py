@@ -29,6 +29,7 @@ _kill = True
 
 # Service
 _msName = None
+_msUpstream = None
 _msKind = None
 _msVern = None
 _msPort = None
@@ -67,6 +68,7 @@ def createMsaCfg():
     # Service Info
     lines.append("# Service information")
     lines.append("s:/ms/name=%s" % _msName)
+    lines.append("s:/ms/upstream=%s" % _msUpstream)
     lines.append("s:/ms/kind=%s" % _msKind)
     lines.append("s:/ms/version=%s" % _msVern)
     lines.append("i:/ms/port=%s" % _msPort)
@@ -156,6 +158,7 @@ def dockerGateway():
 
 # Service
 @click.option('--ms-name', '-n', help="(demo):    Service Name.")
+@click.option('--ms-upstream', '-u', help="():        Upsteam name in nginx.conf.")
 @click.option('--ms-kind', '-t', help="(http):    Service Type, grpc or http.")
 @click.option('--ms-vern', '-v', help="(v1):      Service Version.")
 @click.option('--ms-port', '-p', help="(8888):    Service Port.")
@@ -176,7 +179,7 @@ def dockerGateway():
 @click.option('--extra', '-x', help="(null):    extra docker options.", multiple=True)
 
 def main(foreground, container, share_mode, append_mode, kill,
-        ms_name, ms_kind, ms_vern, ms_port, ms_desc,
+        ms_name, ms_upstream, ms_kind, ms_vern, ms_port, ms_desc,
         guess,
         msb_name, msb_ip,
         msa_base,
@@ -191,6 +194,7 @@ def main(foreground, container, share_mode, append_mode, kill,
     appendMode = append_mode
     kill = kill
     msName = ms_name
+    msUpstream = ms_upstream
     msKind = ms_kind
     msVern = ms_vern
     msPort = ms_port
@@ -216,8 +220,9 @@ def main(foreground, container, share_mode, append_mode, kill,
     _kill = kill
 
     # Service
-    global _msName, _msKind, _msVern, _msPort, _msDesc
+    global _msName, _msUpstream, _msKind, _msVern, _msPort, _msDesc
     _msName = msName or "demo"
+    _msUpstream = msUpstream or ""
     _msKind = msKind or "http"
     _msVern = msVern or "v1"
     _msPort = msPort or 8888

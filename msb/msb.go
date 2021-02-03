@@ -20,6 +20,7 @@ type KService struct {
 	ServiceName string `json:"serviceName"`
 	Version     string `json:"version"`
 	Desc        string `json:"desc"`
+	Upstream    string `json:"upstream"`
 
 	// ipAddress
 	IPAddr string `json:"ipAddr"`
@@ -167,16 +168,18 @@ func genLocationAndUpstream() (string, string, string) {
 			fmt.Fprintf(&redirListHttp, "            proxy_pass http://%s.%s/;\n", s.ServiceName, s.Version)
 			fmt.Fprintf(&redirListHttp, "        }\n\n")
 		} else if s.Kind == "grpc" {
-			fmt.Fprintf(&redirListGrpc, "        location ^~ /%s/ {\n", key)
-			fmt.Fprintf(&redirListGrpc, "            grpc_pass grpc://%s.%s;\n", s.ServiceName, s.Version)
-			fmt.Fprintf(&redirListGrpc, "        }\n\n")
+			// hard code in nginx.tmpl
 		}
 	}
 
 	var upsList strings.Builder
 	for _, group := range serviceGroup {
 		s := group[0]
-		fmt.Fprintf(&upsList, "    upstream %s.%s {\n", s.ServiceName, s.Version)
+		if s.Upstream != "" {
+			fmt.Fprintf(&upsList, "    upstream %s {\n", s.Upstream)
+		} else {
+			fmt.Fprintf(&upsList, "    upstream %s.%s {\n", s.ServiceName, s.Version)
+		}
 		for _, a := range group {
 			fmt.Fprintf(&upsList, "        server %s:%d;\n", a.IPAddr, a.Port)
 		}
@@ -196,22 +199,22 @@ func TemplLoad(path string) string {
 }
 
 func nginxConfWrite() error {
-	// 1. Load templ nginx.conf
-	// 2. Insert services information to templ
+	// 1. Load tmpl nginx.conf
+	// 2. Insert services information to tmpl
 	// 3. Write back to nginx.conf
 	redirListHttp, redirListGrpc, upsList := genLocationAndUpstream()
 
-	templ := TemplLoad(conf.Str("/etc/nginx/nginx.conf.templ", "msb/nginx/templ"))
+	tmpl := TemplLoad(conf.Str("/etc/nginx/nginx.conf.tmpl", "msb/nginx/tmpl"))
 
 	port := conf.Int(9100, "msb/port")
-	templ = strings.Replace(templ, "@@MSBPORT@@", fmt.Sprintf("%d", port), -1)
+	tmpl = strings.Replace(tmpl, "@@MSBPORT@@", fmt.Sprintf("%d", port), -1)
 
-	templ = strings.Replace(templ, "#@@UPSTREAM_LIST@@", upsList, -1)
-	templ = strings.Replace(templ, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
-	templ = strings.Replace(templ, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
+	tmpl = strings.Replace(tmpl, "#@@UPSTREAM_LIST@@", upsList, -1)
+	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
+	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
 
 	path := conf.Str("/etc/nginx/nginx.conf", "msb/nginx/conf")
-	if err := ioutil.WriteFile(path, []byte(templ), os.ModeAppend); err != nil {
+	if err := ioutil.WriteFile(path, []byte(tmpl), os.ModeAppend); err != nil {
 		klog.E(err.Error())
 		return err
 	}
@@ -365,7 +368,7 @@ func serverRem(c *gin.Context) {
 
 func main() {
 	// s:/msb/nginx/conf=/etc/nginx/nginx.conf
-	// s:/msb/nginx/templ=/etc/nginx/nginx.conf
+	// s:/msb/nginx/tmpl=/etc/nginx/nginx.conf
 	// s:/msb/nginx/exec=/usr/sbin/nginx
 	conf.Load("./etc/msb.cfg")
 	conf.Load("./msb.cfg")
@@ -388,8 +391,13 @@ func main() {
 	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
 
 	Gin.GET("/nginx", func(c *gin.Context) {
-		templ := TemplLoad("/etc/nginx/nginx.conf")
-		c.String(200, templ)
+		tmpl := TemplLoad("/etc/nginx/nginx.conf")
+		c.String(200, tmpl)
+	})
+
+	Gin.GET("/conf", func(c *gin.Context) {
+		data := conf.DumpRaw()
+		c.String(200, data)
 	})
 
 	Gin.GET("/reload", func(c *gin.Context) {

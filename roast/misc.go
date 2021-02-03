@@ -7,8 +7,8 @@ import (
 )
 
 func Str__Time(mp xmap.Map, field string) {
-	mp.Put(field+"__Str", xtime.NumToStr(field))
+	mp.Put(field+"__Str", xtime.NumToStr(mp.S(field)))
 }
 func Str__Nvn(mp xmap.Map, field string, nvnClass string) {
-	mp.Put(field+"__Str", nvn.S(field, nvnClass))
+	mp.Put(field+"__Str", nvn.S(mp.S(field), nvnClass))
 }
