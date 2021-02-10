@@ -154,6 +154,22 @@ func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 	return &item
 }
 
+// AddText : shortcut
+func (ft *FlowTable) AddText(Model string, colspan int, others ...string) *TD {
+	xxx := strings.Join(others, " ")
+	item := TD{
+		HTML:    fmt.Sprintf(`<textarea v-model="%s" %s></textarea>`, Model, xxx),
+		colspan: colspan,
+		rowspan: 1,
+		styleMap: map[string]string{
+			"text-align":     "left",
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
+}
+
 // AddSelect : shortcut
 func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 	var Lines []string

@@ -26,7 +26,7 @@ var Conf struct {
 	NoColor   bool
 }
 
-func BT(formating string, args ...interface{}) {
+func BT(maxdep int, formating string, args ...interface{}) {
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")
 	nowH := now.Nanosecond() / 1000 / 1000 % 1000
@@ -34,9 +34,15 @@ func BT(formating string, args ...interface{}) {
 	cEnd := ColorType_Reset
 	cStart := ColorType_D
 
+	txt := fmt.Sprintf(formating, args...)
+
 	dep := 0
 	for {
 		dep += 1
+
+		if maxdep > 0 && dep > maxdep {
+			break
+		}
 
 		pc, filename, line, ok := runtime.Caller(dep)
 		if ok == false {
@@ -47,7 +53,7 @@ func BT(formating string, args ...interface{}) {
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
 
-		fmt.Printf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
+		fmt.Printf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd, txt)
 	}
 }
 
