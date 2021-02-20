@@ -7,13 +7,7 @@ import (
 )
 
 func NumToStr(o interface{}) string {
-	var timestr string
-
-	if s, ok := o.(string); ok {
-		timestr = s
-	} else if n, ok := o.(uint64); ok {
-		timestr = fmt.Sprintf("%d", n)
-	}
+	timestr := fmt.Sprintf("%v", o)
 
 	l := len(timestr)
 	if l == 14 {
@@ -66,4 +60,40 @@ func StrToNum(s string, flag byte) uint64 {
 	}
 
 	return atox.Uint64(tmp, 0)
+}
+
+func AnyToNum(g interface{}) uint64 {
+	stime := fmt.Sprintf("%v000000", g)
+
+	l := len(stime)
+
+	if l < 8 {
+		return 0
+	}
+
+	if stime[4] == '-' {
+		if l >= 19 {
+			if t, err := time.Parse("2006-01-02 15:04:05", stime[0:19]); err == nil {
+				return TimeToNum(t)
+			}
+		} else {
+			if t, err := time.Parse("2006-01-02", stime[0:10]); err == nil {
+				return TimeToNum(t)
+			}
+		}
+	} else {
+		if l >= 18 {
+			// 20160102150305
+			if t, err := time.Parse("20060102150405", stime[0:14]); err == nil {
+				return TimeToNum(t)
+			}
+		} else {
+			// 20160102
+			if t, err := time.Parse("20060102", stime[0:8]); err == nil {
+				return TimeToNum(t)
+			}
+		}
+	}
+
+	return 0
 }

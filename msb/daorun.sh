@@ -2,7 +2,7 @@
 
 ./makedocker.sh
 
-cName=msb.grpc
+cName=msb
 
 #iName=msb.slim
 iName=msb

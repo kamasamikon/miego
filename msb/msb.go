@@ -206,9 +206,6 @@ func nginxConfWrite() error {
 
 	tmpl := TemplLoad(conf.Str("/etc/nginx/nginx.conf.tmpl", "msb/nginx/tmpl"))
 
-	port := conf.Int(9100, "msb/port")
-	tmpl = strings.Replace(tmpl, "@@MSBPORT@@", fmt.Sprintf("%d", port), -1)
-
 	tmpl = strings.Replace(tmpl, "#@@UPSTREAM_LIST@@", upsList, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)

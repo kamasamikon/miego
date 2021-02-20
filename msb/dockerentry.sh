@@ -1,6 +1,7 @@
 #!/bin/sh
 
 rm /root/msb.cfg
+rm /etc/nginx/conf.d/default.conf
 
 function setcfg() {
     echo "$1=$2" >> /root/msb.cfg
@@ -21,8 +22,8 @@ if [ -x /usr/local/openresty/bin/openresty ]; then
     /usr/local/openresty/bin/openresty &
 else
     # /root/msb.cfg
-    setcfg s:/msb/nginx/conf /etc/nginx/nginx.conf
-    setcfg s:/msb/nginx/tmpl /etc/nginx/nginx.conf.tmpl
+    setcfg s:/msb/nginx/conf /etc/nginx/conf.d/msb.conf
+    setcfg s:/msb/nginx/tmpl /etc/nginx/conf.d/msb.conf.tmpl
     setcfg s:/msb/nginx/exec /usr/sbin/nginx
 
     # copy nginx files, use http.tmpl

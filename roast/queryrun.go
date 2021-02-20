@@ -9,6 +9,52 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// Raw: Raw(db, "SELECT a, b FROM xxxx") => {"a":"xxx", "b":"xxx"}
+func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
+	rows, err := db.Query(stmt)
+	if err != nil {
+		klog.E(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	//
+	// Prepare
+	//
+	columns, _ := rows.Columns()
+	columnLength := len(columns)
+	cache := make([]interface{}, columnLength)
+	for index, _ := range cache {
+		var a interface{}
+		cache[index] = &a
+	}
+
+	//
+	// Get result
+	//
+	var pongs []xmap.Map
+	for rows.Next() {
+		err := rows.Scan(cache...)
+		if err != nil {
+			klog.E(err.Error())
+			continue
+		}
+
+		item := make(xmap.Map)
+		for i, data := range cache {
+			x := *data.(*interface{})
+			y := x.([]uint8)
+			item[columns[i]] = string(y)
+		}
+		pongs = append(pongs, item)
+	}
+
+	//
+	// Done
+	//
+	return pongs, nil
+}
+
 // ViaMap : Return Result and allCount
 func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
 	rows, err := db.Query(queryStmt.String(mp, FoundRows))
