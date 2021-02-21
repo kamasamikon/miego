@@ -1,5 +1,9 @@
 package nationality
 
+import (
+	"strings"
+)
+
 var nationalities []string = []string{
 	"东乡",
 	"乌孜别克",
@@ -70,4 +74,13 @@ func Include(n string) bool {
 		}
 	}
 	return false
+}
+
+func Name(name string) string {
+	name = strings.Replace(name, "族", "", -1)
+	name = strings.TrimSpace(name)
+	if Include(name) {
+		return name
+	}
+	return ""
 }
