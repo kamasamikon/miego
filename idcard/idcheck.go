@@ -45,18 +45,19 @@ func idVerify(verify int, id_v byte) bool {
 
 type KIDCardInfo struct {
 	Province     int
+	ProvinceName string
 	City         int
 	Distict      int
 	Year         int
 	Month        int
 	Day          int
 	SerialNumber int
+	Gender       int
+	GenderName   string
 	CheckNumber  string
 }
 
-type KIDCardString string
-
-func (idstring KIDCardString) Parse() (*KIDCardInfo, bool) {
+func Parse(idstring string) (*KIDCardInfo, error) {
 	provines := map[int]string{
 		11: "北京",
 		12: "天津",
@@ -97,7 +98,7 @@ func (idstring KIDCardString) Parse() (*KIDCardInfo, bool) {
 
 	// Check Length
 	if len(idstring) != 18 {
-		return nil, false
+		return nil, fmt.Errorf("Bad Length")
 	}
 
 	// Check date
@@ -105,15 +106,15 @@ func (idstring KIDCardString) Parse() (*KIDCardInfo, bool) {
 	fmt.Println(datestring)
 	if date, err := time.Parse("20060102", datestring); err != nil {
 		fmt.Println(err.Error())
-		return nil, false
+		return nil, fmt.Errorf("Bad Date: %s", err.Error())
 	} else {
 		now := time.Now()
 		yyyy := date.Year()
 		if yyyy > now.Year() {
-			return nil, false
+			return nil, fmt.Errorf("Bad Date")
 		}
 		if yyyy < 1900 {
-			return nil, false
+			return nil, fmt.Errorf("Bad Date")
 		}
 	}
 
@@ -124,20 +125,22 @@ func (idstring KIDCardString) Parse() (*KIDCardInfo, bool) {
 	}
 	valid := idVerify(idCheck(idCardByte[0:17]), byte2int(idCardByte[17]))
 	if !valid {
-		return nil, false
+		return nil, fmt.Errorf("Bad Checksum")
 	}
 
 	// Check Province
 	ok := false
 	Province, _ := strconv.Atoi(string(idstring[0:2]))
-	for p, _ := range provines {
+	var ProvinceName string
+	for p, pName := range provines {
 		if p == Province {
 			ok = true
+			ProvinceName = pName
 			break
 		}
 	}
 	if !ok {
-		return nil, false
+		return nil, fmt.Errorf("Bad Regin")
 	}
 
 	City, _ := strconv.Atoi(string(idstring[2:4]))
@@ -147,21 +150,29 @@ func (idstring KIDCardString) Parse() (*KIDCardInfo, bool) {
 	Day, _ := strconv.Atoi(string(idstring[12:14]))
 	SerialNumber, _ := strconv.Atoi(string(idstring[14:17]))
 	CheckNumber := string(idstring[17:])
+	Gender := SerialNumber % 2
 
 	ci := KIDCardInfo{}
 
 	ci.Province = Province
+	ci.ProvinceName = ProvinceName
 	ci.City = City
 	ci.Distict = Distict
 	ci.Year = Year
 	ci.Month = Month
 	ci.Day = Day
 	ci.SerialNumber = SerialNumber
+	ci.Gender = Gender
+	if Gender == 0 {
+		ci.GenderName = "女"
+	} else {
+		ci.GenderName = "男"
+	}
 
 	if CheckNumber == "x" {
 		CheckNumber = "X"
 	}
 	ci.CheckNumber = CheckNumber
 
-	return &ci, true
+	return &ci, nil
 }
