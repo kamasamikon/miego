@@ -16,6 +16,31 @@ import (
 
 type Map map[string]interface{}
 
+func First(mpArr []Map) Map {
+	if mpArr == nil {
+		return nil
+	}
+	return mpArr[0]
+}
+
+func Nth(mpArr []Map, n int) Map {
+	size := len(mpArr)
+	if size == 0 {
+		return nil
+	}
+	if n < 0 {
+		if (-1 * n) > size {
+			return nil
+		}
+		n += size
+		return mpArr[n]
+	}
+	if n >= size {
+		return nil
+	}
+	return mpArr[n]
+}
+
 // Make : Make("a", "b", "c", 222) => {"a":"b", "c":222}
 func Make(v ...interface{}) Map {
 	xm := make(Map)
