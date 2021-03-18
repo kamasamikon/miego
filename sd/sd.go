@@ -2,6 +2,8 @@ package sd
 
 import (
 	"fmt"
+	"net/url"
+	// "strings"
 
 	"github.com/kamasamikon/miego/otot"
 )
@@ -68,7 +70,8 @@ func SDTxt(Kind string, Name string) string {
 */
 
 // New : col=表格列数 标题，变量名，值 ...
-func New(col int, args ...string) string {
+// 点击会调用 setVueData
+func New(b64 bool, col int, args ...string) string {
 	button := `<button class="button is-dark" style="width: 100%%;" onclick="app.setVueData('%s', '%s');">%s</button>`
 
 	ft := otot.FlowTableNew("333", "ftwhite", col)
@@ -85,5 +88,10 @@ func New(col int, args ...string) string {
 		}
 	}
 
-	return ft.Gen()
+	html := ft.Gen()
+	if b64 {
+		return url.QueryEscape(html)
+	} else {
+		return html
+	}
 }
