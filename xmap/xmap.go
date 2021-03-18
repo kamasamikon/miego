@@ -27,7 +27,7 @@ func Make(v ...interface{}) Map {
 	return xm
 }
 
-// Map : Convert gin's request to Map
+// MapData : Convert json string
 func MapData(data []byte) Map {
 	xm := make(Map)
 	if err := json.Unmarshal(data, &xm); err != nil {
@@ -36,7 +36,7 @@ func MapData(data []byte) Map {
 	return xm
 }
 
-// Map : Convert gin's request to Map
+// MapBody : Convert gin's request to Map
 func MapBody(c *gin.Context) Map {
 	xm := make(Map)
 	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
@@ -47,7 +47,7 @@ func MapBody(c *gin.Context) Map {
 	}
 }
 
-// Map : Convert gin's request to Map
+// MapQuery : Convert gin's request to Map
 func MapQuery(c *gin.Context, useLast bool) Map {
 	xm := make(Map)
 	for k, a := range c.Request.URL.Query() {
@@ -61,6 +61,7 @@ func MapQuery(c *gin.Context, useLast bool) Map {
 	return xm
 }
 
+// MapAll : MapBody then MapQuery
 func MapAll(c *gin.Context, overwrite bool) Map {
 	xm := make(Map)
 	if dat, err := ioutil.ReadAll(c.Request.Body); err == nil {
@@ -77,6 +78,7 @@ func MapAll(c *gin.Context, overwrite bool) Map {
 	return xm
 }
 
+// Marshal : xmap -> string
 func (xm Map) Marshal() string {
 	if data, err := json.Marshal(xm); err == nil {
 		return string(data)
