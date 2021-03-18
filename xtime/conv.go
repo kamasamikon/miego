@@ -39,8 +39,14 @@ func StrToNum(s string, flag byte) uint64 {
 	if t, err := time.Parse("2006-01-02 15:04", s); err == nil {
 		tmp = t.Format("200601021504")
 	}
+	if t, err := time.Parse("2006-01-02  15:04", s); err == nil {
+		tmp = t.Format("200601021504")
+	}
 	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
 		tmp = t.Format("20060102150405")
+	}
+	if t, err := time.Parse("2006-01-02  15:04:05", s); err == nil {
+		tmp = t.Format("200601021504")
 	}
 
 	tmp += "000000000"

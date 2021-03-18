@@ -53,6 +53,7 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 	//
 	// Done
 	//
+	klog.D("%d items found", len(pongs))
 	return pongs, nil
 }
 
