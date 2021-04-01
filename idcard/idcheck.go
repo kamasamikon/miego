@@ -2,9 +2,76 @@ package idcard
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 )
+
+var provines = map[int]string{
+	11: "北京",
+	12: "天津",
+	13: "河北",
+	14: "山西",
+	15: "内蒙古",
+	21: "辽宁",
+	22: "吉林",
+	23: "黑龙江",
+	31: "上海",
+	32: "江苏",
+	33: "浙江",
+	34: "安徽",
+	35: "福建",
+	36: "江西",
+	37: "山东",
+	41: "河南",
+	42: "湖北",
+	43: "湖南",
+	44: "广东",
+	45: "广西",
+	46: "海南",
+	50: "重庆",
+	51: "四川",
+	52: "贵州",
+	53: "云南",
+	54: "西藏",
+	61: "陕西",
+	62: "甘肃",
+	63: "青海",
+	64: "宁夏",
+	65: "新疆",
+	71: "台湾",
+	81: "香港",
+	82: "澳门",
+	91: "国外",
+	99: "测试",
+}
+
+func Fake(Year int, Month int, Day int, Gender int) string {
+	sp := fmt.Sprintf
+	datestring := sp("%04d%02d%02d", Year, Month, Day)
+	if _, err := time.Parse("20060102", datestring); err != nil {
+		return ""
+	}
+
+	location := sp("99%02d%02d", rand.Intn(100), rand.Intn(100))
+	serialNumber := rand.Intn(1000)
+
+	var idCardByte [18]byte
+	a18 := [11]byte{'1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'}
+	for i := range a18 {
+		c := a18[i]
+		idstring := sp("%s%s%03d%c", location, datestring, serialNumber, c)
+
+		for k, v := range []byte(idstring) {
+			idCardByte[k] = byte(v)
+		}
+		valid := idVerify(idCheck(idCardByte[0:17]), byte2int(idCardByte[17]))
+		if valid {
+			return idstring
+		}
+	}
+	return ""
+}
 
 func byte2int(x byte) byte {
 	if x == 88 || x == 120 {
@@ -58,44 +125,6 @@ type KIDCardInfo struct {
 }
 
 func Parse(idstring string) (*KIDCardInfo, error) {
-	provines := map[int]string{
-		11: "北京",
-		12: "天津",
-		13: "河北",
-		14: "山西",
-		15: "内蒙古",
-		21: "辽宁",
-		22: "吉林",
-		23: "黑龙江",
-		31: "上海",
-		32: "江苏",
-		33: "浙江",
-		34: "安徽",
-		35: "福建",
-		36: "江西",
-		37: "山东",
-		41: "河南",
-		42: "湖北",
-		43: "湖南",
-		44: "广东",
-		45: "广西",
-		46: "海南",
-		50: "重庆",
-		51: "四川",
-		52: "贵州",
-		53: "云南",
-		54: "西藏",
-		61: "陕西",
-		62: "甘肃",
-		63: "青海",
-		64: "宁夏",
-		65: "新疆",
-		71: "台湾",
-		81: "香港",
-		82: "澳门",
-		91: "国外",
-	}
-
 	// Check Length
 	if len(idstring) != 18 {
 		return nil, fmt.Errorf("Bad Length")
