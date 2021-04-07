@@ -19,8 +19,6 @@ run: build
 		mscontainer.sh -b -k; \
 	)
 
-# mscontainer.sh -b -k $${msName}; \ 
-
 dockerpack: build
 	@echo
 	@echo
@@ -29,6 +27,17 @@ dockerpack: build
 	sudo tar czvf one.tar.gz one.tar
 	sudo chmod a+rwx one.tar.gz
 	@echo "<<<<<<<<<<<<< dockerpack >>>>>>>>>>>>>"
+	@echo
+	@echo
+
+xdockerpack:
+	@echo
+	@echo
+	@echo ">>>>>>>>>>>>> xdockerpack <<<<<<<<<<<<<"
+	sudo docker save -o one.tar ${msName}
+	sudo tar czvf one.tar.gz one.tar
+	sudo chmod a+rwx one.tar.gz
+	@echo "<<<<<<<<<<<<< xdockerpack >>>>>>>>>>>>>"
 	@echo
 	@echo
 
@@ -55,6 +64,29 @@ remoteloadms: dockerpack
 		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
 	)
 	@echo "<<<<<<<<<<<<< remoteloadms >>>>>>>>>>>>>"
+	@echo
+	@echo
+
+
+xremoteloadms:
+	@echo
+	@echo
+	@echo ">>>> /tmp/.mkREMOTE"
+	@cat /tmp/.mkREMOTE
+	@echo ">>>> /tmp/.msbName"
+	@cat /tmp/.msbName
+	@echo ">>>> /tmp/.msSUFFIX"
+	@cat /tmp/.msSUFFIX
+	@echo ">>>>>>>>>>>>> xremoteloadms <<<<<<<<<<<<<"
+	( \
+		touch /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
+		export mkREMOTE=`cat /tmp/.mkREMOTE`; \
+		export msbName=`cat /tmp/.msbName`; \
+		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
+		scp one.tar.gz $${mkREMOTE}:/tmp ; \
+		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
+	)
+	@echo "<<<<<<<<<<<<< xremoteloadms >>>>>>>>>>>>>"
 	@echo
 	@echo
 
