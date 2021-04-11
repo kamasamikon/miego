@@ -33,20 +33,49 @@ func NumToStr(o interface{}) string {
 func StrToNum(s string, flag byte) uint64 {
 	var tmp string
 
-	if t, err := time.Parse("2006-01-02", s); err == nil {
-		tmp = t.Format("20060102")
-	}
-	if t, err := time.Parse("2006-01-02 15:04", s); err == nil {
-		tmp = t.Format("200601021504")
-	}
-	if t, err := time.Parse("2006-01-02  15:04", s); err == nil {
-		tmp = t.Format("200601021504")
-	}
-	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
-		tmp = t.Format("20060102150405")
-	}
-	if t, err := time.Parse("2006-01-02  15:04:05", s); err == nil {
-		tmp = t.Format("200601021504")
+	for {
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			tmp = t.Format("20060102")
+			break
+		}
+		if t, err := time.Parse("2006-01-02 15:04", s); err == nil {
+			tmp = t.Format("200601021504")
+			break
+		}
+		if t, err := time.Parse("2006-01-02  15:04", s); err == nil {
+			tmp = t.Format("200601021504")
+			break
+		}
+		if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
+			tmp = t.Format("20060102150405")
+			break
+		}
+		if t, err := time.Parse("2006-01-02  15:04:05", s); err == nil {
+			tmp = t.Format("200601021504")
+			break
+		}
+
+		if t, err := time.Parse("2006-1-2", s); err == nil {
+			tmp = t.Format("20060102")
+			break
+		}
+		if t, err := time.Parse("2006-1-2 3:4", s); err == nil {
+			tmp = t.Format("200601021504")
+			break
+		}
+		if t, err := time.Parse("2006-1-2  3:4", s); err == nil {
+			tmp = t.Format("200601021504")
+			break
+		}
+		if t, err := time.Parse("2006-1-2 3:4:5", s); err == nil {
+			tmp = t.Format("20060102150405")
+			break
+		}
+		if t, err := time.Parse("2006-1-2  3:4:5", s); err == nil {
+			tmp = t.Format("200601021504")
+			break
+		}
+		break
 	}
 
 	tmp += "000000000"
