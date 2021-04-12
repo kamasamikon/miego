@@ -74,23 +74,32 @@ func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 }
 
 func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
-	session := sessions.Default(c)
-
-	if val := session.Get(key); val == nil {
-		return "", false
+	if s, ok := c.Get(sessions.DefaultKey); ok {
+		session := s.(sessions.Session)
+		if val := session.Get(key); val == nil {
+			return "", false
+		} else {
+			return val.(string), true
+		}
 	} else {
-		return val.(string), true
+		klog.E("Not using session")
+		return "", false
+
 	}
 }
 
 func (o *KLogin) Set(c *gin.Context, key string, val interface{}) {
-	session := sessions.Default(c)
-	session.Set(key, val)
+	if s, ok := c.Get(sessions.DefaultKey); ok {
+		session := s.(sessions.Session)
+		session.Set(key, val)
+	}
 }
 
 func (o *KLogin) Save(c *gin.Context) {
-	session := sessions.Default(c)
-	session.Save()
+	if s, ok := c.Get(sessions.DefaultKey); ok {
+		session := s.(sessions.Session)
+		session.Save()
+	}
 }
 
 func (o *KLogin) doLogin(c *gin.Context) {
