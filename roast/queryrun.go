@@ -9,6 +9,24 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type preQ func(mp xmap.Map)
+type pstQ func(mp xmap.Map, pongs []xmap.Map)
+
+func callPreQ(mp xmap.Map) {
+	if fp, ok := mp["__PreQ__"]; ok {
+		if f, ok := fp.(preQ); ok {
+			f(mp)
+		}
+	}
+}
+func callPstQ(mp xmap.Map, pongs []xmap.Map) {
+	if fp, ok := mp["__PstQ__"]; ok {
+		if f, ok := fp.(pstQ); ok {
+			f(mp, pongs)
+		}
+	}
+}
+
 // Raw: Raw(db, "SELECT a, b FROM xxxx") => {"a":"xxx", "b":"xxx"}
 func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 	klog.D("%s", stmt)
@@ -59,6 +77,8 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 
 // ViaMap : Return Result and allCount
 func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
+	callPreQ(mp)
+
 	rows, err := db.Query(queryStmt.String(mp, FoundRows))
 	if err != nil {
 		klog.E(err.Error())
@@ -98,6 +118,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) 
 	}
 
 	if !FoundRows {
+		callPstQ(mp, pongs)
 		return pongs, -1, nil
 	}
 
@@ -107,6 +128,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) 
 	res, err := db.Query(`SELECT FOUND_ROWS()`)
 	if err != nil {
 		klog.E(err.Error())
+		callPstQ(mp, pongs)
 		return pongs, -1, nil
 	}
 	defer res.Close()
@@ -116,12 +138,14 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) 
 	var lines string
 	if err := res.Scan(&lines); err != nil {
 		klog.E(err.Error())
+		callPstQ(mp, pongs)
 		return pongs, -1, nil
 	}
 
 	//
 	// Done
 	//
+	callPstQ(mp, pongs)
 	return pongs, atox.Int(lines, 0), nil
 }
 
