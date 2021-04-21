@@ -9,12 +9,12 @@ import (
 
 // ID <> ExpTime, ID <> RealData
 var map_UUID_Exp map[string]int64
-var map_UUID_Data map[string]string
+var map_UUID_Data map[string]interface{}
 
 var mutex = &sync.Mutex{}
 
 // Set : Add a string to cache and return a UUID as a key
-func Set(data string, exp int64) string {
+func Set(data interface{}, exp int64) string {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -27,25 +27,50 @@ func Set(data string, exp int64) string {
 	return UUID
 }
 
+func Rem(uuid string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if _, ok := map_UUID_Exp[uuid]; ok {
+		map_UUID_Exp[uuid] = 0
+	}
+}
+
 // Get : UUID => Original string
-func Get(data string) string {
+func V(uuid string) interface{} {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	nowUnix := time.Now().Unix()
-	if Data, ok := map_UUID_Data[data]; ok {
-		if Exp, ok := map_UUID_Exp[data]; ok {
+	if Data, ok := map_UUID_Data[uuid]; ok {
+		if Exp, ok := map_UUID_Exp[uuid]; ok {
 			if Exp < nowUnix {
 				return Data
 			}
 		}
 	}
+	return nil
+}
+
+func S(uuid string) string {
+	v := V(uuid)
+	if s, ok := v.(string); ok {
+		return s
+	}
 	return ""
+}
+
+func I(uuid string) int {
+	v := V(uuid)
+	if i, ok := v.(int); ok {
+		return i
+	}
+	return 0
 }
 
 func init() {
 	map_UUID_Exp = make(map[string]int64)
-	map_UUID_Data = make(map[string]string)
+	map_UUID_Data = make(map[string]interface{})
 
 	nameCache := make(map[string]int)
 
