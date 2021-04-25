@@ -24,6 +24,7 @@ var ColorType_Reset = ansi.ColorCode("reset")
 var Conf struct {
 	ShortPath bool
 	NoColor   bool
+	Silence   bool
 }
 
 func BT(maxdep int, formating string, args ...interface{}) {
@@ -84,6 +85,9 @@ func KLog(dep int, shortPath bool, color string, class string, formating string,
 
 // F :Fatal
 func F(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_F
 	if Conf.NoColor {
 		color = ""
@@ -93,6 +97,9 @@ func F(formating string, args ...interface{}) {
 
 // A :Alert
 func A(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_A
 	if Conf.NoColor {
 		color = ""
@@ -102,6 +109,9 @@ func A(formating string, args ...interface{}) {
 
 // C :Critical conditions
 func C(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_C
 	if Conf.NoColor {
 		color = ""
@@ -111,6 +121,9 @@ func C(formating string, args ...interface{}) {
 
 // E :Error
 func E(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_E
 	if Conf.NoColor {
 		color = ""
@@ -120,6 +133,9 @@ func E(formating string, args ...interface{}) {
 
 // W :Warning
 func W(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_W
 	if Conf.NoColor {
 		color = ""
@@ -129,6 +145,9 @@ func W(formating string, args ...interface{}) {
 
 // N :Notice
 func N(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_N
 	if Conf.NoColor {
 		color = ""
@@ -138,6 +157,9 @@ func N(formating string, args ...interface{}) {
 
 // I :Information
 func I(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_I
 	if Conf.NoColor {
 		color = ""
@@ -147,6 +169,9 @@ func I(formating string, args ...interface{}) {
 
 // D :Debug message
 func D(formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_D
 	if Conf.NoColor {
 		color = ""
@@ -156,6 +181,9 @@ func D(formating string, args ...interface{}) {
 
 // DD :Debug message with depth
 func DD(depth int, formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_D
 	if Conf.NoColor {
 		color = ""
@@ -164,6 +192,9 @@ func DD(depth int, formating string, args ...interface{}) {
 }
 
 func Dump(obj interface{}, strPart ...interface{}) {
+	if Conf.Silence {
+		return
+	}
 	color := ColorType_D
 	if Conf.NoColor {
 		color = ""
@@ -192,4 +223,5 @@ func Dump(obj interface{}, strPart ...interface{}) {
 
 func init() {
 	spew.Config.Indent = "    "
+	Conf.Silence = false
 }
