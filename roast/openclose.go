@@ -38,11 +38,11 @@ func DSN(confprefix string) string {
 	dbHost := conf.Str(os.Getenv("DOCKER_GATEWAY"), confprefix+"/addr/host")
 	dbPort := conf.Str("3306", confprefix+"/addr/port")
 
-	return fmt.Sprintf("%s:%s@(%s:%s)/%s?collation=utf8_general_ci&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbDatabase)
+	return fmt.Sprintf("%s:%s@(%s:%s)/%s?collation=utf8mb4_general_ci&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbDatabase)
 }
 
 func Open(db string, user string, pass string, host string, port string, verbose bool) *gorm.DB {
-	args := fmt.Sprintf("%s:%s@(%s:%s)/%s?collation=utf8_general_ci&parseTime=True&loc=Local", user, pass, host, port, db)
+	args := fmt.Sprintf("%s:%s@(%s:%s)/%s?collation=utf8mb4_general_ci&parseTime=True&loc=Local", user, pass, host, port, db)
 	klog.D("OPEN MYSQL ARGS: %s", args)
 
 	x, err := gorm.Open("mysql", args)

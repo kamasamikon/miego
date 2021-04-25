@@ -118,6 +118,7 @@ func (ft *FlowTable) AddLabel(Label string) *TD {
 		styleMap: map[string]string{
 			"text-align":     "right",
 			"vertical-align": "middle",
+			"white-space":    "nowrap",
 		},
 	}
 	ft.Items = append(ft.Items, &item)
@@ -132,6 +133,7 @@ func (ft *FlowTable) AddTitle(Label string) *TD {
 		styleMap: map[string]string{
 			"text-align":     "left",
 			"vertical-align": "middle",
+			"white-space":    "nowrap",
 		},
 	}
 	ft.Items = append(ft.Items, &item)

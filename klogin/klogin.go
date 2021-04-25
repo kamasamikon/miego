@@ -82,9 +82,7 @@ func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 			return val.(string), true
 		}
 	} else {
-		klog.E("Not using session")
 		return "", false
-
 	}
 }
 

@@ -14,11 +14,13 @@ var map_UUID_Data map[string]interface{}
 var mutex = &sync.Mutex{}
 
 // Set : Add a string to cache and return a UUID as a key
-func Set(data interface{}, exp int64) string {
+func Set(data interface{}, exp int64, UUID string) string {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	UUID := roast.IDNew()
+	if UUID == "" {
+		UUID = roast.IDNew()
+	}
 
 	// Exp after exp seconds
 	map_UUID_Exp[UUID] = time.Now().Unix() + exp
@@ -50,6 +52,26 @@ func V(uuid string) interface{} {
 		}
 	}
 	return nil
+}
+
+func VMust(uuid string, New func(uuid string) (data interface{}, exp int64)) interface{} {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	nowUnix := time.Now().Unix()
+	if Data, ok := map_UUID_Data[uuid]; ok {
+		if Exp, ok := map_UUID_Exp[uuid]; ok {
+			if Exp < nowUnix {
+				return Data
+			}
+		}
+	}
+
+	data, exp := New(uuid)
+	map_UUID_Exp[uuid] = time.Now().Unix() + exp
+	map_UUID_Data[uuid] = data
+
+	return data
 }
 
 func S(uuid string) string {

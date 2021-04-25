@@ -79,7 +79,9 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
 	callPreQ(mp)
 
-	rows, err := db.Query(queryStmt.String(mp, FoundRows))
+	qStmt, cStmt := queryStmt.String2(mp, FoundRows)
+
+	rows, err := db.Query(qStmt)
 	if err != nil {
 		klog.E(err.Error())
 		return nil, -1, err
@@ -117,36 +119,33 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) 
 		pongs = append(pongs, item)
 	}
 
-	if !FoundRows {
-		callPstQ(mp, pongs)
-		return pongs, -1, nil
-	}
-
 	//
 	// Get Rows count
 	//
-	res, err := db.Query(`SELECT FOUND_ROWS()`)
-	if err != nil {
-		klog.E(err.Error())
-		callPstQ(mp, pongs)
-		return pongs, -1, nil
-	}
-	defer res.Close()
+	allCount := 0
+	if cStmt != "" {
+		res, err := db.Query(cStmt)
+		if err == nil {
+			defer res.Close()
 
-	res.Next()
-
-	var lines string
-	if err := res.Scan(&lines); err != nil {
-		klog.E(err.Error())
-		callPstQ(mp, pongs)
-		return pongs, -1, nil
+			res.Next()
+			var lines string
+			if err := res.Scan(&lines); err == nil {
+				allCount = atox.Int(lines, 0)
+			} else {
+				klog.E(err.Error())
+			}
+		} else {
+			klog.E(err.Error())
+		}
 	}
 
 	//
 	// Done
 	//
 	callPstQ(mp, pongs)
-	return pongs, atox.Int(lines, 0), nil
+	klog.D("allCount:%d", allCount)
+	return pongs, allCount, nil
 }
 
 func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {

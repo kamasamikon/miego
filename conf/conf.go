@@ -2,6 +2,7 @@ package conf
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -30,6 +31,7 @@ type confEntry struct {
 	vInt  int64
 	vStr  string
 	vBool bool
+	vObj  interface{}
 
 	refGet int64
 	refSet int64
@@ -93,6 +95,14 @@ func EntryAdd(line string) {
 		} else {
 			return
 		}
+
+	case 'o':
+		// line is json string
+		o := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(value), &o); err != nil {
+			klog.E(err.Error())
+		}
+		e.vObj = o
 
 	default:
 		return
@@ -168,6 +178,19 @@ func Bool(defval bool, paths ...string) bool {
 	return defval
 }
 
+// Object : get a bool entry
+func Obj(defval interface{}, paths ...string) interface{} {
+	// path: aaa/bbb
+	for _, path := range paths {
+		key := "o:/" + path
+		if v, ok := mapPathEntry[key]; ok {
+			v.refGet++
+			return v.vObj
+		}
+	}
+	return defval
+}
+
 // List : get a List entry
 func List(sep string, paths ...string) []string {
 	// path: aaa/bbb
@@ -197,6 +220,11 @@ func pathParse(path string) (kind byte, safe bool, realpath string) {
 		kind = 'b'
 		safe = path[0] == 'B'
 		realpath = "b" + path[1:]
+
+	case 'o', 'O':
+		kind = 'o'
+		safe = path[0] == 'O'
+		realpath = "o" + path[1:]
 
 	default:
 		realpath = ""
@@ -258,6 +286,12 @@ func Set(path string, value interface{}, force bool) {
 		e.vBool = v
 		e.refSet++
 
+	case 'o':
+		v := value.(interface{})
+		monitorCall(e, e.vObj, v)
+		e.vObj = v
+		e.refSet++
+
 	default:
 		klog.E("Bad Kind: %c", kind)
 	}
@@ -313,6 +347,10 @@ func Dump() string {
 
 		case 'b':
 			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%t", v.refGet, v.refSet, v.path, v.vBool))
+
+		case 'o':
+			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%s", v.refGet, v.refSet, v.path, "..."))
+
 		}
 	}
 
@@ -339,13 +377,16 @@ func DumpRaw() string {
 
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf("%s=%d", v.refGet, v.refSet, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf("%s=%d", v.path, v.vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf("%s=%s", v.refGet, v.refSet, v.path, v.vStr))
+			lines = append(lines, fmt.Sprintf("%s=%s", v.path, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf("%s=%t", v.refGet, v.refSet, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf("%s=%t", v.path, v.vBool))
+
+		case 'o':
+			lines = append(lines, fmt.Sprintf("%s=%s", v.path, "..."))
 		}
 	}
 
