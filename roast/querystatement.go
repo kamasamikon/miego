@@ -39,7 +39,8 @@ type QueryStatement struct {
 	JoinList  []*JoinInfo
 	WhereLine *WhereInfo
 
-	FromLine string
+	FromTable string
+	FromAlias string
 
 	GroupByLine string
 
@@ -119,8 +120,9 @@ func (s *QueryStatement) GroupBy(GroupByLine string) {
 	s.GroupByLine = GroupByLine
 }
 
-func (s *QueryStatement) From(FromLine string) {
-	s.FromLine = FromLine
+func (s *QueryStatement) From(FromTable string, FromAlias string) {
+	s.FromTable = FromTable
+	s.FromAlias = FromAlias
 }
 
 func (s *QueryStatement) String(mp xmap.Map, FoundRows int) string {
@@ -163,7 +165,11 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows int) string {
 	//
 	// From: SELECT * __FROM__ TableA
 	//
-	lines = append(lines, s.FromLine)
+	if s.FromAlias != "" {
+		lines = append(lines, "FROM "+s.FromTable+" AS "+s.FromAlias)
+	} else {
+		lines = append(lines, "FROM "+s.FromTable)
+	}
 
 	//
 	// Join

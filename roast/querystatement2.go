@@ -14,30 +14,51 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	// ColumnLines
 	//
 	var ColumnLines []string
+
+	// First DISTINCT
+	var DistinctItems []string
 	for _, c := range s.ColumnList {
 		var sss string
 		if c.Field[0] == '@' {
 			field := c.Field[1:len(c.Field)]
 			if c.TableAlias == "" {
-				sss = fmt.Sprintf(`    DISTINCT(%s) AS %s`, field, c.OutputName)
+				sss = fmt.Sprintf(`%s AS %s`, field, c.OutputName)
 			} else {
-				sss = fmt.Sprintf(`    DISTINCT(%s.%s) AS %s`, c.TableAlias, field, c.OutputName)
+				sss = fmt.Sprintf(`%s.%s AS %s`, c.TableAlias, field, c.OutputName)
 			}
-		} else {
+			DistinctItems = append(DistinctItems, sss)
+		}
+	}
+	DistinctLine := "DISTINCT " + strings.Join(DistinctItems, ", ")
+	if DistinctItems != nil {
+		ColumnLines = append(ColumnLines, "    "+DistinctLine)
+	}
+
+	// Second IFNULL
+	for _, c := range s.ColumnList {
+		var sss string
+		if c.Field[0] != '@' {
 			if c.TableAlias == "" {
 				sss = fmt.Sprintf(`    IFNULL(%s, "%s") AS %s`, c.Field, c.Default, c.OutputName)
 			} else {
 				sss = fmt.Sprintf(`    IFNULL(%s.%s, "%s") AS %s`, c.TableAlias, c.Field, c.Default, c.OutputName)
 			}
+			ColumnLines = append(ColumnLines, sss)
 		}
-		ColumnLines = append(ColumnLines, sss)
 	}
+
 	ColumnPart := strings.Join(ColumnLines, ",\n")
 
 	//
 	// From: SELECT * __FROM__ TableA
 	//
-	FromPart := s.FromLine
+	FromPart := ""
+
+	if s.FromAlias != "" {
+		FromPart = "FROM " + s.FromTable + " AS " + s.FromAlias
+	} else {
+		FromPart = "FROM " + s.FromTable
+	}
 
 	//
 	// Join
@@ -133,26 +154,56 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 		}
 	}
 	if FoundRows == FR_Yes {
-		if GroupPart != "" {
-			cStmt += "SELECT COUNT(*) AS Count FROM (\n"
-			cStmt += "SELECT COUNT(*) \n"
+		if DistinctLine != "" {
+
+			var DistinctItems []string
+			for _, c := range s.ColumnList {
+				if c.Field[0] == '@' {
+					field := c.Field[1:len(c.Field)]
+					if c.TableAlias == "" {
+						DistinctItems = append(
+							DistinctItems,
+							fmt.Sprintf(`%s`, field),
+						)
+					} else {
+						DistinctItems = append(
+							DistinctItems,
+							fmt.Sprintf(`%s.%s`, c.TableAlias, field),
+						)
+					}
+				}
+			}
+
+			DistinctLine = "DISTINCT " + strings.Join(DistinctItems, ", ")
+			cStmt += "SELECT COUNT(" + DistinctLine + ") AS Count \n"
 			cStmt += FromPart + "\n"
 
 			if JoinPart != "" {
 				cStmt += JoinPart + "\n"
 			}
 			cStmt += WherePart + "\n"
-			cStmt += GroupPart + "\n"
-
-			cStmt += ") a;"
 		} else {
-			cStmt += "SELECT COUNT(*) AS Count \n"
-			cStmt += FromPart + "\n"
+			if GroupPart != "" {
+				cStmt += "SELECT COUNT(*) AS Count FROM (\n"
+				cStmt += "SELECT COUNT(*) \n"
+				cStmt += FromPart + "\n"
 
-			if JoinPart != "" {
-				cStmt += JoinPart + "\n"
+				if JoinPart != "" {
+					cStmt += JoinPart + "\n"
+				}
+				cStmt += WherePart + "\n"
+				cStmt += GroupPart + "\n"
+
+				cStmt += ") a;"
+			} else {
+				cStmt += "SELECT COUNT(*) AS Count \n"
+				cStmt += FromPart + "\n"
+
+				if JoinPart != "" {
+					cStmt += JoinPart + "\n"
+				}
+				cStmt += WherePart + "\n"
 			}
-			cStmt += WherePart + "\n"
 		}
 		klog.D("%s", cStmt)
 	}
