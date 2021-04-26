@@ -81,6 +81,17 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	WherePart := strings.Join(WhereLines, "\n")
 
 	GroupPart := s.GroupByLine
+	if GroupPart == "" {
+		var segs []string
+		for _, s := range strings.Split(mp.S("__GroupBy__"), ";") {
+			if s != "" {
+				segs = append(segs, s)
+			}
+		}
+		if segs != nil {
+			GroupPart = "GROUP BY " + strings.Join(segs, ", ")
+		}
+	}
 
 	// OrderBy etc
 	var EtcLines []string
@@ -110,25 +121,18 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	if EtcPart != "" {
 		qStmt += EtcPart + "\n"
 	}
-	klog.D(qStmt)
+	klog.D("%s", qStmt)
 
 	//
 	// cStmt: Count Statement
 	//
 	var cStmt string
-	klog.E("")
 	if FoundRows == FR_Auto {
-		klog.E("")
 		if mp.Has("PageSize") {
-			klog.E("")
 			FoundRows = FR_Yes
-			klog.E("")
 		}
-		klog.E("")
 	}
-	klog.E("")
 	if FoundRows == FR_Yes {
-		klog.E("")
 		if GroupPart != "" {
 			cStmt += "SELECT COUNT(*) AS Count FROM (\n"
 			cStmt += "SELECT COUNT(*) \n"
@@ -150,7 +154,7 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 			}
 			cStmt += WherePart + "\n"
 		}
-		klog.D(cStmt)
+		klog.D("%s", cStmt)
 	}
 
 	return qStmt, cStmt

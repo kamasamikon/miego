@@ -3,23 +3,11 @@ package roast
 import (
 	"github.com/kamasamikon/miego/atox"
 	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/mc"
 	"github.com/kamasamikon/miego/xmap"
 
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
-
-import (
-	"crypto/md5"
-	"encoding/hex"
-)
-
-func MD5(s string) string {
-	ctx := md5.New()
-	ctx.Write([]byte(s))
-	return hex.EncodeToString(ctx.Sum(nil))
-}
 
 type preQ func(mp xmap.Map)
 type pstQ func(mp xmap.Map, pongs []xmap.Map)
@@ -135,27 +123,20 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 	// Get Rows count
 	//
 	allCount := 0
-	ok := false
 	if cStmt != "" {
-		allCount, ok = mc.I(cStmt)
-		klog.D("mc: OK:%t, UUID:%s", ok, cStmt)
-		if ok {
-			res, err := db.Query(cStmt)
-			if err == nil {
-				defer res.Close()
+		res, err := db.Query(cStmt)
+		if err == nil {
+			defer res.Close()
 
-				res.Next()
-				var lines string
-				if err := res.Scan(&lines); err == nil {
-					allCount = atox.Int(lines, 0)
-					klog.D("allCount:%d", allCount)
-					mc.Set(allCount, 10, cStmt)
-				} else {
-					klog.E(err.Error())
-				}
+			res.Next()
+			var lines string
+			if err := res.Scan(&lines); err == nil {
+				allCount = atox.Int(lines, 0)
 			} else {
 				klog.E(err.Error())
 			}
+		} else {
+			klog.E(err.Error())
 		}
 	}
 
