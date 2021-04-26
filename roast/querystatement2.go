@@ -9,7 +9,7 @@ import (
 )
 
 // String : qStmt and cStmt
-func (s *QueryStatement) String2(mp xmap.Map, FoundRows bool) (string, string) {
+func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	//
 	// ColumnLines
 	//
@@ -116,7 +116,19 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows bool) (string, string) {
 	// cStmt: Count Statement
 	//
 	var cStmt string
-	if FoundRows {
+	klog.E("")
+	if FoundRows == FR_Auto {
+		klog.E("")
+		if mp.Has("PageSize") {
+			klog.E("")
+			FoundRows = FR_Yes
+			klog.E("")
+		}
+		klog.E("")
+	}
+	klog.E("")
+	if FoundRows == FR_Yes {
+		klog.E("")
 		if GroupPart != "" {
 			cStmt += "SELECT COUNT(*) AS Count FROM (\n"
 			cStmt += "SELECT COUNT(*) \n"

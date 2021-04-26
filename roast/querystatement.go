@@ -8,6 +8,13 @@ import (
 	"github.com/kamasamikon/miego/xmap"
 )
 
+const (
+	// FoundRows: Auto = Yes if mp.Has("PageSize") else No
+	FR_Auto = 0
+	FR_Yes  = 1
+	FR_No   = 2
+)
+
 type Column struct {
 	TableAlias string
 	Field      string
@@ -116,12 +123,18 @@ func (s *QueryStatement) From(FromLine string) {
 	s.FromLine = FromLine
 }
 
-func (s *QueryStatement) String(mp xmap.Map, FoundRows bool) string {
+func (s *QueryStatement) String(mp xmap.Map, FoundRows int) string {
 	var lines []string
 
 	// HEAD
 	lines = append(lines, "SELECT")
-	if FoundRows {
+
+	if FoundRows == FR_Auto {
+		if mp.Has("PageSize") {
+			FoundRows = FR_Yes
+		}
+	}
+	if FoundRows == FR_Yes {
 		lines = append(lines, "SQL_CALC_FOUND_ROWS")
 	}
 

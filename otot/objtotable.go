@@ -24,7 +24,8 @@ func Convert(key string, val string, obj interface{}) string {
 func ViaKV(class string, id string, column int, v ...string) string {
 	var lines []string
 
-	lines = append(lines, fmt.Sprintf(`<table id="%s" class="table is-fullwidth %s">`, id, class))
+	table := fmt.Sprintf(`<table id="%s" class="table is-fullwidth %s">`, id, class)
+	lines = append(lines, table)
 	lines = append(lines, "<tbody>")
 	for i := 0; i < len(v)/2; i++ {
 		if i%column == 0 {
@@ -33,9 +34,27 @@ func ViaKV(class string, id string, column int, v ...string) string {
 			}
 			lines = append(lines, "<tr>")
 		}
+
+		// XXX: Tricky, If the title part starts with @N@, N is a number
+		// this will be set to colspan = N
+		colspan := "1"
+		rowspan := "1"
 		k := v[2*i]
+		if len(k) > 2 && k[0] == '@' && k[2] == '@' {
+			colspan = k[1:2]
+			k = k[3:]
+		}
 		v := v[2*i+1]
-		lines = append(lines, fmt.Sprintf(`<td><span class="ototKey">%s</span><span class="ototVal">%s</span></td>`, k, v))
+		if len(v) > 2 && v[0] == '@' && v[2] == '@' {
+			rowspan = v[1:2]
+			v = v[3:]
+		}
+		td := fmt.Sprintf(
+			`<td colspan="%s" rowspan="%s"><span class="ototKey">%s</span><span class="ototVal">%s</span></td>`,
+			colspan, rowspan,
+			k, v,
+		)
+		lines = append(lines, td)
 	}
 
 	lines = append(lines, "</tr>")

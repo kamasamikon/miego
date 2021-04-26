@@ -3,11 +3,23 @@ package roast
 import (
 	"github.com/kamasamikon/miego/atox"
 	"github.com/kamasamikon/miego/klog"
+	"github.com/kamasamikon/miego/mc"
 	"github.com/kamasamikon/miego/xmap"
 
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+import (
+	"crypto/md5"
+	"encoding/hex"
+)
+
+func MD5(s string) string {
+	ctx := md5.New()
+	ctx.Write([]byte(s))
+	return hex.EncodeToString(ctx.Sum(nil))
+}
 
 type preQ func(mp xmap.Map)
 type pstQ func(mp xmap.Map, pongs []xmap.Map)
@@ -76,7 +88,7 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 }
 
 // ViaMap : Return Result and allCount
-func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
+func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) ([]xmap.Map, int, error) {
 	callPreQ(mp)
 
 	qStmt, cStmt := queryStmt.String2(mp, FoundRows)
@@ -123,20 +135,27 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) 
 	// Get Rows count
 	//
 	allCount := 0
+	ok := false
 	if cStmt != "" {
-		res, err := db.Query(cStmt)
-		if err == nil {
-			defer res.Close()
+		allCount, ok = mc.I(cStmt)
+		klog.D("mc: OK:%t, UUID:%s", ok, cStmt)
+		if ok {
+			res, err := db.Query(cStmt)
+			if err == nil {
+				defer res.Close()
 
-			res.Next()
-			var lines string
-			if err := res.Scan(&lines); err == nil {
-				allCount = atox.Int(lines, 0)
+				res.Next()
+				var lines string
+				if err := res.Scan(&lines); err == nil {
+					allCount = atox.Int(lines, 0)
+					klog.D("allCount:%d", allCount)
+					mc.Set(allCount, 10, cStmt)
+				} else {
+					klog.E(err.Error())
+				}
 			} else {
 				klog.E(err.Error())
 			}
-		} else {
-			klog.E(err.Error())
 		}
 	}
 
@@ -148,7 +167,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) 
 	return pongs, allCount, nil
 }
 
-func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
+func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int, rowScanner func(*sql.Rows) bool) (int, error) {
 	qStmt, cStmt := queryStmt.String2(mp, FoundRows)
 	rows, err := db.Query(qStmt)
 	if err != nil {
@@ -193,7 +212,7 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows bo
 	return allCount, nil
 }
 
-func Query(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool, rowScanner func(*sql.Rows) bool) (int, error) {
+func Query(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows int, rowScanner func(*sql.Rows) bool) (int, error) {
 	var err error
 
 	if db == nil {
@@ -212,7 +231,7 @@ func Query(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp 
 	return ViaScanner(db, queryStmt, mp, FoundRows, rowScanner)
 }
 
-func QueryToMap(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows bool) ([]xmap.Map, int, error) {
+func QueryToMap(db *sql.DB, dsn string, prefix string, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) ([]xmap.Map, int, error) {
 	var err error
 
 	if db == nil {

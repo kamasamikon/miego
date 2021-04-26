@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kamasamikon/miego/roast"
+	"github.com/twinj/uuid"
 )
 
 // ID <> ExpTime, ID <> RealData
@@ -13,13 +13,13 @@ var map_UUID_Data map[string]interface{}
 
 var mutex = &sync.Mutex{}
 
-// Set : Add a string to cache and return a UUID as a key
+// Set : Add a string to cache and return a UUID as a key with exp seconds
 func Set(data interface{}, exp int64, UUID string) string {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	if UUID == "" {
-		UUID = roast.IDNew()
+		UUID = uuid.NewV4().String()
 	}
 
 	// Exp after exp seconds
@@ -39,7 +39,7 @@ func Rem(uuid string) {
 }
 
 // Get : UUID => Original string
-func V(uuid string) interface{} {
+func V(uuid string) (interface{}, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -47,11 +47,11 @@ func V(uuid string) interface{} {
 	if Data, ok := map_UUID_Data[uuid]; ok {
 		if Exp, ok := map_UUID_Exp[uuid]; ok {
 			if Exp < nowUnix {
-				return Data
+				return Data, true
 			}
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func VMust(uuid string, New func(uuid string) (data interface{}, exp int64)) interface{} {
@@ -74,20 +74,22 @@ func VMust(uuid string, New func(uuid string) (data interface{}, exp int64)) int
 	return data
 }
 
-func S(uuid string) string {
-	v := V(uuid)
-	if s, ok := v.(string); ok {
-		return s
+func S(uuid string) (string, bool) {
+	if v, ok := V(uuid); !ok {
+		return "", false
+	} else if s, ok := v.(string); ok {
+		return s, true
 	}
-	return ""
+	return "", false
 }
 
-func I(uuid string) int {
-	v := V(uuid)
-	if i, ok := v.(int); ok {
-		return i
+func I(uuid string) (int, bool) {
+	if v, ok := V(uuid); !ok {
+		return 0, false
+	} else if i, ok := v.(int); ok {
+		return i, true
 	}
-	return 0
+	return 0, false
 }
 
 func init() {
