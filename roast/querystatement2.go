@@ -29,8 +29,9 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 			DistinctItems = append(DistinctItems, sss)
 		}
 	}
-	DistinctLine := "DISTINCT " + strings.Join(DistinctItems, ", ")
+	var DistinctLine string
 	if DistinctItems != nil {
+		DistinctLine = "DISTINCT " + strings.Join(DistinctItems, ", ")
 		ColumnLines = append(ColumnLines, "    "+DistinctLine)
 	}
 
@@ -149,13 +150,12 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	//
 	var cStmt string
 	if FoundRows == FR_Auto {
-		if mp.Has("PageSize") {
+		if mp.Has("PageNumber") {
 			FoundRows = FR_Yes
 		}
 	}
 	if FoundRows == FR_Yes {
 		if DistinctLine != "" {
-
 			var DistinctItems []string
 			for _, c := range s.ColumnList {
 				if c.Field[0] == '@' {

@@ -132,7 +132,7 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows int) string {
 	lines = append(lines, "SELECT")
 
 	if FoundRows == FR_Auto {
-		if mp.Has("PageSize") {
+		if mp.Has("PageNumber") {
 			FoundRows = FR_Yes
 		}
 	}
