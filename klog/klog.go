@@ -59,6 +59,13 @@ func BT(maxdep int, formating string, args ...interface{}) {
 }
 
 func KLog(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
+	if Conf.Silence {
+		return
+	}
+	if Conf.NoColor {
+		color = ""
+	}
+
 	filename, line, funcname := "???", 0, "???"
 	pc, filename, line, ok := runtime.Caller(dep)
 
@@ -85,120 +92,60 @@ func KLog(dep int, shortPath bool, color string, class string, formating string,
 
 // F :Fatal
 func F(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_F
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "F", formating, args...)
 }
 
 // A :Alert
 func A(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_A
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "A", formating, args...)
 }
 
 // C :Critical conditions
 func C(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_C
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "C", formating, args...)
 }
 
 // E :Error
 func E(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_E
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "E", formating, args...)
 }
 
 // W :Warning
 func W(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_W
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "W", formating, args...)
 }
 
 // N :Notice
 func N(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_N
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "N", formating, args...)
 }
 
 // I :Information
 func I(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_I
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "I", formating, args...)
 }
 
 // D :Debug message
 func D(formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_D
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(2, Conf.ShortPath, color, "D", formating, args...)
 }
 
 // DD :Debug message with depth
 func DD(depth int, formating string, args ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_D
-	if Conf.NoColor {
-		color = ""
-	}
 	KLog(depth, Conf.ShortPath, color, "D", formating, args...)
 }
 
 func Dump(obj interface{}, strPart ...interface{}) {
-	if Conf.Silence {
-		return
-	}
 	color := ColorType_D
-	if Conf.NoColor {
-		color = ""
-	}
 
 	var s string
 	strPartLen := len(strPart)

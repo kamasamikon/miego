@@ -46,7 +46,7 @@ func (sd *SD) Add(kv ...string) {
 // New : col=表格列数 标题，变量名，值 ...
 // 点击会调用 setVueData
 func (sd *SD) Gen() string {
-	buttonQ := `<button class="button is-dark" style="width: 100%%;" onclick="%s(`
+	buttonQ := `<button class="button sd-button" style="width: 100%%;" onclick="%s(`
 	buttonH := `);">%s</button>`
 
 	ft := otot.FlowTableNew("333", "ftwhite", sd.col)

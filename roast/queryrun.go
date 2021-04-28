@@ -138,13 +138,15 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 		} else {
 			klog.E(err.Error())
 		}
+		klog.D("AllCount:%d", allCount)
+	} else {
+		klog.D("allCount:%d", allCount)
 	}
 
 	//
 	// Done
 	//
 	callPstQ(mp, pongs)
-	klog.D("allCount:%d", allCount)
 	return pongs, allCount, nil
 }
 
