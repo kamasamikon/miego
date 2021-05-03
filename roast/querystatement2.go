@@ -143,7 +143,7 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	if EtcPart != "" {
 		qStmt += EtcPart + "\n"
 	}
-	klog.D("%s", qStmt)
+	klog.BT(10, "%s", qStmt)
 
 	//
 	// cStmt: Count Statement

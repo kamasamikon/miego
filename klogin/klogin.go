@@ -21,6 +21,7 @@ type KLogin struct {
 	// Session
 	//
 	SessionName string
+	Session     gin.HandlerFunc
 
 	//
 	// Login
@@ -56,7 +57,6 @@ func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		session := sessions.Default(c)
 		UUID := session.Get("UUID")
 		if UUID != nil {
-			klog.D("IsLoggin: OK: UUID: %s", UUID.(string))
 			h(c)
 			return
 		}
@@ -112,11 +112,8 @@ func (o *KLogin) doLogin(c *gin.Context) {
 		session.Set("UUID", uuid.NewV4().String())
 		session.Save()
 
-		klog.D(OKRedirectURL)
 		c.Redirect(302, OKRedirectURL)
 	} else {
-		klog.Dump(NGPageName)
-		klog.Dump(NGPageParam)
 		session.Clear()
 		session.Save()
 
@@ -145,14 +142,17 @@ func (o *KLogin) Setup(Gin *gin.Engine) {
 		klog.E(err.Error())
 		return
 	}
-	Gin.Use(sessions.Sessions(o.SessionName, store))
+	o.Session = sessions.Sessions(o.SessionName, store)
+	Gin.Use(o.Session)
 
 	// Routers
 	if o.LoginRouter == nil {
 		Gin.POST("/login", o.doLogin)
+		Gin.GET("/login", o.doLogin)
 	} else {
 		for _, r := range o.LoginRouter {
 			Gin.POST(r, o.doLogin)
+			Gin.GET(r, o.doLogin)
 		}
 	}
 	if o.LogoutRouter == nil {

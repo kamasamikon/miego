@@ -36,6 +36,7 @@ func BT(maxdep int, formating string, args ...interface{}) {
 	cStart := ColorType_D
 
 	txt := fmt.Sprintf(formating, args...)
+	fmt.Printf("%s|BT>>>>|%s %s\n", cStart, cEnd, txt)
 
 	dep := 0
 	for {
@@ -47,6 +48,7 @@ func BT(maxdep int, formating string, args ...interface{}) {
 
 		pc, filename, line, ok := runtime.Caller(dep)
 		if ok == false {
+			fmt.Printf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
 			return
 		}
 
@@ -54,8 +56,10 @@ func BT(maxdep int, formating string, args ...interface{}) {
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
 
-		fmt.Printf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd, txt)
+		fmt.Printf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd)
 	}
+
+	fmt.Printf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
 }
 
 func KLog(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {

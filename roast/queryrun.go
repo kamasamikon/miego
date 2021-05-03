@@ -30,6 +30,7 @@ func callPstQ(mp xmap.Map, pongs []xmap.Map) {
 // Raw: Raw(db, "SELECT a, b FROM xxxx") => {"a":"xxx", "b":"xxx"}
 func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 	klog.D("%s", stmt)
+	klog.BT(6, "--------------")
 	rows, err := db.Query(stmt)
 	if err != nil {
 		klog.E(err.Error())
@@ -140,6 +141,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 		}
 		klog.D("AllCount:%d", allCount)
 	} else {
+		allCount = len(pongs)
 		klog.D("allCount:%d", allCount)
 	}
 

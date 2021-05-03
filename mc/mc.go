@@ -46,7 +46,7 @@ func V(uuid string) (interface{}, bool) {
 	nowUnix := time.Now().Unix()
 	if Data, ok := map_UUID_Data[uuid]; ok {
 		if Exp, ok := map_UUID_Exp[uuid]; ok {
-			if Exp < nowUnix {
+			if Exp > nowUnix {
 				return Data, true
 			}
 		}
