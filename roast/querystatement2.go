@@ -2,14 +2,18 @@ package roast
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+
+	"crypto/md5"
+	"encoding/hex"
 
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xmap"
 )
 
 // String : qStmt and cStmt
-func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
+func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string, string) {
 	//
 	// ColumnLines
 	//
@@ -143,18 +147,20 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 	if EtcPart != "" {
 		qStmt += EtcPart + "\n"
 	}
-	klog.BT(10, "%s", qStmt)
+	klog.D("%s", qStmt)
 
 	//
 	// cStmt: Count Statement
 	//
 	var cStmt string
+	var cStmtHash string
 	if FoundRows == FR_Auto {
 		if mp.Has("PageNumber") {
 			FoundRows = FR_Yes
 		}
 	}
 	if FoundRows == FR_Yes {
+		var cStmtList []string
 		if DistinctLine != "" {
 			var DistinctItems []string
 			for _, c := range s.ColumnList {
@@ -175,38 +181,47 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string) {
 			}
 
 			DistinctLine = "DISTINCT " + strings.Join(DistinctItems, ", ")
-			cStmt += "SELECT COUNT(" + DistinctLine + ") AS Count \n"
-			cStmt += FromPart + "\n"
+			cStmtList = append(cStmtList, "SELECT COUNT("+DistinctLine+") AS Count")
+			cStmtList = append(cStmtList, FromPart)
 
 			if JoinPart != "" {
-				cStmt += JoinPart + "\n"
+				cStmtList = append(cStmtList, JoinPart)
 			}
-			cStmt += WherePart + "\n"
+			cStmtList = append(cStmtList, WherePart)
 		} else {
 			if GroupPart != "" {
-				cStmt += "SELECT COUNT(*) AS Count FROM (\n"
-				cStmt += "SELECT COUNT(*) \n"
-				cStmt += FromPart + "\n"
+				cStmtList = append(cStmtList, "SELECT COUNT(*) AS Count FROM (")
+				cStmtList = append(cStmtList, "SELECT COUNT(*)")
+				cStmtList = append(cStmtList, FromPart)
 
 				if JoinPart != "" {
-					cStmt += JoinPart + "\n"
+					cStmtList = append(cStmtList, JoinPart)
 				}
-				cStmt += WherePart + "\n"
-				cStmt += GroupPart + "\n"
+				cStmtList = append(cStmtList, WherePart)
+				cStmtList = append(cStmtList, GroupPart)
 
-				cStmt += ") a;"
+				cStmtList = append(cStmtList, ") a;")
 			} else {
-				cStmt += "SELECT COUNT(*) AS Count \n"
-				cStmt += FromPart + "\n"
+				cStmtList = append(cStmtList, "SELECT COUNT(*) AS Count")
+				cStmtList = append(cStmtList, FromPart)
 
 				if JoinPart != "" {
-					cStmt += JoinPart + "\n"
+					cStmtList = append(cStmtList, JoinPart)
 				}
-				cStmt += WherePart + "\n"
+				cStmtList = append(cStmtList, WherePart)
 			}
 		}
+
+		cStmt = strings.Join(cStmtList, "\n")
 		klog.D("%s", cStmt)
+
+		sort.Strings(cStmtList)
+		ctx := md5.New()
+		for i := range cStmtList {
+			ctx.Write([]byte(cStmtList[i]))
+		}
+		cStmtHash = hex.EncodeToString(ctx.Sum(nil))
 	}
 
-	return qStmt, cStmt
+	return qStmt, cStmt, cStmtHash
 }

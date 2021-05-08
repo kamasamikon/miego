@@ -105,7 +105,7 @@ func MapAll(c *gin.Context, overwrite bool) Map {
 
 // Marshal : xmap -> string
 func (xm Map) Marshal() string {
-	if data, err := json.Marshal(xm); err == nil {
+	if data, err := json.MarshalIndent(xm, "", "\t"); err == nil {
 		return string(data)
 	} else {
 		return ""

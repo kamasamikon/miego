@@ -2,6 +2,7 @@ package roast
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -248,6 +249,7 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 			if len(arr) == 1 {
 				qList = append(qList, p(`%s = '%s'`, Name, arr[0]))
 			} else {
+				sort.Strings(arr)
 				qList = append(qList, p(`%s IN ("%s")`, Name, strings.Join(arr, `", "`)))
 			}
 
@@ -255,6 +257,7 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 			if len(arr) == 1 {
 				qList = append(qList, p(`%s != "%s"`, Name, arr[0]))
 			} else {
+				sort.Strings(arr)
 				qList = append(qList, p(`%s NOT IN ("%s")`, Name, strings.Join(arr, `", "`)))
 			}
 

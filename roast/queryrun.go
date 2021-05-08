@@ -3,6 +3,7 @@ package roast
 import (
 	"github.com/kamasamikon/miego/atox"
 	"github.com/kamasamikon/miego/klog"
+	"github.com/kamasamikon/miego/mc"
 	"github.com/kamasamikon/miego/xmap"
 
 	"database/sql"
@@ -30,7 +31,6 @@ func callPstQ(mp xmap.Map, pongs []xmap.Map) {
 // Raw: Raw(db, "SELECT a, b FROM xxxx") => {"a":"xxx", "b":"xxx"}
 func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 	klog.D("%s", stmt)
-	klog.BT(6, "--------------")
 	rows, err := db.Query(stmt)
 	if err != nil {
 		klog.E(err.Error())
@@ -80,7 +80,7 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) ([]xmap.Map, int, error) {
 	callPreQ(mp)
 
-	qStmt, cStmt := queryStmt.String2(mp, FoundRows)
+	qStmt, cStmt, cStmtHash := queryStmt.String2(mp, FoundRows)
 
 	rows, err := db.Query(qStmt)
 	if err != nil {
@@ -125,21 +125,29 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 	//
 	allCount := 0
 	if cStmt != "" {
-		res, err := db.Query(cStmt)
-		if err == nil {
-			defer res.Close()
+		klog.D("%s", cStmtHash)
+		c, ok := mc.I(cStmtHash)
+		if ok {
+			allCount = c
+			klog.D("AllCount:%d", allCount)
+		} else {
+			res, err := db.Query(cStmt)
+			if err == nil {
+				defer res.Close()
 
-			res.Next()
-			var lines string
-			if err := res.Scan(&lines); err == nil {
-				allCount = atox.Int(lines, 0)
+				res.Next()
+				var lines string
+				if err := res.Scan(&lines); err == nil {
+					allCount = atox.Int(lines, 0)
+					mc.Set(allCount, 60, cStmtHash)
+				} else {
+					klog.E(err.Error())
+				}
 			} else {
 				klog.E(err.Error())
 			}
-		} else {
-			klog.E(err.Error())
+			klog.D("AllCount:%d", allCount)
 		}
-		klog.D("AllCount:%d", allCount)
 	} else {
 		allCount = len(pongs)
 		klog.D("allCount:%d", allCount)
@@ -153,7 +161,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 }
 
 func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int, rowScanner func(*sql.Rows) bool) (int, error) {
-	qStmt, cStmt := queryStmt.String2(mp, FoundRows)
+	qStmt, cStmt, cStmtHash := queryStmt.String2(mp, FoundRows)
 	rows, err := db.Query(qStmt)
 	if err != nil {
 		klog.E(err.Error())
@@ -178,19 +186,26 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows in
 
 	allCount := 0
 	if cStmt != "" {
-		res, err := db.Query(cStmt)
-		if err == nil {
-			defer res.Close()
+		c, ok := mc.I(cStmtHash)
+		if ok {
+			allCount = c
+			klog.D("AllCount:%d", allCount)
+		} else {
+			res, err := db.Query(cStmt)
+			if err == nil {
+				defer res.Close()
 
-			res.Next()
-			var lines string
-			if err := res.Scan(&lines); err == nil {
-				allCount = atox.Int(lines, 0)
+				res.Next()
+				var lines string
+				if err := res.Scan(&lines); err == nil {
+					allCount = atox.Int(lines, 0)
+					mc.Set(allCount, 60, cStmtHash)
+				} else {
+					klog.E(err.Error())
+				}
 			} else {
 				klog.E(err.Error())
 			}
-		} else {
-			klog.E(err.Error())
 		}
 	}
 
