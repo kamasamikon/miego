@@ -269,7 +269,28 @@ func Set(path string, value interface{}, force bool) {
 
 	switch kind {
 	case 'i':
-		v := value.(int64)
+		var v int64
+		if x, ok := value.(int64); ok {
+			v = int64(x)
+		} else if x, ok := value.(int32); ok {
+			v = int64(x)
+		} else if x, ok := value.(int); ok {
+			v = int64(x)
+		} else if x, ok := value.(int16); ok {
+			v = int64(x)
+		} else if x, ok := value.(int8); ok {
+			v = int64(x)
+		} else if x, ok := value.(uint64); ok {
+			v = int64(x)
+		} else if x, ok := value.(uint32); ok {
+			v = int64(x)
+		} else if x, ok := value.(uint); ok {
+			v = int64(x)
+		} else if x, ok := value.(uint16); ok {
+			v = int64(x)
+		} else if x, ok := value.(uint8); ok {
+			v = int64(x)
+		}
 		monitorCall(e, e.vInt, v)
 		e.vInt = v
 		e.refSet++
@@ -340,16 +361,16 @@ func Dump() string {
 
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%d", v.refGet, v.refSet, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%d", v.refGet, v.refSet, v.path, v.vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t\"%s\"", v.refGet, v.refSet, v.path, v.vStr))
+			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t\"%s\"", v.refGet, v.refSet, v.path, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%t", v.refGet, v.refSet, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%t", v.refGet, v.refSet, v.path, v.vBool))
 
 		case 'o':
-			lines = append(lines, fmt.Sprintf("(%d/%d) \t%-20s \t%s", v.refGet, v.refSet, v.path, "..."))
+			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%s", v.refGet, v.refSet, v.path, "..."))
 
 		}
 	}

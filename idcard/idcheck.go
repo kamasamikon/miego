@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -44,6 +45,12 @@ var provines = map[int]string{
 	82: "澳门",
 	91: "国外",
 	99: "测试",
+}
+
+func Fix(s string) string {
+	s = strings.Replace(s, "#", "X", -1)
+	s = strings.Replace(s, "*", "X", -1)
+	return s
 }
 
 func Fake(Year int, Month int, Day int, Gender int) string {

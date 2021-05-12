@@ -261,6 +261,20 @@ func (xm Map) Get(name string) (string, bool) {
 	return "", false
 }
 
+func (xm Map) AsStr(name string, defv string) string {
+	if x, ok := xm[name]; ok {
+		return fmt.Sprintf("%v", x)
+	}
+	return defv
+}
+func (xm Map) AsInt(name string, defv int64) int64 {
+	if x, ok := xm[name]; ok {
+		s := fmt.Sprintf("%v", x)
+		return atox.Int64(s, defv)
+	}
+	return defv
+}
+
 func (xm Map) Str(name string, defv string) string {
 	if x, ok := xm[name]; ok {
 		return x.(string)

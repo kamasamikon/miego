@@ -63,8 +63,12 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 		item := make(xmap.Map)
 		for i, data := range cache {
 			x := *data.(*interface{})
-			y := x.([]uint8)
-			item[columns[i]] = string(y)
+			y, ok := x.([]uint8)
+			if ok {
+				item[columns[i]] = string(y)
+			} else {
+				item[columns[i]] = ""
+			}
 		}
 		pongs = append(pongs, item)
 	}
