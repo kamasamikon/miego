@@ -203,7 +203,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 // AddDate : shortcut
 func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
 	item := TD{
-		HTML:    fmt.Sprintf(`<input v-model.trim="%s" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`, Model, minDate, maxDate),
+		HTML:    fmt.Sprintf(`<input v-model="%s" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`, Model, minDate, maxDate),
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
@@ -225,24 +225,24 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 
 	if mProvince != "" {
 		Lines = append(Lines, `<span class="select">`)
-		Lines = append(Lines, sp(`<select v-model.trim="%s" data-province="%s"></select>`, mProvince, vProvince))
+		Lines = append(Lines, sp(`<select v-model="%s" data-province="%s"></select>`, mProvince, vProvince))
 		Lines = append(Lines, `</span>`)
 	}
 
 	if mCity != "" {
 		Lines = append(Lines, `<span class="select">`)
-		Lines = append(Lines, sp(`<select v-model.trim="%s" data-city="%s"></select>`, mCity, vCity))
+		Lines = append(Lines, sp(`<select v-model="%s" data-city="%s"></select>`, mCity, vCity))
 		Lines = append(Lines, `</span>`)
 	}
 
 	if mDistrict != "" {
 		Lines = append(Lines, `<span class="select">`)
-		Lines = append(Lines, sp(`<select v-model.trim="%s" data-district="%s"></select>`, mDistrict, vDistrict))
+		Lines = append(Lines, sp(`<select v-model="%s" data-district="%s"></select>`, mDistrict, vDistrict))
 		Lines = append(Lines, `</span>`)
 	}
 
 	if Address != "" {
-		Lines = append(Lines, sp(`<input v-model.trim="%s" class="input">`, Address))
+		Lines = append(Lines, sp(`<input v-model="%s" class="input">`, Address))
 	}
 
 	Lines = append(Lines, `</div>`)

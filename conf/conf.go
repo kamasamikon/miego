@@ -67,10 +67,13 @@ func EntryAdd(line string) {
 		return
 	}
 
-	e := confEntry{
-		kind: kind,
-		safe: safe,
-		path: realpath,
+	e, ok := mapPathEntry[path]
+	if !ok {
+		e = &confEntry{
+			kind: kind,
+			safe: safe,
+			path: realpath,
+		}
 	}
 
 	switch kind {
@@ -108,8 +111,11 @@ func EntryAdd(line string) {
 		return
 	}
 
+	if ok {
+		e.refSet++
+	}
 	// Simply overwrite the old value.
-	mapPathEntry[e.path] = &e
+	mapPathEntry[e.path] = e
 }
 
 // Load configure from a file.
@@ -133,6 +139,14 @@ func Load(fileName string) error {
 	}
 }
 
+// Ref : refGet, refSet
+func Ref(path string) (int64, int64) {
+	if v, ok := mapPathEntry[path]; ok {
+		return v.refGet, v.refSet
+	}
+	return -1, -1
+}
+
 // Has : Check if a entry exists
 func Has(path string) bool {
 	_, ok := mapPathEntry[path]
@@ -150,6 +164,22 @@ func Int(defval int64, paths ...string) int64 {
 		}
 	}
 	return defval
+}
+
+// Inc : Increase or Decrease on int
+func Inc(inc int64, path string) {
+	if v, ok := mapPathEntry[path]; ok {
+		v.refSet++
+		v.vInt += inc
+	}
+}
+
+// Flip : flip on bool
+func Flip(path string) {
+	if v, ok := mapPathEntry[path]; ok {
+		v.refSet++
+		v.vBool = !v.vBool
+	}
 }
 
 // Str : get a str typed configure
@@ -239,6 +269,10 @@ func Names() []string {
 		names = append(names, k)
 	}
 	return names
+}
+
+func Add(path string, value interface{}) {
+	Set(path, value, true)
 }
 
 // Set : Modify or Add conf entry

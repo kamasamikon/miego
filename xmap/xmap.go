@@ -227,6 +227,7 @@ func (xm Map) Put(args ...interface{}) Map {
 	return xm
 }
 
+// PutKeys : Put with default value
 func (xm Map) PutKeys(defval string, args ...interface{}) Map {
 	for i := 0; i < len(args); i++ {
 		k := args[i].(string)
@@ -235,6 +236,7 @@ func (xm Map) PutKeys(defval string, args ...interface{}) Map {
 	return xm
 }
 
+// SafePut : Put only when not exists
 func (xm Map) SafePut(args ...interface{}) Map {
 	for i := 0; i < len(args)/2; i++ {
 		k := args[2*i].(string)
@@ -242,6 +244,18 @@ func (xm Map) SafePut(args ...interface{}) Map {
 
 		if _, ok := xm[k]; !ok {
 			xm[k] = v
+		}
+	}
+	return xm
+}
+
+func (xm Map) ReplaceKeys(keys ...string) Map {
+	for i := 0; i < len(keys)/2; i++ {
+		oldKey := keys[2*i]
+		if v, ok := xm[oldKey]; ok {
+			newKey := keys[2*i+1]
+			xm[newKey] = v
+			delete(xm, oldKey)
 		}
 	}
 	return xm
@@ -267,6 +281,13 @@ func (xm Map) AsStr(name string, defv string) string {
 	}
 	return defv
 }
+func (xm Map) AsS(name string) string {
+	if x, ok := xm[name]; ok {
+		return fmt.Sprintf("%v", x)
+	}
+	return ""
+}
+
 func (xm Map) AsInt(name string, defv int64) int64 {
 	if x, ok := xm[name]; ok {
 		s := fmt.Sprintf("%v", x)

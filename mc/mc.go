@@ -38,6 +38,17 @@ func Rem(uuid string) {
 	}
 }
 
+// Exp : Return expire time
+func Exp(uuid string) int64 {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if _, ok := map_UUID_Exp[uuid]; ok {
+		return map_UUID_Exp[uuid]
+	}
+	return 0
+}
+
 // Get : UUID => Original string
 func V(uuid string) (interface{}, bool) {
 	mutex.Lock()

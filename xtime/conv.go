@@ -85,7 +85,7 @@ func StrToNum(s string, flag byte) uint64 {
 			break
 		}
 
-		break
+		return 0
 	}
 
 	tmp += "000000000"

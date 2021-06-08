@@ -5,13 +5,43 @@ import (
 	"strings"
 )
 
-func trimZero(r rune) bool {
-	return r == '0'
+func Prepare(s string) string {
+	os := strings.ReplaceAll(s, " ", "")
+	os = strings.ReplaceAll(os, "\t", "")
+	os = strings.ReplaceAll(os, "\r", "")
+	os = strings.ReplaceAll(os, "\n", "")
+	if os == "" {
+		return ""
+	}
+
+	if len(os) == 1 {
+		return os
+	}
+
+	var prefix string
+	if os[0] == '+' || os[0] == '-' {
+		prefix = os[0:1]
+		os = os[1:]
+		if len(os) == 1 {
+			return prefix + os
+		}
+	}
+
+	if os[0] == '0' && (os[1] == 'x' || os[1] == 'X') {
+		return prefix + os
+	}
+
+	ns := strings.TrimLeft(os, "0")
+	if ns == "" {
+		return prefix + "0"
+	}
+
+	return prefix + ns
 }
 
 // Atoi : atoi, if fail return default value
 func Int64(a string, def int64) int64 {
-	a = strings.TrimLeftFunc(a, trimZero)
+	a = Prepare(a)
 	x, e := strconv.ParseInt(a, 0, 64)
 	if e != nil {
 		return def
@@ -21,7 +51,7 @@ func Int64(a string, def int64) int64 {
 
 // Atoi : atoi, if fail return default value
 func Uint64(a string, def uint64) uint64 {
-	a = strings.TrimLeftFunc(a, trimZero)
+	a = Prepare(a)
 	x, e := strconv.ParseUint(a, 0, 64)
 	if e != nil {
 		return def
