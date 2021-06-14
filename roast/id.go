@@ -39,7 +39,7 @@ func IDNxt(db *sql.DB, TableName string, where string) uint64 {
 		if num, err := strconv.ParseUint(UUID, 10, 64); err != nil {
 			return 1
 		} else {
-			klog.F("num: %s", num)
+			klog.F("num: %d", num)
 			return num + 1
 		}
 	}
