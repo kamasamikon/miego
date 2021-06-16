@@ -3,12 +3,39 @@ package misc
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"runtime"
 	"sync"
+	"time"
 
 	"crypto/md5"
 	"encoding/hex"
 )
+
+func Shuffle(slice []interface{}) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	for len(slice) > 0 {
+		n := len(slice)
+		randIndex := r.Intn(n)
+		slice[n-1], slice[randIndex] = slice[randIndex], slice[n-1]
+		slice = slice[:n-1]
+	}
+}
+
+func Shuffle2(slice []interface{}) []interface{} {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	for len(slice) > 0 {
+		n := len(slice)
+		randIndex := r.Intn(n)
+		slice[n-1], slice[randIndex] = slice[randIndex], slice[n-1]
+		slice = slice[:n-1]
+	}
+
+	newSlice := make([]interface{}, len(slice))
+	copy(newSlice, slice)
+
+	return newSlice
+}
 
 func MD5file(path string) string {
 	ctx := md5.New()

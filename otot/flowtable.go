@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var idIndex = 0
+
 type TD struct {
 	HTML     string
 	colspan  int
@@ -56,6 +58,10 @@ type FlowTable struct {
 }
 
 func FlowTableNew(ID string, Class string, Column int) *FlowTable {
+	if ID == "" {
+		ID = fmt.Sprintf("FTID_%d", idIndex)
+		idIndex++
+	}
 	return &FlowTable{
 		ID:     ID,
 		Class:  Class,

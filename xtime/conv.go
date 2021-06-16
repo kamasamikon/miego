@@ -30,7 +30,7 @@ func NumToStr(o interface{}) string {
 	return ""
 }
 
-func StrToNum(s string, flag byte) uint64 {
+func StrToNum(s string, flag byte) int64 {
 	var tmp string
 
 	for {
@@ -104,10 +104,10 @@ func StrToNum(s string, flag byte) uint64 {
 		tmp = tmp[0:14]
 	}
 
-	return atox.Uint64(tmp, 0)
+	return atox.Int64(tmp, 0)
 }
 
-func AnyToNum(g interface{}) uint64 {
+func AnyToNum(g interface{}) int64 {
 	stime := fmt.Sprintf("%v000000", g)
 
 	l := len(stime)

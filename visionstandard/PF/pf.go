@@ -1,6 +1,10 @@
 package pf
 
-import ()
+import (
+	"fmt"
+
+	"github.com/kamasamikon/miego/atox"
+)
 
 // 眼健康综合
 // 综合视力风险
@@ -26,7 +30,7 @@ func YiChuan(F string, M string) int {
 
 	iF := atox.Int(F, 0)
 	iM := atox.Int(M, 0)
-	score := -7.5*(iF+iM) + 100
+	score := 100 - (75 * (iF + iM) / 10)
 
 	if score < 0 {
 		score = 0
@@ -43,9 +47,14 @@ func YiChuan(F string, M string) int {
 // if (bmi < 22) score = 10 * bmi - 120
 // if (bmi < 18) score = 10
 
-// func BMI(Gender string, Age int, Weight int, Height int) int {
-func BMI(kg int) int {
+func BMI(Gender string, Age int, Weight string, Height string) int {
+	iWeight := atox.Int(Weight, 1)
+	iHeight := atox.Int(Height, 1)
 	// XXX: FIXME: 这里需要计算年龄、性别、体重、身高
+	bmi := iWeight / iHeight / iHeight
+
+	score := 0
+
 	if bmi >= 22 {
 		score = -10*bmi + 320
 	}
@@ -55,7 +64,6 @@ func BMI(kg int) int {
 	if bmi < 18 {
 		score = 10
 	}
-
 	return score
 }
 
@@ -73,8 +81,7 @@ func GuangZhao(hours string) int {
 	return int(score)
 }
 
-func SHILI(fSR string, Age int) int {
-
+func ShiLi(fSR string, Age int) int {
 	S4 := 60
 	S5 := 70
 	S6 := 80
@@ -85,7 +92,6 @@ func SHILI(fSR string, Age int) int {
 	S11 := 100
 
 	SR := int(atox.Float(fSR, 0) * 100)
-	klog.Dump(SR)
 
 	var Sx int
 
@@ -136,7 +142,6 @@ func SHILI(fSR string, Age int) int {
 // if (RR < R51) score = 90 - (R51 - RR) * 100
 func JMQL(fRR string, Age int) int {
 	RR := int(atox.Float(fRR, 0) * 100)
-	klog.Dump(RR)
 
 	var Rx1 int
 	var Rx2 int
@@ -144,28 +149,36 @@ func JMQL(fRR string, Age int) int {
 	score := 0
 	switch Age {
 	case 4:
-		Rx1 = S4
+		Rx1 = 4350
+		Rx2 = 4450
 
 	case 5:
-		Rx1 = S5
+		Rx1 = 4300
+		Rx2 = 4400
 
 	case 6:
-		Rx1 = S6
+		Rx1 = 4250
+		Rx2 = 4350
 
 	case 7:
-		Rx1 = S7
+		Rx1 = 4250
+		Rx2 = 4350
 
 	case 8:
-		Rx1 = S8
+		Rx1 = 4250
+		Rx2 = 4350
 
 	case 9:
-		Rx1 = S9
+		Rx1 = 4250
+		Rx2 = 4350
 
 	case 10:
-		Rx1 = S10
+		Rx1 = 4250
+		Rx2 = 4350
 
 	case 11:
-		Rx1 = S11
+		Rx1 = 4250
+		Rx2 = 4350
 	}
 
 	if RR >= Rx1 && RR <= Rx2 {
@@ -183,9 +196,8 @@ func JMQL(fRR string, Age int) int {
 
 // 屈光度球镜评分计算
 // 常数：Q41:=2 Q42:=3 Q51:=1.5 Q52:=2.5 Q61:=1 Q62:=2 Q71:=0.5 Q72:=1.5 Q81:=0 Q82:=1.0
-func QuGuangQiuJing(Gender string, Age int, Value string) (Result string, Hint string) {
-	SR := int(atox.Float(fSR, 0) * 100)
-	klog.Dump(SR)
+func QuGuangQiuJing(Gender string, Age int, fSR string) int {
+	QR := int(atox.Float(fSR, 0) * 100)
 
 	var Rx1 int
 	var Rx2 int
@@ -193,41 +205,51 @@ func QuGuangQiuJing(Gender string, Age int, Value string) (Result string, Hint s
 	score := 0
 	switch Age {
 	case 4:
-		Rx1 = S4
+		Rx1 = 200
+		Rx2 = 300
 
 	case 5:
-		Rx1 = S5
+		Rx1 = 150
+		Rx2 = 250
 
 	case 6:
-		Rx1 = S6
+		Rx1 = 100
+		Rx2 = 200
 
 	case 7:
-		Rx1 = S7
+		Rx1 = 50
+		Rx2 = 150
 
 	case 8:
-		Rx1 = S8
+		Rx1 = 0
+		Rx2 = 100
 
 	case 9:
-		Rx1 = S9
+		Rx1 = 0
+		Rx2 = 50
 
 	case 10:
-		Rx1 = S10
+		Rx1 = 0
+		Rx2 = 50
 
 	case 11:
-		Rx1 = S11
+		Rx1 = 0
+		Rx2 = 50
 	}
 
-	if QR >= Qx1 && QR <= Qx2 {
+	if QR >= Rx1 && QR <= Rx2 {
 		score = 90
 	}
 
-	if QR > Qx2 {
+	if QR > Rx2 {
 		score = 95
 	}
 
-	if QR < Qx1 {
-		score = 90 - (Qx1-QR)*100
+	if QR < Rx1 {
+		score = 90 - (Rx1-QR)*100
 	}
+
+	return score
 }
 
 /*

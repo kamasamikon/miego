@@ -56,6 +56,6 @@ func formatAsDate(t time.Time) string {
 }
 
 func ntimeToString(t string) string {
-	nt, _ := xtime.NumTimeToTime(atox.Uint64(t, 0))
+	nt, _ := xtime.NumTimeToTime(atox.Int64(t, 0))
 	return nt.Format("2006-01-02 15:04:05")
 }
