@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kamasamikon/miego/atox"
+	"github.com/kamasamikon/miego/klog"
 )
 
 // 眼健康综合
@@ -15,11 +16,41 @@ import (
 // 视力
 // 屈光
 
+// 眼压p，单位：mmHg
+// if (10 <= p <= 20) score = 100;
+// if (p < 10) score = 50 * p - 400;
+// if (p > 20) score = -50 * p + 1100;
+// if (score < 0) score = 0;
+func YanYa(vStr string) int {
+	vInt := int(atox.Float(vStr, 0))
+
+	var score int
+	if 10 <= vInt && vInt <= 20 {
+		score = 100
+	}
+	if vInt < 10 {
+		score = 50*vInt - 400
+	}
+	if vInt > 20 {
+		score = -50*vInt + 1100
+	}
+
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
+	}
+
+	return score
+}
+
 // 遗传评分计算
 // d1是父亲的屈光度，d2是母亲的屈光度
 // score = -7.5 * (d1 + d2) + 100；
 // if (score < 0) score = 0
 // if (score >100) score = 100
+// F/M: 度数
 func YiChuan(F string, M string) int {
 	if F == "" {
 		F = "0"
@@ -30,7 +61,7 @@ func YiChuan(F string, M string) int {
 
 	iF := atox.Int(F, 0)
 	iM := atox.Int(M, 0)
-	score := 100 - (75 * (iF + iM) / 10)
+	score := 100 - (75 * (iF + iM) / 100 / 10)
 
 	if score < 0 {
 		score = 0
@@ -50,8 +81,11 @@ func YiChuan(F string, M string) int {
 func BMI(Gender string, Age int, Weight string, Height string) int {
 	iWeight := atox.Int(Weight, 1)
 	iHeight := atox.Int(Height, 1)
+	klog.Dump(iWeight)
+	klog.Dump(iHeight)
 	// XXX: FIXME: 这里需要计算年龄、性别、体重、身高
-	bmi := iWeight / iHeight / iHeight
+	bmi := iWeight * 10000 / iHeight / iHeight
+	klog.Dump(bmi)
 
 	score := 0
 
@@ -64,6 +98,14 @@ func BMI(Gender string, Age int, Weight string, Height string) int {
 	if bmi < 18 {
 		score = 10
 	}
+
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
+	}
+
 	return score
 }
 
@@ -75,13 +117,17 @@ func GuangZhao(hours string) int {
 
 	score := 0.5*sun + 30
 
+	if score < 0 {
+		score = 0
+	}
 	if score > 100 {
 		score = 100
 	}
+
 	return int(score)
 }
 
-func ShiLi(fSR string, Age int) int {
+func ShiLi(vStr string, Age int) int {
 	S4 := 60
 	S5 := 70
 	S6 := 80
@@ -91,43 +137,50 @@ func ShiLi(fSR string, Age int) int {
 	S10 := 100
 	S11 := 100
 
-	SR := int(atox.Float(fSR, 0) * 100)
+	vInt := int(atox.Float(vStr, 0) * 100)
 
-	var Sx int
+	var x int
 
 	score := 0
 	switch Age {
 	case 4:
-		Sx = S4
+		x = S4
 
 	case 5:
-		Sx = S5
+		x = S5
 
 	case 6:
-		Sx = S6
+		x = S6
 
 	case 7:
-		Sx = S7
+		x = S7
 
 	case 8:
-		Sx = S8
+		x = S8
 
 	case 9:
-		Sx = S9
+		x = S9
 
 	case 10:
-		Sx = S10
+		x = S10
 
 	case 11:
-		Sx = S11
+		x = S11
 	}
 
-	if SR >= Sx {
+	if vInt >= x {
 		score = 90
 	}
 
-	if SR < Sx {
-		score = 90 - (SR-Sx)*200
+	if vInt < x {
+		score = 90 - (vInt-x)*200
+	}
+
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
 	}
 
 	return score
@@ -140,115 +193,140 @@ func ShiLi(fSR string, Age int) int {
 // if (RR >= R51 && RR <= R52) score = 90
 // if (RR > R52) score = 95
 // if (RR < R51) score = 90 - (R51 - RR) * 100
-func JMQL(fRR string, Age int) int {
-	RR := int(atox.Float(fRR, 0) * 100)
+func JMQL(vStr string, Age int) int {
+	vInt := int(atox.Float(vStr, 0) * 100)
 
-	var Rx1 int
-	var Rx2 int
+	var x1 int
+	var x2 int
 
 	score := 0
 	switch Age {
 	case 4:
-		Rx1 = 4350
-		Rx2 = 4450
+		x1 = 4350
+		x2 = 4450
 
 	case 5:
-		Rx1 = 4300
-		Rx2 = 4400
+		x1 = 4300
+		x2 = 4400
 
 	case 6:
-		Rx1 = 4250
-		Rx2 = 4350
+		x1 = 4250
+		x2 = 4350
 
 	case 7:
-		Rx1 = 4250
-		Rx2 = 4350
+		x1 = 4250
+		x2 = 4350
 
 	case 8:
-		Rx1 = 4250
-		Rx2 = 4350
+		x1 = 4250
+		x2 = 4350
 
 	case 9:
-		Rx1 = 4250
-		Rx2 = 4350
+		x1 = 4250
+		x2 = 4350
 
 	case 10:
-		Rx1 = 4250
-		Rx2 = 4350
+		x1 = 4250
+		x2 = 4350
 
 	case 11:
-		Rx1 = 4250
-		Rx2 = 4350
+		x1 = 4250
+		x2 = 4350
 	}
 
-	if RR >= Rx1 && RR <= Rx2 {
+	klog.D("vInt:%d, x1:%d, x2:%d", vInt, x1, x2)
+	if vInt >= x1 && vInt <= x2 {
 		score = 90
 	}
-	if RR > Rx2 {
+	if vInt > x2 {
 		score = 95
 	}
-	if RR < Rx1 {
-		score = 90 - (Rx1-RR)*100
+	if vInt < x1 {
+		score = 90 - (x1-vInt)/100*100
+	}
+
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
 	}
 
 	return score
 }
 
-// 屈光度球镜评分计算
-// 常数：Q41:=2 Q42:=3 Q51:=1.5 Q52:=2.5 Q61:=1 Q62:=2 Q71:=0.5 Q72:=1.5 Q81:=0 Q82:=1.0
-func QuGuangQiuJing(Gender string, Age int, fSR string) int {
-	QR := int(atox.Float(fSR, 0) * 100)
+// 常数：Q41=2 Q42=3 Q51=1.5 Q52=2.5 Q61=1 Q62=2 Q71=0.5 Q72=1.5 Q81=0 Q82=1.0
+// Q91=0 Q92=0.5 Qa1=0 Qa2=0.5 Qb1=0 Qb2=0.5
+// 对于x岁孩子，屈光度球镜测得为Qr，通过与Qx进行对比计算：
+// 5岁孩子，屈光度球镜为2，得分score计算
+// if (QR >= Q51 && QR <= Q52) score = 90;
+// if (QR > Q52) score = 95;
+// if (QR < Q51) score = 90 - (Q51 - QR) * 100;
+func QuGuangQiuJing(Gender string, Age int, vStr string) int {
+	vInt := int(atox.Float(vStr, 0) * 100)
 
-	var Rx1 int
-	var Rx2 int
+	var x1 int
+	var x2 int
 
 	score := 0
 	switch Age {
 	case 4:
-		Rx1 = 200
-		Rx2 = 300
+		x1 = 200
+		x2 = 300
 
 	case 5:
-		Rx1 = 150
-		Rx2 = 250
+		x1 = 150
+		x2 = 250
 
 	case 6:
-		Rx1 = 100
-		Rx2 = 200
+		x1 = 100
+		x2 = 200
 
 	case 7:
-		Rx1 = 50
-		Rx2 = 150
+		x1 = 50
+		x2 = 150
 
 	case 8:
-		Rx1 = 0
-		Rx2 = 100
+		x1 = 0
+		x2 = 100
 
 	case 9:
-		Rx1 = 0
-		Rx2 = 50
+		x1 = 0
+		x2 = 50
 
 	case 10:
-		Rx1 = 0
-		Rx2 = 50
+		x1 = 0
+		x2 = 50
 
 	case 11:
-		Rx1 = 0
-		Rx2 = 50
+		x1 = 0
+		x2 = 50
 	}
 
-	if QR >= Rx1 && QR <= Rx2 {
+	klog.D("vInt:%d, x1:%d, x2:%d", vInt, x1, x2)
+	if vInt >= x1 && vInt <= x2 {
+		klog.D("")
 		score = 90
 	}
 
-	if QR > Rx2 {
+	if vInt > x2 {
+		klog.D("")
 		score = 95
 	}
 
-	if QR < Rx1 {
-		score = 90 - (Rx1-QR)*100
+	if vInt < x1 {
+		klog.D("")
+		score = 90 - (x1-vInt)/100*100
 	}
 
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
+	}
+
+	klog.D("%d", score)
 	return score
 }
 
@@ -308,7 +386,6 @@ func JianYi(ShiLiZongHe int, JinShiFengXian int, YiChuan int, GuangZhao int, BMI
 		A = "比较好"
 	} else {
 		A = "不理想"
-
 	}
 
 	if JinShiFengXian >= 3 {
@@ -320,7 +397,7 @@ func JianYi(ShiLiZongHe int, JinShiFengXian int, YiChuan int, GuangZhao int, BMI
 	if YiChuan >= 60 {
 		C = "没有"
 	} else {
-		B = "有"
+		C = "有"
 	}
 
 	if JinShiFengXian >= 3 {
@@ -332,9 +409,7 @@ func JianYi(ShiLiZongHe int, JinShiFengXian int, YiChuan int, GuangZhao int, BMI
 	if GuangZhao >= 80 {
 		E = "请坚持充足的白天户外活动"
 	} else {
-
 		E = "请加强白天户外活动，保证每天至少两个小时的白天户外活动"
-
 	}
 
 	if BMI >= 70 {
@@ -349,4 +424,153 @@ func JianYi(ShiLiZongHe int, JinShiFengXian int, YiChuan int, GuangZhao int, BMI
 		s,
 		A, B, C, D, E, F, G,
 	)
+}
+
+func YanZhouChangDu(Gender string, Age int, vStr string) int {
+	vInt := int(atox.Float(vStr, 0))
+
+	// var x0 int
+	var x1 int
+	var x2 int
+
+	if Gender == "0" {
+		// 女
+		switch Age {
+		case 4:
+			x1 = 2206
+			x2 = 2213
+
+		case 5:
+			x1 = 2340
+			x2 = 2346
+
+		case 6:
+			x1 = 2371
+			x2 = 2378
+
+		case 7:
+			x1 = 2292
+			x2 = 2309
+
+		case 8:
+			x1 = 2318
+			x2 = 2334
+
+		case 9:
+			x1 = 2352
+			x2 = 2361
+
+		case 10:
+			x1 = 2352
+			x2 = 2387
+
+		case 11:
+			x1 = 2352
+			x2 = 2407
+
+		}
+
+	} else {
+		// 男
+
+		switch Age {
+		case 4:
+			x1 = 2267
+			x2 = 2270
+
+		case 5:
+
+			x1 = 2303
+			x2 = 2305
+
+		case 6:
+
+			x1 = 2333
+			x2 = 2337
+
+		case 7:
+
+			x1 = 2350
+			x2 = 2367
+
+		case 8:
+
+			x1 = 2370
+			x2 = 2390
+
+		case 9:
+
+			x1 = 2401
+			x2 = 2413
+
+		case 10:
+
+			x1 = 2401
+			x2 = 2440
+
+		case 11:
+
+			x1 = 2401
+			x2 = 2441
+		}
+
+	}
+
+	if vInt < x1 {
+		return 20
+	}
+	if vInt > x2 {
+		return 90
+	}
+	return (vInt-x1)/(x2-x1)*7/10 + 20
+
+	/*
+
+		var s int // score
+		x0 = 2*x1 - x2
+
+		x := 20 // 超过某岁的天数
+
+		yc0 := y40 + (y50-y40)*x/365 // 正常
+		yc1 := y41 + (y51-y41)*x/365 // 低危
+		yc2 := y42 + (y52-y42)*x/365 // 高危
+
+		MS := 90
+		MG := 50
+		MB := 20
+
+		if yr < yc0 {
+			s = MS + (MS-MG)*(yc0-yr)/(yc1-yc0)
+		}
+		if s > 100 {
+			s = 100
+		}
+
+		if yr == yc0 {
+			s = MS
+		}
+
+		if yr > yc0 && yr < yc1 {
+			s = MS - (MS-MG)*(yr-yc0)/(yc1-yc0)
+		}
+
+		if yr == yc1 {
+			s = MG
+		}
+
+		if yr > yc1 && yr < yc2 {
+			s = MG - (MG-MB)*(yr-yc1)/(yc2-yc1)
+		}
+
+		if yr == yc2 {
+			s = MB
+		}
+
+		if yr > yc2 {
+			s = MB - (MG-MB)*(yr-yc2)/(yc2-yc1)
+		}
+		if s < 0 {
+			s = 0
+		}
+	*/
 }
