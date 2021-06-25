@@ -122,8 +122,13 @@ func (s *KService) programRun() {
 			klog.D("SERVICE RUN: %s, URL: http://%s/ms/%s/%s", exePath, msbHost, s.ServiceName, s.Version)
 			err := cmd.Run()
 			if err != nil {
-				klog.E("SERVICE ERROR EXIT: %s", err.Error())
+				klog.E("cmd.Run ERROR: %s", err.Error())
 				time.Sleep(time.Second * waitNG)
+				if cmd.Process != nil {
+					if err := cmd.Process.Kill(); err != nil {
+						klog.E("cmd.Kill ERROR: %s", err.Error())
+					}
+				}
 			} else {
 				nsAfter := time.Now().UnixNano()
 

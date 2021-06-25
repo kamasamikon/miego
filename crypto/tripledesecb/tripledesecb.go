@@ -3,6 +3,7 @@ package tripledesecb
 import (
 	"bytes"
 	"crypto/des"
+	"encoding/hex"
 	"errors"
 )
 
@@ -119,4 +120,23 @@ func Decrypt(crypted, key []byte) ([]byte, error) {
 	}
 	out = PKCS5Unpadding(out)
 	return out, nil
+}
+
+func Jia(dat string, key string) string {
+	bDat := []byte(dat)
+	bKey := []byte(key)
+	if out, err := Encrypt(bDat, bKey); err != nil {
+		return ""
+	} else {
+		return hex.EncodeToString(out)
+	}
+}
+func Jie(dat string, key string) string {
+	bDat, _ := hex.DecodeString(dat)
+	bKey := []byte(key)
+	if out, err := Decrypt(bDat, bKey); err != nil {
+		return ""
+	} else {
+		return string(out)
+	}
 }
