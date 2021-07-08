@@ -1,20 +1,29 @@
 package klogin
 
 import (
+	"fmt"
 	"os"
+	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
-	"github.com/twinj/uuid"
 
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xgin"
 	"github.com/kamasamikon/miego/xmap"
 )
 
-type KLogin struct {
+type Login interface {
+	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
+	BeforeLogin(c *gin.Context) (StatusCode int, PageName string, PageParam xmap.Map)
+	LoginDataChecker(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, err error)
+
+	LoginRouter() []string
+	LogoutRouter() []string
+}
+
+type LoginCenter struct {
 	Gin *gin.Engine
 
 	//
@@ -24,56 +33,79 @@ type KLogin struct {
 	Session     gin.HandlerFunc
 
 	//
-	// Login
-	//
-
-	// Login OK
-	LoginRouter []string // default: /login
-
-	//
-	// Logout
-	//
-
-	// Logout OK
-	LogoutRouter []string // default: /logout
-
-	//
-	// Call this to verify the login parameters
-	//
-	LoginDataChecker func(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, err error)
-
-	BeforeLogin  func(c *gin.Context) (StatusCode int, LoginPageName string, LoginPageParam xmap.Map)
-	BeforeLogout func(c *gin.Context) (LogoutRedirectURL string)
-
-	//
 	// Before and After check.
 	//
 	BCheckerList []func(h gin.HandlerFunc) gin.HandlerFunc
 	ACheckerList []func(h gin.HandlerFunc) gin.HandlerFunc
+
+	//
+	// Router VS LoginType
+	//
+	// "/wx/xxx" => "wx"
+	// "/user" => "ht"
+	//
+	MapRouterVsLogin map[string]string
+	MapLogin         map[string]Login
 }
 
-func (o *KLogin) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
+func (o *LoginCenter) Register(Type string, login Login) {
+	klog.W("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+	o.MapLogin[Type] = login
+}
+
+func (o *LoginCenter) SetLoginType(LoginType string, Method string, fullPath string) {
+	Key := fmt.Sprintf("%s@%s", Method, fullPath)
+	o.MapRouterVsLogin[Key] = LoginType
+}
+
+func (o *LoginCenter) GetLoginType(c *gin.Context) string {
+	Method := c.Request.Method
+	fullPath := c.FullPath()
+
+	Key := fmt.Sprintf("%s@%s", Method, fullPath)
+	LoginType, _ := o.MapRouterVsLogin[Key]
+	klog.D("Method:%s, fullPath:%s, LoginType:%s", Method, fullPath, LoginType)
+	return LoginType
+}
+
+func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		UUID := session.Get("UUID")
-		if UUID != nil {
-			h(c)
-			return
+
+		klog.W("BBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+
+		// klog.Dump(o)
+		LoginType := o.GetLoginType(c)
+		klog.D("LoginType: %s", LoginType)
+		if LoginType != "" {
+			Type := session.Get(LoginType)
+			klog.D("Session.LoginType: %v", Type)
+			if Type != nil {
+				c.Set("LoginType", LoginType)
+				h(c)
+				return
+			}
 		}
 
-		// Return Status or Login page
-		StatusCode, LoginPageName, LoginPageParam := o.BeforeLogin(c)
-		if LoginPageName == "" {
-			klog.D("IsLoggin: NG: JSON: %s", spew.Sdump(LoginPageParam))
-			c.JSON(StatusCode, LoginPageParam)
-		} else {
-			klog.D("IsLoggin: NG: HTML: %s", spew.Sdump(LoginPageParam))
-			c.HTML(StatusCode, LoginPageName, LoginPageParam)
+		l := o.MapLogin[LoginType]
+		klog.Dump(l)
+		if l != nil {
+			c.Set("LoginType", LoginType)
+
+			// Return Status or Login page
+			StatusCode, LoginPageName, LoginPageParam := l.BeforeLogin(c)
+			if LoginPageName == "" {
+				klog.Dump(LoginPageParam, "IsLoggin: NG: JSON")
+				c.JSON(StatusCode, LoginPageParam)
+			} else {
+				klog.Dump(LoginPageParam, "IsLoggin: NG: HTML")
+				c.HTML(StatusCode, LoginPageName, LoginPageParam)
+			}
 		}
 	}
 }
 
-func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
+func (o *LoginCenter) Get(c *gin.Context, key string) (string, bool) {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
 		session := s.(sessions.Session)
 		if val := session.Get(key); val == nil {
@@ -86,53 +118,77 @@ func (o *KLogin) Get(c *gin.Context, key string) (string, bool) {
 	}
 }
 
-func (o *KLogin) Set(c *gin.Context, key string, val interface{}) {
+func (o *LoginCenter) Set(c *gin.Context, key string, val interface{}) {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
 		session := s.(sessions.Session)
 		session.Set(key, val)
 	}
 }
 
-func (o *KLogin) Save(c *gin.Context) {
+func (o *LoginCenter) Save(c *gin.Context) {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
 		session := s.(sessions.Session)
 		session.Save()
 	}
 }
 
-func (o *KLogin) doLogin(c *gin.Context) {
+func (o *LoginCenter) doLogin(c *gin.Context) {
+	klog.W("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	session := sessions.Default(c)
 
-	sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := o.LoginDataChecker(c)
-	if err == nil {
-		for k, v := range sessionItems {
-			session.Set(k, v)
+	// 问题：调用了 /wx/login 后，不知道对应了那个LoginType
+	Method := c.Request.Method
+	fullPath := c.FullPath()
+	Key := fmt.Sprintf("%s@%s", Method, fullPath)
+	LoginType := o.MapRouterVsLogin[Key]
+	klog.D("Key: %s", Key)
+	klog.D("LoginType: %s", LoginType)
+	l := o.MapLogin[LoginType]
+	klog.Dump(l)
+	if l != nil {
+		sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := l.LoginDataChecker(c)
+		if err == nil {
+			for k, v := range sessionItems {
+				session.Set(k, v)
+			}
+
+			LoginType := o.GetLoginType(c)
+			klog.Dump(sessionItems, "ssssssssssssssss")
+			session.Set(LoginType, time.Now().Format("2006-01-02 15:04:05"))
+			session.Save()
+
+			c.Redirect(302, OKRedirectURL)
+		} else {
+			session.Clear()
+			session.Save()
+
+			c.HTML(200, NGPageName, NGPageParam)
 		}
-
-		session.Set("UUID", uuid.NewV4().String())
-		session.Save()
-
-		c.Redirect(302, OKRedirectURL)
-	} else {
-		session.Clear()
-		session.Save()
-
-		c.HTML(200, NGPageName, NGPageParam)
 	}
 }
 
-func (o *KLogin) doLogout(c *gin.Context) {
+func (o *LoginCenter) doLogout(c *gin.Context) {
 	session := sessions.Default(c)
 
-	LogoutRedirectURL := o.BeforeLogout(c)
-	session.Clear()
-	session.Save()
-	c.Redirect(302, LogoutRedirectURL)
+	LoginType := o.GetLoginType(c)
+	l := o.MapLogin[LoginType]
+	if l != nil {
+		LogoutRedirectURL := l.BeforeLogout(c)
+		session.Delete(LoginType)
+		session.Save()
+		c.Redirect(302, LogoutRedirectURL)
+	}
 }
 
-func (o *KLogin) Setup(Gin *gin.Engine) {
+func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
+	klog.F("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+	if o.Gin != nil {
+		return
+	}
+
 	// Gin
 	o.Gin = Gin
+	o.SessionName = SessionName
 
 	// Redis/Session
 	redisHost := os.Getenv("DOCKER_GATEWAY")
@@ -145,26 +201,31 @@ func (o *KLogin) Setup(Gin *gin.Engine) {
 	o.Session = sessions.Sessions(o.SessionName, store)
 	Gin.Use(o.Session)
 
-	// Routers
-	if o.LoginRouter == nil {
-		Gin.POST("/login", o.doLogin)
-		Gin.GET("/login", o.doLogin)
-	} else {
-		for _, r := range o.LoginRouter {
-			Gin.POST(r, o.doLogin)
-			Gin.GET(r, o.doLogin)
+	var Key string
+	for LoginType, l := range o.MapLogin {
+		klog.Dump(l)
+		for _, URL := range l.LoginRouter() {
+			klog.D("AA URL: %s", URL)
+
+			Key = fmt.Sprintf("%s@%s", "GET", URL)
+			o.MapRouterVsLogin[Key] = LoginType
+			Key = fmt.Sprintf("%s@%s", "POST", URL)
+			o.MapRouterVsLogin[Key] = LoginType
+
+			o.Gin.POST(URL, o.doLogin)
+			o.Gin.GET(URL, o.doLogin)
 		}
-	}
-	if o.LogoutRouter == nil {
-		Gin.GET("/logout", o.doLogout)
-	} else {
-		for _, r := range o.LogoutRouter {
-			Gin.GET(r, o.doLogout)
+		for _, URL := range l.LogoutRouter() {
+			klog.D("BB URL: %s", URL)
+			o.Gin.POST(URL, o.doLogout)
+			o.Gin.GET(URL, o.doLogout)
 		}
 	}
 }
 
-func (o *KLogin) POST(relativePath string, handler gin.HandlerFunc) {
+func (o *LoginCenter) POST(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	o.SetLoginType(LoginType, "POST", relativePath)
+
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
 	if o.BCheckerList != nil {
 		decors = append(decors, o.BCheckerList...)
@@ -173,9 +234,12 @@ func (o *KLogin) POST(relativePath string, handler gin.HandlerFunc) {
 	if o.ACheckerList != nil {
 		decors = append(decors, o.ACheckerList...)
 	}
+
 	o.Gin.POST(relativePath, xgin.Decorator(handler, decors...))
 }
-func (o *KLogin) GET(relativePath string, handler gin.HandlerFunc) {
+func (o *LoginCenter) GET(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	o.SetLoginType(LoginType, "GET", relativePath)
+
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
 	if o.BCheckerList != nil {
 		decors = append(decors, o.BCheckerList...)
@@ -187,7 +251,9 @@ func (o *KLogin) GET(relativePath string, handler gin.HandlerFunc) {
 
 	o.Gin.GET(relativePath, xgin.Decorator(handler, decors...))
 }
-func (o *KLogin) PUT(relativePath string, handler gin.HandlerFunc) {
+func (o *LoginCenter) PUT(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	o.SetLoginType(LoginType, "PUT", relativePath)
+
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
 	if o.BCheckerList != nil {
 		decors = append(decors, o.BCheckerList...)
@@ -199,7 +265,9 @@ func (o *KLogin) PUT(relativePath string, handler gin.HandlerFunc) {
 
 	o.Gin.PUT(relativePath, xgin.Decorator(handler, decors...))
 }
-func (o *KLogin) DELETE(relativePath string, handler gin.HandlerFunc) {
+func (o *LoginCenter) DELETE(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	o.SetLoginType(LoginType, "DELETE", relativePath)
+
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
 	if o.BCheckerList != nil {
 		decors = append(decors, o.BCheckerList...)
@@ -210,4 +278,12 @@ func (o *KLogin) DELETE(relativePath string, handler gin.HandlerFunc) {
 	}
 
 	o.Gin.DELETE(relativePath, xgin.Decorator(handler, decors...))
+}
+
+var Default *LoginCenter
+
+func init() {
+	Default = &LoginCenter{}
+	Default.MapRouterVsLogin = make(map[string]string)
+	Default.MapLogin = make(map[string]Login)
 }
