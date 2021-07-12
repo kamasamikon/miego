@@ -74,9 +74,7 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		LoginType := o.GetLoginType(c)
 		c.Set("LoginType", LoginType)
 		if LoginType != "" {
-			klog.E("保存登录类型 %s 是否存在?", LoginType)
 			Type := session.Get(LoginType)
-			klog.D("Session.LoginType: %v", Type)
 			if Type != nil {
 				segs := strings.Split(Type.(string), ";")
 				for _, s := range segs {
@@ -89,7 +87,6 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		}
 
 		l := o.MapLogin[LoginType]
-		klog.Dump(l)
 		if l != nil {
 			c.Set("LoginType", LoginType)
 
@@ -108,9 +105,10 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 
 func (o *LoginCenter) Get(c *gin.Context, key string) string {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
-		session := s.(sessions.Session)
-		if val := session.Get(key); val != nil {
-			return val.(string)
+		if session := s.(sessions.Session); session != nil {
+			if val := session.Get(key); val != nil {
+				return val.(string)
+			}
 		}
 	}
 	return ""
@@ -118,15 +116,17 @@ func (o *LoginCenter) Get(c *gin.Context, key string) string {
 
 func (o *LoginCenter) Set(c *gin.Context, key string, val interface{}) {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
-		session := s.(sessions.Session)
-		session.Set(key, val)
+		if session := s.(sessions.Session); session != nil {
+			session.Set(key, val)
+		}
 	}
 }
 
 func (o *LoginCenter) Save(c *gin.Context) {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
-		session := s.(sessions.Session)
-		session.Save()
+		if session := s.(sessions.Session); session != nil {
+			session.Save()
+		}
 	}
 }
 
@@ -134,24 +134,17 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 	session := sessions.Default(c)
 
 	LoginType := o.GetLoginType(c)
-	klog.D("LoginType: %s", LoginType)
 
 	l := o.MapLogin[LoginType]
 	if l != nil {
 		sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := l.LoginDataChecker(c)
 		if err == nil {
-			klog.Dump(LoginType)
-			klog.Dump(sessionItems)
-
 			var Keys []string
 			for k, v := range sessionItems {
 				session.Set(k, v)
 				Keys = append(Keys, k)
 			}
-
-			klog.E("登录成功，保存登录类型 %s", LoginType)
 			session.Set(LoginType, strings.Join(Keys, ";"))
-
 			session.Save()
 
 			c.Redirect(302, OKRedirectURL)
