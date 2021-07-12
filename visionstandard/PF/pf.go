@@ -42,6 +42,11 @@ func YanYa(vStr string) int {
 		score = 100
 	}
 
+	// XXX
+	if score < 10 {
+		score = 10
+	}
+
 	return score
 }
 
@@ -68,6 +73,11 @@ func YiChuan(F string, M string) int {
 	}
 	if score > 100 {
 		score = 100
+	}
+
+	// XXX
+	if score < 10 {
+		score = 10
 	}
 
 	return int(score)
@@ -106,6 +116,11 @@ func BMI(Gender string, Age int, Weight string, Height string) int {
 		score = 100
 	}
 
+	// XXX
+	if score < 10 {
+		score = 10
+	}
+
 	return score
 }
 
@@ -122,6 +137,11 @@ func GuangZhao(hours string) int {
 	}
 	if score > 100 {
 		score = 100
+	}
+
+	// XXX
+	if score < 10 {
+		score = 10
 	}
 
 	return int(score)
@@ -181,6 +201,11 @@ func ShiLi(vStr string, Age int) int {
 	}
 	if score > 100 {
 		score = 100
+	}
+
+	// XXX
+	if score < 10 {
+		score = 10
 	}
 
 	return score
@@ -250,6 +275,11 @@ func JMQL(vStr string, Age int) int {
 	}
 	if score > 100 {
 		score = 100
+	}
+
+	// XXX
+	if score < 10 {
+		score = 10
 	}
 
 	return score
@@ -324,6 +354,11 @@ func QuGuangQiuJing(Gender string, Age int, vStr string) int {
 	}
 	if score > 100 {
 		score = 100
+	}
+
+	// XXX
+	if score < 10 {
+		score = 10
 	}
 
 	klog.D("%d", score)
@@ -522,7 +557,15 @@ func YanZhouChangDu(Gender string, Age int, vStr string) int {
 	if vInt > x2 {
 		return 90
 	}
-	return (vInt-x1)/(x2-x1)*7/10 + 20
+
+	score := (vInt-x1)/(x2-x1)*7/10 + 20
+
+	// XXX
+	if score < 10 {
+		score = 10
+	}
+
+	return score
 
 	/*
 

@@ -117,7 +117,7 @@ func init() {
 				for _, x := range Default.Routes() {
 					lines = append(lines, fmt.Sprintf("| %s | %s |", x.Method, x.Path))
 				}
-				html := fmt.Sprintf(page.Markdown, strings.Join(lines, "\\n"))
+				html := page.Markdown("", "", strings.Join(lines, "\\n"))
 				c.Data(200, "text/html", []byte(html))
 			} else {
 				var routers []gin.H

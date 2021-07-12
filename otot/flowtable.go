@@ -1,7 +1,9 @@
 package otot
 
 import (
+	"encoding/base64"
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -276,7 +278,7 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 	return &item
 }
 
-func (ft *FlowTable) Gen() string {
+func (ft *FlowTable) Gen(b64 bool) string {
 	var lines []string
 
 	lines = append(lines, fmt.Sprintf(`<table id="%s" class="table is-fullwidth is-narrow %s">`, ft.ID, ft.Class))
@@ -319,5 +321,13 @@ func (ft *FlowTable) Gen() string {
 	lines = append(lines, "</tbody>")
 	lines = append(lines, "</table>")
 
-	return strings.Join(lines, "\n")
+	html := strings.Join(lines, "\n")
+
+	if b64 {
+		html := url.QueryEscape(html)
+		html = strings.Replace(html, "+", "%20", -1)
+		return base64.StdEncoding.EncodeToString([]byte(html))
+	} else {
+		return html
+	}
 }

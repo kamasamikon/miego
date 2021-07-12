@@ -3,7 +3,7 @@ package klogin
 import (
 	"fmt"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
@@ -41,15 +41,14 @@ type LoginCenter struct {
 	//
 	// Router VS LoginType
 	//
-	// "/wx/xxx" => "wx"
-	// "/user" => "ht"
+	// "GET@/wx/xxx" => "wx"
+	// "POST@/user/add" => "ht"
 	//
-	MapRouterVsLogin map[string]string
-	MapLogin         map[string]Login
+	MapRouterVsLogin map[string]string // Method@Path => LoginType
+	MapLogin         map[string]Login  // LoginType => LoginConfigure
 }
 
 func (o *LoginCenter) Register(Type string, login Login) {
-	klog.W("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
 	o.MapLogin[Type] = login
 }
 
@@ -64,7 +63,7 @@ func (o *LoginCenter) GetLoginType(c *gin.Context) string {
 
 	Key := fmt.Sprintf("%s@%s", Method, fullPath)
 	LoginType, _ := o.MapRouterVsLogin[Key]
-	klog.D("Method:%s, fullPath:%s, LoginType:%s", Method, fullPath, LoginType)
+	klog.D("Method:%s fullPath:%s LoginType:%s", Method, fullPath, LoginType)
 	return LoginType
 }
 
@@ -72,16 +71,18 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 
-		klog.W("BBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-
-		// klog.Dump(o)
 		LoginType := o.GetLoginType(c)
-		klog.D("LoginType: %s", LoginType)
+		c.Set("LoginType", LoginType)
 		if LoginType != "" {
+			klog.E("保存登录类型 %s 是否存在?", LoginType)
 			Type := session.Get(LoginType)
 			klog.D("Session.LoginType: %v", Type)
 			if Type != nil {
-				c.Set("LoginType", LoginType)
+				segs := strings.Split(Type.(string), ";")
+				for _, s := range segs {
+					v := session.Get(s)
+					klog.E("%20s = %v", s, v)
+				}
 				h(c)
 				return
 			}
@@ -105,17 +106,14 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 	}
 }
 
-func (o *LoginCenter) Get(c *gin.Context, key string) (string, bool) {
+func (o *LoginCenter) Get(c *gin.Context, key string) string {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
 		session := s.(sessions.Session)
-		if val := session.Get(key); val == nil {
-			return "", false
-		} else {
-			return val.(string), true
+		if val := session.Get(key); val != nil {
+			return val.(string)
 		}
-	} else {
-		return "", false
 	}
+	return ""
 }
 
 func (o *LoginCenter) Set(c *gin.Context, key string, val interface{}) {
@@ -133,33 +131,32 @@ func (o *LoginCenter) Save(c *gin.Context) {
 }
 
 func (o *LoginCenter) doLogin(c *gin.Context) {
-	klog.W("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	session := sessions.Default(c)
 
-	// 问题：调用了 /wx/login 后，不知道对应了那个LoginType
-	Method := c.Request.Method
-	fullPath := c.FullPath()
-	Key := fmt.Sprintf("%s@%s", Method, fullPath)
-	LoginType := o.MapRouterVsLogin[Key]
-	klog.D("Key: %s", Key)
+	LoginType := o.GetLoginType(c)
 	klog.D("LoginType: %s", LoginType)
+
 	l := o.MapLogin[LoginType]
-	klog.Dump(l)
 	if l != nil {
 		sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := l.LoginDataChecker(c)
 		if err == nil {
+			klog.Dump(LoginType)
+			klog.Dump(sessionItems)
+
+			var Keys []string
 			for k, v := range sessionItems {
 				session.Set(k, v)
+				Keys = append(Keys, k)
 			}
 
-			LoginType := o.GetLoginType(c)
-			klog.Dump(sessionItems, "ssssssssssssssss")
-			session.Set(LoginType, time.Now().Format("2006-01-02 15:04:05"))
+			klog.E("登录成功，保存登录类型 %s", LoginType)
+			session.Set(LoginType, strings.Join(Keys, ";"))
+
 			session.Save()
 
 			c.Redirect(302, OKRedirectURL)
 		} else {
-			session.Clear()
+			session.Delete(LoginType)
 			session.Save()
 
 			c.HTML(200, NGPageName, NGPageParam)
@@ -174,14 +171,15 @@ func (o *LoginCenter) doLogout(c *gin.Context) {
 	l := o.MapLogin[LoginType]
 	if l != nil {
 		LogoutRedirectURL := l.BeforeLogout(c)
+
 		session.Delete(LoginType)
 		session.Save()
+
 		c.Redirect(302, LogoutRedirectURL)
 	}
 }
 
 func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
-	klog.F("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
 	if o.Gin != nil {
 		return
 	}
@@ -203,10 +201,7 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
 
 	var Key string
 	for LoginType, l := range o.MapLogin {
-		klog.Dump(l)
 		for _, URL := range l.LoginRouter() {
-			klog.D("AA URL: %s", URL)
-
 			Key = fmt.Sprintf("%s@%s", "GET", URL)
 			o.MapRouterVsLogin[Key] = LoginType
 			Key = fmt.Sprintf("%s@%s", "POST", URL)
@@ -216,7 +211,11 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
 			o.Gin.GET(URL, o.doLogin)
 		}
 		for _, URL := range l.LogoutRouter() {
-			klog.D("BB URL: %s", URL)
+			Key = fmt.Sprintf("%s@%s", "GET", URL)
+			o.MapRouterVsLogin[Key] = LoginType
+			Key = fmt.Sprintf("%s@%s", "POST", URL)
+			o.MapRouterVsLogin[Key] = LoginType
+
 			o.Gin.POST(URL, o.doLogout)
 			o.Gin.GET(URL, o.doLogout)
 		}

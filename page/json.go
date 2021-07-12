@@ -6,14 +6,13 @@ import (
 	"strings"
 )
 
-var Json = `
-
+var jsTempl = `
 <!doctype html>
 <html>
 
 <head>
     <meta charset="utf-8" />
-    <title>JSON</title>
+    <title>%s</title>
 
     <style>
     pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
@@ -59,15 +58,18 @@ var Json = `
 </html>
 `
 
-func JsonHTML(obj interface{}) ([]byte, error) {
+func JSON(title string, obj interface{}) ([]byte, error) {
 	bytes, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
 	}
 
+	if title == "" {
+		title = "json"
+	}
+
 	formated := string(bytes)
 	formated = strings.Replace(formated, "\r", "\\r", -1)
 	formated = strings.Replace(formated, "\n", "\\n", -1)
-	return []byte(fmt.Sprintf(Json, formated)), nil
-
+	return []byte(fmt.Sprintf(jsTempl, title, formated)), nil
 }

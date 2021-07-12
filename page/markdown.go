@@ -1,12 +1,17 @@
 package page
 
-var Markdown = `
+import (
+	"fmt"
+	"strings"
+)
+
+var mdTempl = `
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-  <title>Markdown</title>
+  <title>%s</title>
   <style>
     html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
     table { padding: 0px; word-break: initial; }
@@ -21,7 +26,7 @@ var Markdown = `
 </head>
 <body>
   <div id="content"></div>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="%s"></script>
   <script>
     document.getElementById('content').innerHTML =
       marked('%s');
@@ -29,3 +34,15 @@ var Markdown = `
 </body>
 </html>
 `
+
+func Markdown(title string, markedjs string, markdown string) string {
+	if title == "" {
+		title = "json"
+	}
+	if markedjs == "" {
+		markedjs = "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+	}
+	markdown = strings.Replace(markdown, "\r", "\\r", -1)
+	markdown = strings.Replace(markdown, "\n", "\\n", -1)
+	return fmt.Sprintf(mdTempl, title, markedjs, markdown)
+}

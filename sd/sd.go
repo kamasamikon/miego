@@ -1,10 +1,7 @@
 package sd
 
 import (
-	"encoding/base64"
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/kamasamikon/miego/otot"
 )
@@ -16,7 +13,6 @@ import (
 //
 
 type SD struct {
-	b64   bool
 	col   int
 	items [][]string
 }
@@ -30,8 +26,8 @@ type SD struct {
 // }
 // bt = fmt.Sprintf(`<div onclick="sdPopupLocal(this)" data-sd="%s">{{ HospitalName }}</div>`, ss.Gen())
 // ft.AddOne(bt)
-func New(b64 bool, col int) *SD {
-	return &SD{b64: b64, col: col}
+func New(col int) *SD {
+	return &SD{col: col}
 }
 
 // Add : "辅仁大学", "app.setVueData", "SchoolName", "FuRen"
@@ -45,7 +41,7 @@ func (sd *SD) Add(kv ...string) {
 
 // New : col=表格列数 标题，变量名，值 ...
 // 点击会调用 setVueData
-func (sd *SD) Gen() string {
+func (sd *SD) Gen(b64 bool) string {
 	buttonQ := `<button class="button sd-button" style="width: 100%%;" onclick="%s(`
 	buttonH := `);">%s</button>`
 
@@ -75,12 +71,5 @@ func (sd *SD) Gen() string {
 		ft.AddOne(button).SetStyle("border", "0")
 	}
 
-	html := ft.Gen()
-	if sd.b64 {
-		html = url.QueryEscape(html)
-		html = strings.Replace(html, "+", "%20", -1)
-		return base64.StdEncoding.EncodeToString([]byte(html))
-	} else {
-		return html
-	}
+	return ft.Gen(b64)
 }
