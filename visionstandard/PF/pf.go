@@ -468,6 +468,10 @@ func YanZhouChangDu(Gender string, Age int, vStr string) int {
 	var x1 int
 	var x2 int
 
+	if Age > 11 {
+		Age = 11
+	}
+
 	if Gender == "0" {
 		// 女
 		switch Age {

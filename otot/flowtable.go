@@ -124,7 +124,7 @@ func (ft *FlowTable) AddTitleB(Title string) *TD {
 // AddLabel : shortcut
 func (ft *FlowTable) AddLabel(Label string) *TD {
 	item := TD{
-		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
+		HTML:    fmt.Sprintf(`<label class="label" style="font-size:unset">%s</label>`, Label),
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
@@ -139,7 +139,7 @@ func (ft *FlowTable) AddLabel(Label string) *TD {
 
 func (ft *FlowTable) AddTitle(Label string) *TD {
 	item := TD{
-		HTML:    fmt.Sprintf(`<label class="label">%s</label>`, Label),
+		HTML:    fmt.Sprintf(`<label class="label" style="font-size:unset">%s</label>`, Label),
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
@@ -156,7 +156,7 @@ func (ft *FlowTable) AddTitle(Label string) *TD {
 func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 	xxx := strings.Join(others, " ")
 	item := TD{
-		HTML:    fmt.Sprintf(`<input id="%s" v-model="%s" class="input" %s>`, ElementID(), Model, xxx),
+		HTML:    fmt.Sprintf(`<input id="%s" v-model="%s" class="input is-fullwidth" %s>`, ElementID(), Model, xxx),
 		colspan: colspan,
 		rowspan: 1,
 		styleMap: map[string]string{
@@ -172,7 +172,7 @@ func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 func (ft *FlowTable) AddText(Model string, colspan int, others ...string) *TD {
 	xxx := strings.Join(others, " ")
 	item := TD{
-		HTML:    fmt.Sprintf(`<textarea id="%s" v-model="%s" %s></textarea>`, ElementID(), Model, xxx),
+		HTML:    fmt.Sprintf(`<textarea class="textarea is-fullwidth" id="%s" v-model="%s" %s></textarea>`, ElementID(), Model, xxx),
 		colspan: colspan,
 		rowspan: 1,
 		styleMap: map[string]string{
@@ -190,7 +190,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 
 	sp := fmt.Sprintf
 
-	Lines = append(Lines, `<div class="select" id="`+ElementID()+`">`)
+	Lines = append(Lines, `<div class="select is-fullwidth" id="`+ElementID()+`">`)
 	Lines = append(Lines, `  <select v-model="`+Model+`" class="select" id="`+ElementID()+`">`)
 	for i := 0; i < len(kv)/2; i++ {
 		s := sp(`    <option value="%s">%s</option>`, kv[2*i], kv[2*i+1])
@@ -216,7 +216,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
 	item := TD{
 		HTML: fmt.Sprintf(
-			`<input id="%s" v-model="%s" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`,
+			`<input id="%s" v-model="%s" data-allow-input="true" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`,
 			ElementID(),
 			Model,
 			minDate,

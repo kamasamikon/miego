@@ -14,6 +14,8 @@ import (
 
 type SD struct {
 	col   int
+	id    string
+	class string
 	items [][]string
 }
 
@@ -26,7 +28,7 @@ type SD struct {
 // }
 // bt = fmt.Sprintf(`<div onclick="sdPopupLocal(this)" data-sd="%s">{{ HospitalName }}</div>`, ss.Gen())
 // ft.AddOne(bt)
-func New(col int) *SD {
+func New(col int, id string, class string) *SD {
 	return &SD{col: col}
 }
 
@@ -45,7 +47,7 @@ func (sd *SD) Gen(b64 bool) string {
 	buttonQ := `<button class="button sd-button" style="width: 100%%;" onclick="%s(`
 	buttonH := `);">%s</button>`
 
-	ft := otot.FlowTableNew("333", "ftwhite", sd.col)
+	ft := otot.FlowTableNew(sd.id, sd.class, sd.col)
 	for i := 0; i < len(sd.items); i++ {
 		args := sd.items[i]
 		title := args[0]
@@ -68,7 +70,7 @@ func (sd *SD) Gen(b64 bool) string {
 		}
 		button += fmt.Sprintf(buttonH, title)
 
-		ft.AddOne(button).SetStyle("border", "0")
+		ft.AddOne(button).SetStyle("border", "0", "padding", "1px")
 	}
 
 	return ft.Gen(b64)
