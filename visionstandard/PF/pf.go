@@ -471,6 +471,9 @@ func YanZhouChangDu(Gender string, Age int, vStr string) int {
 	if Age > 11 {
 		Age = 11
 	}
+	if Age < 4 {
+		Age = 4
+	}
 
 	if Gender == "0" {
 		// 女
