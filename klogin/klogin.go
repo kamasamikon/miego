@@ -79,7 +79,7 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 				segs := strings.Split(Type.(string), ";")
 				for _, s := range segs {
 					v := session.Get(s)
-					klog.E("%20s = %v", s, v)
+					klog.E("%10s = %v", s, v)
 				}
 				h(c)
 				return
