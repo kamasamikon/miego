@@ -88,7 +88,9 @@ func YiChuan(F string, M string) int {
 // if (bmi < 22) score = 10 * bmi - 120
 // if (bmi < 18) score = 10
 
-func BMI(Gender string, Age int, Weight string, Height string) int {
+func BMI(Gender string, fAge float32, Weight string, Height string) int {
+	// Age := int(fAge)
+
 	iWeight := atox.Int(Weight, 1)
 	iHeight := atox.Int(Height, 1)
 	klog.Dump(iWeight)
@@ -147,21 +149,22 @@ func GuangZhao(hours string) int {
 	return int(score)
 }
 
-func ShiLi(vStr string, Age int) int {
-	S4 := 60
-	S5 := 70
-	S6 := 80
-	S7 := 90
-	S8 := 100
-	S9 := 100
-	S10 := 100
-	S11 := 100
+func ShiLi(vStr string, fAge float32) int {
+	Age := int(fAge)
 
-	vInt := int(atox.Float(vStr, 0) * 100)
+	S4 := 4.8
+	S5 := 4.85
+	S6 := 4.9
+	S7 := 4.95
+	S8 := 5.0
+	S9 := 5.0
+	S10 := 5.0
+	S11 := 5.0
 
-	var x int
+	vInt := atox.Float(vStr, 0)
 
-	score := 0
+	var x float64
+
 	switch Age {
 	case 4:
 		x = S4
@@ -188,27 +191,16 @@ func ShiLi(vStr string, Age int) int {
 		x = S11
 	}
 
-	if vInt >= x {
-		score = 90
-	}
+	score := 10 + (vInt-4.0)*(80/(x-4.0))
 
-	if vInt < x {
-		score = 90 - (vInt-x)*200
+	if score > 95 {
+		score = 95
 	}
-
-	if score < 0 {
-		score = 0
-	}
-	if score > 100 {
-		score = 100
-	}
-
-	// XXX
 	if score < 10 {
 		score = 10
 	}
 
-	return score
+	return int(score)
 }
 
 // 角膜曲率计
@@ -218,71 +210,78 @@ func ShiLi(vStr string, Age int) int {
 // if (RR >= R51 && RR <= R52) score = 90
 // if (RR > R52) score = 95
 // if (RR < R51) score = 90 - (R51 - RR) * 100
-func JMQL(vStr string, Age int) int {
-	vInt := int(atox.Float(vStr, 0) * 100)
+func JMQL(vStr string, fAge float32) int {
+	Age := int(fAge)
 
-	var x1 int
-	var x2 int
+	vInt := atox.Float(vStr, 0)
 
-	score := 0
+	var x1 float64
+	var x2 float64
+
 	switch Age {
 	case 4:
-		x1 = 4350
-		x2 = 4450
+		x1 = 43.50
+		x2 = 44.50
 
 	case 5:
-		x1 = 4300
-		x2 = 4400
+		x1 = 43.00
+		x2 = 44.00
 
 	case 6:
-		x1 = 4250
-		x2 = 4350
+		x1 = 42.50
+		x2 = 43.50
 
 	case 7:
-		x1 = 4250
-		x2 = 4350
+		x1 = 42.50
+		x2 = 43.50
 
 	case 8:
-		x1 = 4250
-		x2 = 4350
+		x1 = 42.50
+		x2 = 43.50
 
 	case 9:
-		x1 = 4250
-		x2 = 4350
+		x1 = 42.50
+		x2 = 43.50
 
 	case 10:
-		x1 = 4250
-		x2 = 4350
+		x1 = 42.50
+		x2 = 43.50
 
 	case 11:
-		x1 = 4250
-		x2 = 4350
+		x1 = 42.50
+		x2 = 43.50
 	}
 
-	klog.D("vInt:%d, x1:%d, x2:%d", vInt, x1, x2)
-	if vInt >= x1 && vInt <= x2 {
-		score = 90
+	klog.Dump(x1, "x1")
+	klog.Dump(x2, "x2")
+	klog.Dump(vInt, "vInt")
+
+	// 斜率（slope）= 分数/长度
+	// 分数: 10(上限) - 50(比较差)
+	// 中位数 = 95
+	// 边界 = 50
+	middle := (x2 + x1) / 2
+	slope := 22.5 / ((x2 - x1) / 2)
+	klog.Dump(slope, "slope")
+	klog.Dump(middle, "middle")
+
+	var score float64
+	if vInt > middle {
+		score = 95 - (vInt-middle)*slope
+	} else {
+		score = 95 + (vInt-middle)*slope
 	}
-	if vInt > x2 {
+
+	klog.Dump(score)
+
+	if score > 95 {
 		score = 95
 	}
-	if vInt < x1 {
-		score = 90 - (x1-vInt)/100*100
-	}
-
-	if score < 0 {
-		score = 0
-	}
-	if score > 100 {
-		score = 100
-	}
-
-	// XXX
 	if score < 10 {
 		score = 10
 	}
 
-	return score
+	return int(score)
 }
 
 // 常数：Q41=2 Q42=3 Q51=1.5 Q52=2.5 Q61=1 Q62=2 Q71=0.5 Q72=1.5 Q81=0 Q82=1.0
@@ -292,7 +291,9 @@ func JMQL(vStr string, Age int) int {
 // if (QR >= Q51 && QR <= Q52) score = 90;
 // if (QR > Q52) score = 95;
 // if (QR < Q51) score = 90 - (Q51 - QR) * 100;
-func QuGuangQiuJing(Gender string, Age int, vStr string) int {
+func QuGuangQiuJing(Gender string, fAge float32, vStr string) int {
+	Age := int(fAge)
+
 	vInt := int(atox.Float(vStr, 0) * 100)
 
 	var x1 int
@@ -461,12 +462,14 @@ func JianYi(ShiLiZongHe int, JinShiFengXian int, YiChuan int, GuangZhao int, BMI
 	)
 }
 
-func YanZhouChangDu(Gender string, Age int, vStr string) int {
-	vInt := int(atox.Float(vStr, 0))
+func YanZhouChangDu(Gender string, fAge float32, vStr string) int {
+	Age := int(fAge)
+
+	vInt := float32(atox.Float(vStr, 0))
 
 	// var x0 int
-	var x1 int
-	var x2 int
+	var x1 float32
+	var x2 float32
 
 	if Age > 11 {
 		Age = 11
@@ -479,100 +482,104 @@ func YanZhouChangDu(Gender string, Age int, vStr string) int {
 		// 女
 		switch Age {
 		case 4:
-			x1 = 2206
-			x2 = 2213
+			x1 = 22.06
+			x2 = 22.13
 
 		case 5:
-			x1 = 2340
-			x2 = 2346
+			x1 = 23.40
+			x2 = 23.46
 
 		case 6:
-			x1 = 2371
-			x2 = 2378
+			x1 = 23.71
+			x2 = 23.78
 
 		case 7:
-			x1 = 2292
-			x2 = 2309
+			x1 = 22.92
+			x2 = 23.09
 
 		case 8:
-			x1 = 2318
-			x2 = 2334
+			x1 = 23.18
+			x2 = 23.34
 
 		case 9:
-			x1 = 2352
-			x2 = 2361
+			x1 = 23.52
+			x2 = 23.61
 
 		case 10:
-			x1 = 2352
-			x2 = 2387
+			x1 = 23.52
+			x2 = 23.87
 
 		case 11:
-			x1 = 2352
-			x2 = 2407
+			x1 = 23.52
+			x2 = 24.07
 
 		}
 
 	} else {
 		// 男
-
 		switch Age {
 		case 4:
-			x1 = 2267
-			x2 = 2270
+			x1 = 22.67
+			x2 = 22.70
 
 		case 5:
-
-			x1 = 2303
-			x2 = 2305
+			x1 = 23.03
+			x2 = 23.05
 
 		case 6:
-
-			x1 = 2333
-			x2 = 2337
+			x1 = 23.33
+			x2 = 23.37
 
 		case 7:
-
-			x1 = 2350
-			x2 = 2367
+			x1 = 23.50
+			x2 = 23.67
 
 		case 8:
-
-			x1 = 2370
-			x2 = 2390
+			x1 = 23.70
+			x2 = 23.90
 
 		case 9:
-
-			x1 = 2401
-			x2 = 2413
+			x1 = 24.01
+			x2 = 24.13
 
 		case 10:
-
-			x1 = 2401
-			x2 = 2440
+			x1 = 24.01
+			x2 = 24.40
 
 		case 11:
-
-			x1 = 2401
-			x2 = 2441
+			x1 = 24.01
+			x2 = 24.41
 		}
-
 	}
 
-	if vInt < x1 {
-		return 20
-	}
-	if vInt > x2 {
-		return 90
-	}
+	// > 上限 = 高危
+	// > 下线 = 中卫
+	// < 下线 = 正常
 
-	score := (vInt-x1)/(x2-x1)*7/10 + 20
+	// 越长越差
+	// x2 最差
+	// x1 比较差
 
-	// XXX
+	klog.Dump(x1)
+	klog.Dump(x2)
+	klog.Dump(vInt)
+	// 斜率（slope）= 分数/长度
+	// 分数: 10(上限) - 50(比较差)
+	slope := 40 / (x2 - x1)
+	klog.Dump(slope)
+
+	// 以50分线为准
+	score := 50 - (vInt-x1)*slope
+	klog.Dump(score)
+
+	if score > 95 {
+		score = 95
+	}
 	if score < 10 {
 		score = 10
 	}
 
-	return score
+	return int(score)
 
 	/*
 
