@@ -7,6 +7,79 @@ import (
 	"github.com/kamasamikon/miego/klog"
 )
 
+func To5X(i string) string {
+	switch i {
+	case "0.1":
+		return "4.0"
+	case "0.12":
+		return "4.1"
+	case "0.15":
+		return "4.2"
+	case "0.2":
+		return "4.3"
+	case "0.25":
+		return "4.4"
+	case "0.3":
+		return "4.5"
+	case "0.4":
+		return "4.6"
+	case "0.5":
+		return "4.7"
+	case "0.6":
+		return "4.8"
+	case "0.8":
+		return "4.9"
+	case "1.0":
+		return "5.0"
+	case "1.2":
+		return "5.1"
+	case "1.5":
+		return "5.2"
+	case "2.0":
+		return "5.3"
+	}
+
+	klog.Dump(i)
+	num := atox.Float(i, 0)
+	if num == 0 {
+		klog.D("xxxx")
+		return "5.0"
+	}
+
+	if num >= 650 {
+		return "4.0"
+	}
+	if num >= 600 {
+		return "4.1"
+	}
+	if num >= 500 {
+		return "4.2"
+	}
+	if num >= 450 {
+		return "4.3"
+	}
+	if num >= 400 {
+		return "4.4"
+	}
+	if num >= 350 {
+		return "4.5"
+	}
+	if num >= 250 {
+		return "4.6"
+	}
+	if num >= 200 {
+		return "4.7"
+	}
+	if num >= 150 {
+		return "4.8"
+	}
+	if num >= 100 {
+		return "4.9"
+	}
+
+	return i
+}
+
 // 眼健康综合
 // 综合视力风险
 // 近视防控等级
@@ -57,6 +130,14 @@ func YanYa(vStr string) int {
 // if (score >100) score = 100
 // F/M: 度数
 func YiChuan(F string, M string) int {
+	//
+	// 视力转成屈光度
+	//
+	// 1.0 对数
+	// 4.9 指数
+	// 200 度数
+	//
+
 	if F == "" {
 		F = "0"
 	}
@@ -83,6 +164,8 @@ func YiChuan(F string, M string) int {
 	return int(score)
 }
 
+// 14.71 21.71 24.41
+
 // BMI评分计算
 // if (bmi >=22) score = -10 * bmi + 320
 // if (bmi < 22) score = 10 * bmi - 120
@@ -91,10 +174,11 @@ func YiChuan(F string, M string) int {
 func BMI(Gender string, fAge float32, Weight string, Height string) int {
 	// Age := int(fAge)
 
-	iWeight := atox.Int(Weight, 1)
-	iHeight := atox.Int(Height, 1)
+	iWeight := atox.Float(Weight, 1)
+	iHeight := atox.Float(Height, 1)
 	klog.Dump(iWeight)
 	klog.Dump(iHeight)
+
 	// XXX: FIXME: 这里需要计算年龄、性别、体重、身高
 	bmi := iWeight * 10000 / iHeight / iHeight
 	klog.Dump(bmi)
@@ -102,14 +186,14 @@ func BMI(Gender string, fAge float32, Weight string, Height string) int {
 	score := 0
 
 	if bmi >= 22 {
-		score = -10*bmi + 320
+		score = int(-10*bmi + 320)
 	}
 	if bmi < 22 {
-		score = 10*bmi - 120
+		score = int(10*bmi - 120)
 	}
-	if bmi < 18 {
-		score = 10
-	}
+	// if bmi < 18 {
+	// score = 10
+	// }
 
 	if score < 0 {
 		score = 0
@@ -152,6 +236,15 @@ func GuangZhao(hours string) int {
 func ShiLi(vStr string, fAge float32) int {
 	Age := int(fAge)
 
+	vStr = To5X(vStr)
+
+	if Age < 4 {
+		Age = 4
+	}
+	if Age > 11 {
+		Age = 11
+	}
+
 	S4 := 4.8
 	S5 := 4.85
 	S6 := 4.9
@@ -162,6 +255,13 @@ func ShiLi(vStr string, fAge float32) int {
 	S11 := 5.0
 
 	vInt := atox.Float(vStr, 0)
+	klog.Dump(vInt, "vInt: ")
+	klog.Dump(Age, "Age: ")
+
+	// 100 -> 100
+	// 90 -> 60
+
+	//
 
 	var x float64
 
@@ -192,6 +292,9 @@ func ShiLi(vStr string, fAge float32) int {
 	}
 
 	score := 10 + (vInt-4.0)*(80/(x-4.0))
+	klog.Dump(score)
+	score /= 1.5
+	klog.Dump(score)
 
 	if score > 95 {
 		score = 95
@@ -212,6 +315,13 @@ func ShiLi(vStr string, fAge float32) int {
 // if (RR < R51) score = 90 - (R51 - RR) * 100
 func JMQL(vStr string, fAge float32) int {
 	Age := int(fAge)
+
+	if Age < 4 {
+		Age = 4
+	}
+	if Age > 11 {
+		Age = 11
+	}
 
 	vInt := atox.Float(vStr, 0)
 
@@ -252,24 +362,26 @@ func JMQL(vStr string, fAge float32) int {
 		x2 = 43.50
 	}
 
+	klog.Dump(fAge, "fAge")
+	klog.Dump(Age, "Age")
 	klog.Dump(x1, "x1")
 	klog.Dump(x2, "x2")
 	klog.Dump(vInt, "vInt")
 
-	// 斜率（slope）= 分数/长度
+	// 斜率（incline）= 分数/长度
 	// 分数: 10(上限) - 50(比较差)
 	// 中位数 = 95
 	// 边界 = 50
 	middle := (x2 + x1) / 2
-	slope := 22.5 / ((x2 - x1) / 2)
-	klog.Dump(slope, "slope")
+	incline := 22.5 / ((x2 - x1) / 2)
+	klog.Dump(incline, "incline")
 	klog.Dump(middle, "middle")
 
 	var score float64
 	if vInt > middle {
-		score = 95 - (vInt-middle)*slope
+		score = 95 - (vInt-middle)*incline
 	} else {
-		score = 95 + (vInt-middle)*slope
+		score = 95 + (vInt-middle)*incline
 	}
 
 	klog.Dump(score)
@@ -293,6 +405,13 @@ func JMQL(vStr string, fAge float32) int {
 // if (QR < Q51) score = 90 - (Q51 - QR) * 100;
 func QuGuangQiuJing(Gender string, fAge float32, vStr string) int {
 	Age := int(fAge)
+
+	if Age < 4 {
+		Age = 4
+	}
+	if Age > 11 {
+		Age = 11
+	}
 
 	vInt := int(atox.Float(vStr, 0) * 100)
 
@@ -336,33 +455,36 @@ func QuGuangQiuJing(Gender string, fAge float32, vStr string) int {
 
 	klog.D("vInt:%d, x1:%d, x2:%d", vInt, x1, x2)
 	if vInt >= x1 && vInt <= x2 {
-		klog.D("")
 		score = 90
+		klog.Dump(score)
 	}
 
 	if vInt > x2 {
-		klog.D("")
 		score = 95
+		klog.Dump(score)
 	}
 
 	if vInt < x1 {
-		klog.D("")
 		score = 90 - (x1-vInt)/100*100
+		klog.Dump(score)
 	}
 
 	if score < 0 {
 		score = 0
+		klog.Dump(score)
 	}
 	if score > 100 {
 		score = 100
+		klog.Dump(score)
 	}
 
 	// XXX
 	if score < 10 {
 		score = 10
+		klog.Dump(score)
 	}
 
-	klog.D("%d", score)
+	klog.Dump(score)
 	return score
 }
 
@@ -563,13 +685,13 @@ func YanZhouChangDu(Gender string, fAge float32, vStr string) int {
 	klog.Dump(x1)
 	klog.Dump(x2)
 	klog.Dump(vInt)
-	// 斜率（slope）= 分数/长度
+	// 斜率（incline）= 分数/长度
 	// 分数: 10(上限) - 50(比较差)
-	slope := 40 / (x2 - x1)
-	klog.Dump(slope)
+	incline := 40 / (x2 - x1)
+	klog.Dump(incline)
 
 	// 以50分线为准
-	score := 50 - (vInt-x1)*slope
+	score := 50 - (vInt-x1)*incline
 	klog.Dump(score)
 
 	if score > 95 {
@@ -630,4 +752,124 @@ func YanZhouChangDu(Gender string, fAge float32, vStr string) int {
 			s = 0
 		}
 	*/
+}
+
+type ScoreItem struct {
+	Start float64
+	Score float64
+}
+
+type ScoreLine struct {
+	items []*ScoreItem
+}
+
+func ScoreLineNew(v ...float64) *ScoreLine {
+	Line := &ScoreLine{}
+
+	for i := 0; i < len(v)/2; i++ {
+		Start := v[2*i]
+		Score := v[2*i+1]
+
+		Line.items = append(Line.items, &ScoreItem{Start, Score})
+	}
+
+	return Line
+}
+
+func (sl *ScoreLine) Score(value float64) (score float64, kind int) {
+	items := sl.items
+
+	IndexNext := -1
+	for i := range items {
+		if value < items[i].Start {
+			IndexNext = i
+			break
+		}
+	}
+
+	switch IndexNext {
+	case 0:
+		kind = -1
+
+		score = items[0].Score
+
+	case -1:
+		kind = 1
+
+		Size := len(items)
+		score = items[Size-1].Score
+
+	default:
+		kind = 0
+
+		ItemNext := items[IndexNext]
+		ItemCurr := items[IndexNext-1]
+		incline := (ItemNext.Score - ItemCurr.Score) / (ItemNext.Start - ItemCurr.Start)
+		score = ItemCurr.Score + incline*(value-ItemCurr.Start)
+	}
+
+	klog.D("kind:%2d \tvalue:%.0f \tscore :%v", kind, value, score)
+	return score, kind
+}
+
+// Score(Value float64, Items []*Items) float64
+func Score(Value float64) float64 {
+	//
+	// X=指标 Y=分数
+	//
+
+	klog.E("------------- %v -----------------", Value)
+
+	Items := []*ScoreItem{
+		{
+			Start: 0,
+			Score: 0,
+		},
+		{
+			Start: 10,
+			Score: 10,
+		},
+		{
+			Start: 50,
+			Score: 50,
+		},
+		{
+			Start: 80,
+			Score: 80,
+		},
+		{
+			Start: 100,
+			Score: 100,
+		},
+	}
+
+	IndexNext := -1
+	for i := range Items {
+		if Value < Items[i].Start {
+			IndexNext = i
+			break
+		}
+	}
+	if IndexNext != -1 {
+		// klog.E("Value:%v, Items[%d].Start:%v", Value, IndexNext, Items[IndexNext].Start)
+	}
+
+	if IndexNext == 0 {
+		klog.Dump(Items[0].Score, "漏: Score IS: ")
+		return Items[0].Score
+	} else if IndexNext == -1 {
+		Size := len(Items)
+		klog.Dump(Items[Size-1].Score, "冒: Score IS: ")
+		return Items[Size-1].Score
+	} else {
+		ItemNext := Items[IndexNext]
+		ItemCurr := Items[IndexNext-1]
+
+		incline := (ItemNext.Score - ItemCurr.Score) / (ItemNext.Start - ItemCurr.Start)
+		score := ItemCurr.Score + incline*(Value-ItemCurr.Start)
+		klog.Dump(score, "中: Score IS: ")
+		return score
+
+	}
+	return 0
 }
