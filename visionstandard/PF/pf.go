@@ -682,17 +682,17 @@ func YanZhouChangDu(Gender string, fAge float32, vStr string) int {
 	// x2 最差
 	// x1 比较差
 
-	klog.Dump(x1)
-	klog.Dump(x2)
-	klog.Dump(vInt)
+	// klog.Dump(x1)
+	// klog.Dump(x2)
+	// klog.Dump(vInt)
 	// 斜率（incline）= 分数/长度
 	// 分数: 10(上限) - 50(比较差)
 	incline := 40 / (x2 - x1)
-	klog.Dump(incline)
+	// klog.Dump(incline)
 
 	// 以50分线为准
 	score := 50 - (vInt-x1)*incline
-	klog.Dump(score)
+	// klog.Dump(score)
 
 	if score > 95 {
 		score = 95
@@ -754,6 +754,9 @@ func YanZhouChangDu(Gender string, fAge float32, vStr string) int {
 	*/
 }
 
+//
+// 评分折线，由多个分数的点串起来的折线。（最好是曲线，但不知道怎么实现好）
+//
 type ScoreItem struct {
 	Start float64
 	Score float64
@@ -763,6 +766,8 @@ type ScoreLine struct {
 	items []*ScoreItem
 }
 
+// v: 数值 VS 对应的分数
+// 要求按照分数从小到大排序
 func ScoreLineNew(v ...float64) *ScoreLine {
 	Line := &ScoreLine{}
 
@@ -776,6 +781,7 @@ func ScoreLineNew(v ...float64) *ScoreLine {
 	return Line
 }
 
+// 输入一个数，返回这数对应的评分
 func (sl *ScoreLine) Score(value float64) (score float64, kind int) {
 	items := sl.items
 
@@ -808,68 +814,5 @@ func (sl *ScoreLine) Score(value float64) (score float64, kind int) {
 		score = ItemCurr.Score + incline*(value-ItemCurr.Start)
 	}
 
-	klog.D("kind:%2d \tvalue:%.0f \tscore :%v", kind, value, score)
 	return score, kind
-}
-
-// Score(Value float64, Items []*Items) float64
-func Score(Value float64) float64 {
-	//
-	// X=指标 Y=分数
-	//
-
-	klog.E("------------- %v -----------------", Value)
-
-	Items := []*ScoreItem{
-		{
-			Start: 0,
-			Score: 0,
-		},
-		{
-			Start: 10,
-			Score: 10,
-		},
-		{
-			Start: 50,
-			Score: 50,
-		},
-		{
-			Start: 80,
-			Score: 80,
-		},
-		{
-			Start: 100,
-			Score: 100,
-		},
-	}
-
-	IndexNext := -1
-	for i := range Items {
-		if Value < Items[i].Start {
-			IndexNext = i
-			break
-		}
-	}
-	if IndexNext != -1 {
-		// klog.E("Value:%v, Items[%d].Start:%v", Value, IndexNext, Items[IndexNext].Start)
-	}
-
-	if IndexNext == 0 {
-		klog.Dump(Items[0].Score, "漏: Score IS: ")
-		return Items[0].Score
-	} else if IndexNext == -1 {
-		Size := len(Items)
-		klog.Dump(Items[Size-1].Score, "冒: Score IS: ")
-		return Items[Size-1].Score
-	} else {
-		ItemNext := Items[IndexNext]
-		ItemCurr := Items[IndexNext-1]
-
-		incline := (ItemNext.Score - ItemCurr.Score) / (ItemNext.Start - ItemCurr.Start)
-		score := ItemCurr.Score + incline*(Value-ItemCurr.Start)
-		klog.Dump(score, "中: Score IS: ")
-		return score
-
-	}
-	return 0
 }
