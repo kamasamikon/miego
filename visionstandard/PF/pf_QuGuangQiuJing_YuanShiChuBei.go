@@ -158,7 +158,7 @@ func XXX_QuGuangQiuJing(Gender string, fAge float32, vStr string) int {
 	if ok {
 		fInt := atox.Float(vStr, 0)
 		s, _ := sl.Score(fInt)
-		return int(s)
+		return int((s+5)/10) * 10
 	}
 
 	return 10

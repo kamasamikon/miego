@@ -419,11 +419,11 @@ func XXX_BMI(Gender string, fAge float32, Weight string, Height string) int {
 
 	Key := fmt.Sprintf("%s_%s", Gender, xAge)
 	Key = "default"
-	klog.D("KEY:::::::::::::::%s", Key)
 	sl, ok := slMapBMI[Key]
+	klog.Dump(sl)
 	if ok {
 		s, _ := sl.Score(BMI)
-		return int(s)
+		return int((s+5)/10) * 10
 	}
 	return 10
 }

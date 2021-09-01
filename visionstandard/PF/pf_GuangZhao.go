@@ -27,5 +27,5 @@ func init() {
 func XXX_GuangZhao(vStr string) int {
 	fInt := atox.Float(vStr, 0)
 	s, _ := slMapGuangZhao.Score(fInt)
-	return int(s)
+	return int((s+5)/10) * 10
 }

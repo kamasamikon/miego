@@ -33,5 +33,5 @@ func init() {
 func XXX_YanYa(vStr string) int {
 	fInt := atox.Float(vStr, 0)
 	s, _ := slMapYanYa.Score(fInt)
-	return int(s)
+	return int((s+5)/10) * 10
 }

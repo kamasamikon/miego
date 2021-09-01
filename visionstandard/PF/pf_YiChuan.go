@@ -82,19 +82,20 @@ func XXX_YiChuan(F string, M string) int {
 		}
 	}
 
-	Score := 60
+	score := 60
 	switch Risk {
 	case 0:
-		Score = 100
+		score = 100
 	case 10:
-		Score = 100
+		score = 100
 	case 20:
-		Score = 60
+		score = 60
 	case 30:
-		Score = 30
+		score = 30
 	case 50:
-		Score = 10
+		score = 10
 	}
 
-	return int(Score)
+	s := score
+	return int((s+5)/10) * 10
 }

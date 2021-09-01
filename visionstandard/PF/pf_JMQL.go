@@ -71,7 +71,7 @@ func init() {
 	)
 
 }
-func XXX_JMQL(vStr string, fAge float64) int {
+func XXX_JMQL(vStr string, fAge float32) int {
 	fInt := atox.Float(vStr, 0)
 
 	xAge := ""
@@ -79,14 +79,8 @@ func XXX_JMQL(vStr string, fAge float64) int {
 	case fAge >= 11:
 		xAge = "11"
 
-	case fAge >= 13:
-		xAge = "13"
-
-	case fAge >= 12:
-		xAge = "12"
-
-	case fAge >= 11:
-		xAge = "11"
+	case fAge >= 10:
+		xAge = "10"
 
 	case fAge >= 9:
 		xAge = "9"
@@ -113,7 +107,7 @@ func XXX_JMQL(vStr string, fAge float64) int {
 	sl, ok := slMapJMQL[xAge]
 	if ok {
 		s, _ := sl.Score(fInt)
-		return int(s)
+		return int((s+5)/10) * 10
 	}
 	return 10
 
