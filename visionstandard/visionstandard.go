@@ -1,5 +1,9 @@
 package visionstandard
 
+import (
+// "github.com/kamasamikon/miego/klog"
+)
+
 //裸眼和矫正
 func Vision(age int) string {
 	if age >= 0 && age < 1 {
@@ -314,4 +318,258 @@ func Range_YanZhouFaYu(age float32) (min, max float32) {
 	}
 
 	return 0, 0
+}
+
+/////////////////////////////////////////////////////////////////////////
+// 屈光对应发育程序
+
+const (
+	JS int = 0 // 近视
+	JK int = 1 // 较快
+	ZC int = 2 // 正常
+	CH int = 3 // 迟缓
+)
+
+// QuGuang : 按照25度对齐。
+// 近视，较快下，较快上，正常下，正常上，迟缓
+func QuGuang(v int, js int, jkLo int, jkHi int, zcLo int, zcHi int, ch int) int {
+	vv := v / 25 * 25
+
+	switch {
+	case vv <= js:
+		return JS
+	case jkLo <= vv && vv <= jkHi:
+		return JK
+	case zcLo <= vv && vv <= zcHi:
+		return ZC
+	case vv >= ch:
+		return CH
+	}
+
+	return ZC
+}
+
+// QuGuangLevel : 屈光度对应的发育级别
+func QuGuangLevel(v int, Age int) int {
+	if Age > 11 {
+		Age = 11
+	} else if Age < 1 {
+		Age = 1
+	}
+
+	js := 0
+	jkLo := 0
+	jkHi := 0
+	zcLo := 0
+	zcHi := 0
+	ch := 0
+
+	switch Age {
+	case 1:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 350
+		ch = 375
+
+	case 2:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 300
+		ch = 325
+
+	case 3:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 300
+		ch = 325
+
+	case 4:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 225
+		ch = 250
+
+	case 5:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 225
+		ch = 250
+
+	case 6:
+		js = -50
+		jkLo = -25
+		jkHi = 125
+		zcLo = 150
+		zcHi = 225
+		ch = 250
+
+	case 7:
+		js = -50
+		jkLo = -25
+		jkHi = 125
+		zcLo = 150
+		zcHi = 225
+		ch = 250
+
+	case 8:
+		js = -50
+		jkLo = -25
+		jkHi = 100
+		zcLo = 125
+		zcHi = 225
+		ch = 250
+
+	case 9:
+		js = -50
+		jkLo = -25
+		jkHi = 75
+		zcLo = 100
+		zcHi = 200
+		ch = 225
+
+	case 10:
+		js = -50
+		jkLo = -25
+		jkHi = 50
+		zcLo = 75
+		zcHi = 175
+		ch = 200
+
+	case 11:
+		js = -50
+		jkLo = -25
+		jkHi = 25
+		zcLo = 50
+		zcHi = 150
+		ch = 175
+	}
+
+	x := QuGuang(v, js, jkLo, jkHi, zcLo, zcHi, ch)
+
+	// klog.F("----------------")
+	// klog.D("Age: %d", Age)
+	// klog.D("近视: X <= %d", js)
+	// klog.D("较快: %d <= X <= %d", jkLo, jkHi)
+	// klog.D("正常: %d <= X <= %d", zcLo, zcHi)
+	// klog.D("迟缓: %d <= X", ch)
+	// klog.D("屈光度: %d, 级别:%d\n", v, x)
+	return x
+}
+
+// QuGuangSegs : 年龄对应的级别
+func QuGuangSegs(Age int) (int, int, int, int, int, int) {
+	if Age > 11 {
+		Age = 11
+	} else if Age < 1 {
+		Age = 1
+	}
+
+	js := 0
+	jkLo := 0
+	jkHi := 0
+	zcLo := 0
+	zcHi := 0
+	ch := 0
+
+	switch Age {
+	case 1:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 350
+		ch = 375
+
+	case 2:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 300
+		ch = 325
+
+	case 3:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 300
+		ch = 325
+
+	case 4:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 225
+		ch = 250
+
+	case 5:
+		js = -50
+		jkLo = -25
+		jkHi = 150
+		zcLo = 175
+		zcHi = 225
+		ch = 250
+
+	case 6:
+		js = -50
+		jkLo = -25
+		jkHi = 125
+		zcLo = 150
+		zcHi = 225
+		ch = 250
+
+	case 7:
+		js = -50
+		jkLo = -25
+		jkHi = 125
+		zcLo = 150
+		zcHi = 225
+		ch = 250
+
+	case 8:
+		js = -50
+		jkLo = -25
+		jkHi = 100
+		zcLo = 125
+		zcHi = 225
+		ch = 250
+
+	case 9:
+		js = -50
+		jkLo = -25
+		jkHi = 75
+		zcLo = 100
+		zcHi = 200
+		ch = 225
+
+	case 10:
+		js = -50
+		jkLo = -25
+		jkHi = 50
+		zcLo = 75
+		zcHi = 175
+		ch = 200
+
+	case 11:
+		js = -50
+		jkLo = -25
+		jkHi = 25
+		zcLo = 50
+		zcHi = 150
+		ch = 175
+	}
+
+	return js, jkLo, jkHi, zcLo, zcHi, ch
 }
