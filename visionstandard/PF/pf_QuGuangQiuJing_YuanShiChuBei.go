@@ -23,7 +23,13 @@ func init() {
 	var zcHi float64
 	var ch float64
 
+	//
+	// see visionstandard.QuGuangSegs()
+	//
+
+	///
 	/// case 1:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 150
@@ -42,7 +48,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 2:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 150
@@ -60,7 +68,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 3:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 150
@@ -78,7 +88,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 4:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 150
@@ -96,7 +108,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 5:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 150
@@ -114,7 +128,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 6:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 125
@@ -132,7 +148,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 7:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 125
@@ -150,7 +168,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 8:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 100
@@ -168,7 +188,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 9:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 75
@@ -186,7 +208,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 10:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 50
@@ -204,7 +228,9 @@ func init() {
 		(ch+50)/100, 30, // 迟缓 + 50
 	)
 
+	///
 	/// case 11:
+	///
 	js = -50
 	jkLo = -25
 	jkHi = 25
