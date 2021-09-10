@@ -62,7 +62,7 @@ func OrderLimitOffset2(m xmap.Map) (orderBy string, limit uint, offset uint) {
 		segs := strings.Split(cmdOrderBy, "__")
 
 		if cast := m.S("OrderCast"); cast != "" {
-			orderBy = fmt.Sprintf("ORDER BY CAST(%s AS %s)", segs[0], cast)
+			orderBy = fmt.Sprintf("ORDER BY CAST(%s)", cast)
 		} else {
 			orderBy = fmt.Sprintf("ORDER BY %s", segs[0])
 		}
