@@ -57,12 +57,17 @@ func OrderLimitOffset2(m xmap.Map) (orderBy string, limit uint, offset uint) {
 	offset = uint(m.Int("Offset", pageSize*(pageNumber-1)))
 
 	orderBy = ""
-	cmdOrderBy := m.Str("OrderBy", "")
+	cmdOrderBy := m.S("OrderBy")
 	if cmdOrderBy != "" {
 		segs := strings.Split(cmdOrderBy, "__")
-		orderBy = fmt.Sprintf("ORDER BY %s", segs[0])
 
-		cmdOrderDir := m.Str("OrderDir", "")
+		if cast := m.S("OrderCast"); cast != "" {
+			orderBy = fmt.Sprintf("ORDER BY CAST(%s AS %s)", segs[0], cast)
+		} else {
+			orderBy = fmt.Sprintf("ORDER BY %s", segs[0])
+		}
+
+		cmdOrderDir := m.S("OrderDir")
 		if cmdOrderDir == "desc" {
 			orderBy += " DESC"
 		} else if cmdOrderDir == "asc" {
@@ -213,13 +218,10 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows int) string {
 	}
 
 	// OrderBy etc
-	orderBy, limit, offset := OrderLimitOffset2(mp)
-	lines = append(lines, orderBy)
-	lines = append(lines, fmt.Sprintf("LIMIT %d", limit))
-	lines = append(lines, fmt.Sprintf("OFFSET %d", offset))
-
-	// Something else
 	s.OrderBy, s.Limit, s.Offset = OrderLimitOffset2(mp)
+	lines = append(lines, s.OrderBy)
+	lines = append(lines, fmt.Sprintf("LIMIT %d", s.Limit))
+	lines = append(lines, fmt.Sprintf("OFFSET %d", s.Offset))
 
 	res := strings.Join(lines, "\n")
 	klog.DD(3, "%s", res)
