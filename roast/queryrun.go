@@ -29,8 +29,10 @@ func callPstQ(mp xmap.Map, pongs []xmap.Map) {
 }
 
 // Raw: Raw(db, "SELECT a, b FROM xxxx") => {"a":"xxx", "b":"xxx"}
-func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
-	klog.D("%s", stmt)
+func Raw(db *sql.DB, stmt string, verbose bool) ([]xmap.Map, error) {
+	if verbose {
+		klog.D("%s", stmt)
+	}
 	rows, err := db.Query(stmt)
 	if err != nil {
 		klog.E(err.Error())
@@ -76,7 +78,9 @@ func Raw(db *sql.DB, stmt string) ([]xmap.Map, error) {
 	//
 	// Done
 	//
-	klog.D("%d items found", len(pongs))
+	if verbose {
+		klog.D("%d items found", len(pongs))
+	}
 	return pongs, nil
 }
 
