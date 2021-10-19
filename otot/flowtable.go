@@ -190,7 +190,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 
 	sp := fmt.Sprintf
 
-	Lines = append(Lines, `<div class="select is-fullwidth" id="`+ElementID()+`">`)
+	Lines = append(Lines, `<div class="select is-fullwidth" id="`+ElementID()+`" style="margin:0;padding:0;">`)
 	Lines = append(Lines, `  <select v-model="`+Model+`" class="select" id="`+ElementID()+`">`)
 	for i := 0; i < len(kv)/2; i++ {
 		s := sp(`    <option value="%s">%s</option>`, kv[2*i], kv[2*i+1])

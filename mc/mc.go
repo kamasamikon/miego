@@ -29,6 +29,19 @@ func Set(data interface{}, exp int64, UUID string) string {
 	return UUID
 }
 
+// Mod : 修改data而不改变exp
+func Mod(data interface{}, UUID string) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if _, ok := map_UUID_Data[UUID]; ok {
+		map_UUID_Data[UUID] = data
+		return true
+	}
+
+	return false
+}
+
 func Rem(uuid string) {
 	mutex.Lock()
 	defer mutex.Unlock()

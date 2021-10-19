@@ -50,18 +50,39 @@ var provines = map[int]string{
 func Fix(s string) string {
 	s = strings.Replace(s, "#", "X", -1)
 	s = strings.Replace(s, "*", "X", -1)
+	s = strings.Replace(s, "x", "X", -1)
 	return s
 }
 
-func Fake(Year int, Month int, Day int, Gender int) string {
+func Fake(Province int, City int, Year int, Month int, Day int, Gender int, serialNumber int) string {
 	sp := fmt.Sprintf
 	datestring := sp("%04d%02d%02d", Year, Month, Day)
 	if _, err := time.Parse("20060102", datestring); err != nil {
 		return ""
 	}
 
-	location := sp("99%02d%02d", rand.Intn(100), rand.Intn(100))
-	serialNumber := rand.Intn(1000)
+	if Province == -1 {
+		Province = rand.Intn(100)
+	}
+	if City == -1 {
+		City = rand.Intn(100)
+	}
+
+	if serialNumber == -1 {
+		serialNumber = rand.Intn(1000)
+	}
+
+	if Province > 99 {
+		Province = 99
+	}
+	if City > 99 {
+		City = 99
+	}
+	if serialNumber > 999 {
+		serialNumber = 999
+	}
+
+	location := sp("99%02d%02d", Province, City)
 
 	var idCardByte [18]byte
 	a18 := [11]byte{'1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'}
