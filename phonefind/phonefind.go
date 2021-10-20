@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"path"
 	"runtime"
+
+	"github.com/kamasamikon/miego/conf"
 )
 
 const (
@@ -175,4 +177,9 @@ func Find(phone_num string, checkMode bool) (pr *PhoneRecord, err error) {
 		}
 	}
 	return nil, errors.New("phone's data not found")
+}
+
+func init() {
+	phoneData := conf.Str("", "phonefind/datafile")
+	Init(phoneData)
 }
