@@ -150,3 +150,15 @@ func AnyToNum(g interface{}) int64 {
 
 	return 0
 }
+
+// OffsetDate : 把决定日期或者日期偏移量调整为真正的日期
+func OffsetDate(sDate string) uint64 {
+	now := time.Now()
+
+	if sDate[0] == '+' || sDate[0] == '-' {
+		offset := atox.Int(sDate, 0)
+		tmp := now.AddDate(0, 0, offset).Format("20060102")
+		return atox.Uint64(tmp, 0)
+	}
+	return atox.Uint64(sDate, 0)
+}

@@ -27,7 +27,8 @@ var Conf struct {
 	Silence   bool
 }
 
-func BT(maxdep int, formating string, args ...interface{}) {
+// BT : Print back trace
+func BT(maxdep int, formating string, args ...interface{}) string {
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")
 	nowH := now.Nanosecond() / 1000 / 1000 % 1000
@@ -35,8 +36,10 @@ func BT(maxdep int, formating string, args ...interface{}) {
 	cEnd := ColorType_Reset
 	cStart := ColorType_D
 
+	content := ""
+
 	txt := fmt.Sprintf(formating, args...)
-	fmt.Printf("%s|BT>>>>|%s %s\n", cStart, cEnd, txt)
+	content += fmt.Sprintf("%s|BT>>>>|%s %s\n", cStart, cEnd, txt)
 
 	dep := 0
 	for {
@@ -48,20 +51,22 @@ func BT(maxdep int, formating string, args ...interface{}) {
 
 		pc, filename, line, ok := runtime.Caller(dep)
 		if ok == false {
-			fmt.Printf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
-			return
+			content += fmt.Sprintf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
+			return content
 		}
 
 		funcname := runtime.FuncForPC(pc).Name()
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
 
-		fmt.Printf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd)
+		content += fmt.Sprintf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd)
 	}
 
-	fmt.Printf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
+	content += fmt.Sprintf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
+	return content
 }
 
+// KLogLN : Log with CR
 func KLogLN(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
 	if Conf.Silence {
 		return
