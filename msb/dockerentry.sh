@@ -3,7 +3,7 @@
 rm /root/msb.cfg
 rm /etc/nginx/conf.d/default.conf
 
-function setcfg() {
+setcfg() {
     echo "$1=$2" >> /root/msb.cfg
 }
 
@@ -36,7 +36,7 @@ fi
 
 
 while true; do 
-    cd /root
+    cd /root || return
     cat /root/msb.cfg
     /root/msb 
 done
