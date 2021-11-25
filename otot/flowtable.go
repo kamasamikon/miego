@@ -62,6 +62,8 @@ type FlowTable struct {
 	Class  string
 	Column int
 	Items  []*TD
+
+	VueVars []string // 涉及到的Vue的Model变量
 }
 
 func FlowTableNew(ID string, Class string, Column int) *FlowTable {
@@ -77,6 +79,14 @@ func FlowTableNew(ID string, Class string, Column int) *FlowTable {
 
 func (ft *FlowTable) Last() *TD {
 	return ft.Items[len(ft.Items)-1]
+}
+
+func (ft *FlowTable) AddHeader(title string) {
+	colspan := ft.Column
+
+	ft.AddOne(`<label class="label" style="font-weight: unset; font-size: larger">` + title + `</label>`).SetColSpan(colspan)
+
+	ft.AddOne(`<hr style="margin: unset">`).SetColSpan(colspan).SetStyle("padding", "4px 16px")
 }
 
 func (ft *FlowTable) AddOne(HTML string) *TD {
@@ -110,7 +120,7 @@ func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *TD {
 func (ft *FlowTable) AddTitleB(Title string) *TD {
 	item := TD{
 		HTML:    fmt.Sprintf(`<p class="is-size-5" style="font-weight: bold;">%s</p>`, Title),
-		colspan: ft.Column,
+		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
 			"text-align":     "left",
@@ -165,6 +175,7 @@ func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 		},
 	}
 	ft.Items = append(ft.Items, &item)
+	ft.VueVars = append(ft.VueVars, Model)
 	return &item
 }
 
@@ -181,6 +192,7 @@ func (ft *FlowTable) AddText(Model string, colspan int, others ...string) *TD {
 		},
 	}
 	ft.Items = append(ft.Items, &item)
+	ft.VueVars = append(ft.VueVars, Model)
 	return &item
 }
 
@@ -209,6 +221,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 		},
 	}
 	ft.Items = append(ft.Items, &item)
+	ft.VueVars = append(ft.VueVars, Model)
 	return &item
 }
 
@@ -230,6 +243,7 @@ func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
 		},
 	}
 	ft.Items = append(ft.Items, &item)
+	ft.VueVars = append(ft.VueVars, Model)
 	return &item
 }
 
@@ -245,22 +259,26 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 		Lines = append(Lines, `<span class="select">`)
 		Lines = append(Lines, sp(`<select v-model="%s" data-province="%s"></select>`, mProvince, vProvince))
 		Lines = append(Lines, `</span>`)
+		ft.VueVars = append(ft.VueVars, mProvince)
 	}
 
 	if mCity != "" {
 		Lines = append(Lines, `<span class="select">`)
 		Lines = append(Lines, sp(`<select v-model="%s" data-city="%s"></select>`, mCity, vCity))
 		Lines = append(Lines, `</span>`)
+		ft.VueVars = append(ft.VueVars, mCity)
 	}
 
 	if mDistrict != "" {
 		Lines = append(Lines, `<span class="select">`)
 		Lines = append(Lines, sp(`<select v-model="%s" data-district="%s"></select>`, mDistrict, vDistrict))
 		Lines = append(Lines, `</span>`)
+		ft.VueVars = append(ft.VueVars, mDistrict)
 	}
 
 	if Address != "" {
 		Lines = append(Lines, sp(`<input v-model="%s" class="input">`, Address))
+		ft.VueVars = append(ft.VueVars, Address)
 	}
 
 	Lines = append(Lines, `</div>`)
