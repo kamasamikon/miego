@@ -295,6 +295,13 @@ func (xm Map) AsInt(name string, defv int64) int64 {
 	}
 	return defv
 }
+func (xm Map) AsUint(name string, defv uint64) uint64 {
+	if x, ok := xm[name]; ok {
+		s := fmt.Sprintf("%v", x)
+		return atox.Uint64(s, defv)
+	}
+	return defv
+}
 
 func (xm Map) Str(name string, defv string) string {
 	if x, ok := xm[name]; ok {
