@@ -91,17 +91,18 @@ xremoteloadms:
 	@echo
 
 
-localloadms: dockerpack
+localdeploy: dockerpack
 	@echo
 	@echo
-	@echo ">>>>>>>>>>>>> localloadms <<<<<<<<<<<<<"
+	@echo ">>>>>>>>>>>>> localdeploy <<<<<<<<<<<<<"
 	( \
 		touch /tmp/.msbName /tmp/.msSUFFIX; \
 		export msbName=`cat /tmp/.msbName`; \
 		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
+		sudo docker load -i one.tar; \
 		mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}; \
 	)
-	@echo "<<<<<<<<<<<<< localloadms >>>>>>>>>>>>>"
+	@echo "<<<<<<<<<<<<< localdeploy >>>>>>>>>>>>>"
 	@echo
 	@echo
 
