@@ -29,7 +29,7 @@ var mdTempl = `
   <script src="%s"></script>
   <script>
     document.getElementById('content').innerHTML =
-      marked('%s');
+      marked.parse('%s');
   </script>
 </body>
 </html>
