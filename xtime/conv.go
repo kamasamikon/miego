@@ -151,7 +151,7 @@ func AnyToNum(g interface{}) uint64 {
 	return 0
 }
 
-// OffsetDate : 把决定日期或者日期偏移量调整为真正的日期
+// OffsetDate : 把绝对日期或者日期偏移量调整为真正的日期
 func OffsetDate(sDate string) uint64 {
 	now := time.Now()
 
