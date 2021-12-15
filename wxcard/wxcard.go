@@ -11,18 +11,22 @@ import (
 
 type WXCard struct {
 	hashDocURL string
+
+	corpId     string
+	corpSecret string
+	agentId    int
 }
 
 func WxCardNew(hashDocURL string) *WXCard {
 	if hashDocURL == "" {
 		hashDocURL = conf.Str("", "hashdoc/URL")
 	}
-	if hashDocURL == "" {
-		hashDocURL = "http://vision01.ruibei365.com/ms/hashdoc/v1"
-	}
 
 	c := WXCard{
 		hashDocURL: hashDocURL,
+		corpId:     conf.Str("", "wxcorp/corpId"),
+		corpSecret: conf.Str("", "wxcorp/corpSecret"),
+		agentId:    int(conf.Int(0, "wxcorp/agentId")),
 	}
 	return &c
 }
@@ -38,10 +42,10 @@ func (c *WXCard) SendStr(title string, desc string, content string) {
 		httpdo.Post(c.hashDocURL+"/doc/add", &ping, &pong)
 
 		url := c.hashDocURL + "/doc?uuid=" + pong.UUID
-		wxcorp.SendCard(title, desc, url, "@all", "", "", 0)
+		wxcorp.SendCard(title, desc, url, "@all", c.corpId, c.corpSecret, c.agentId)
 	} else {
 		text := title + "\r\n\r\n" + desc
-		wxcorp.SendText(text, "@all", "", "", 0)
+		wxcorp.SendText(text, "@all", c.corpId, c.corpSecret, c.agentId)
 	}
 }
 
@@ -68,5 +72,5 @@ func (c *WXCard) SendObj(title string, desc string, doc interface{}, format stri
 	klog.Dump(&pong)
 
 	url := c.hashDocURL + "/doc?uuid=" + pong.UUID
-	wxcorp.SendCard(title, desc, url, "@all", "", "", 0)
+	wxcorp.SendCard(title, desc, url, "@all", c.corpId, c.corpSecret, c.agentId)
 }
