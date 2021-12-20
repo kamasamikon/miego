@@ -3,6 +3,8 @@ package page
 import (
 	"fmt"
 	"strings"
+
+	"github.com/kamasamikon/miego/conf"
 )
 
 var mdTempl = `
@@ -40,7 +42,8 @@ func Markdown(title string, markedjs string, markdown string) string {
 		title = "json"
 	}
 	if markedjs == "" {
-		markedjs = "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+		URL := "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+		markedjs = conf.Str(URL, "mie/page/markedjs")
 	}
 	markdown = strings.Replace(markdown, "\r", "\\r", -1)
 	markdown = strings.Replace(markdown, "\n", "\\n", -1)
