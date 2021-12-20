@@ -8,18 +8,17 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/mgutz/ansi"
 )
 
-var ColorType_F = ansi.ColorCode("red+b:black")
-var ColorType_A = ansi.ColorCode("red+h:black")
-var ColorType_C = ansi.ColorCode("cyan+b:black")
-var ColorType_E = ansi.ColorCode("cyan+h:black")
-var ColorType_W = ansi.ColorCode("yellow+b:black")
-var ColorType_N = ansi.ColorCode("yellow+h:black")
-var ColorType_I = ansi.ColorCode("green+b:black")
-var ColorType_D = ansi.ColorCode("green+h:black")
-var ColorType_Reset = ansi.ColorCode("reset")
+var ColorType_F = "\x1b[1;31;40m"
+var ColorType_A = "\x1b[91;40m"
+var ColorType_C = "\x1b[1;36;40m"
+var ColorType_E = "\x1b[96;40m"
+var ColorType_W = "\x1b[1;33;40m"
+var ColorType_N = "\x1b[93;40m"
+var ColorType_I = "\x1b[1;32;40m"
+var ColorType_D = "\x1b[92;40m"
+var ColorType_Reset = "\x1b[0m"
 
 var Conf struct {
 	ShortPath bool
