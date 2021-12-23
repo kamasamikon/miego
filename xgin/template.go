@@ -16,6 +16,9 @@ func ToHTML(x string) interface{} {
 func ToJS(x string) interface{} {
 	return template.JS(x)
 }
+func ToCSS(x string) interface{} {
+	return template.CSS(x)
+}
 
 func SubStr(s string, beg int, end int) string {
 	slen := len(s) + 1

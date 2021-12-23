@@ -100,6 +100,7 @@ func init() {
 		"formatAsDate":  formatAsDate,
 		"ToHTML":        ToHTML,
 		"ToJS":          ToJS,
+		"ToCSS":         ToCSS,
 		"Choice":        Choice,
 		"ToAttr":        ToAttr,
 		"ntimeToString": ntimeToString,
