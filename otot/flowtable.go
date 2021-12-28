@@ -84,9 +84,9 @@ func (ft *FlowTable) Last() *TD {
 func (ft *FlowTable) AddHeader(title string) {
 	colspan := ft.Column
 
-	ft.AddOne(`<label class="label" style="font-weight: unset; font-size: larger">` + title + `</label>`).SetColSpan(colspan)
+	ft.AddOne(`<label class="label otot-header" style="font-weight: unset; font-size: larger">` + title + `</label>`).SetColSpan(colspan)
 
-	ft.AddOne(`<hr style="margin: unset">`).SetColSpan(colspan).SetStyle("padding", "4px 16px")
+	ft.AddOne(`<hr class="otot-header-line" style="margin: unset">`).SetColSpan(colspan).SetStyle("padding", "4px 16px")
 }
 
 func (ft *FlowTable) AddOne(HTML string) *TD {
@@ -299,11 +299,25 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 func (ft *FlowTable) Gen(b64 bool) string {
 	var lines []string
 
-	lines = append(lines, fmt.Sprintf(`<table id="%s" class="table is-fullwidth is-narrow %s">`, ft.ID, ft.Class))
+	lines = append(
+		lines,
+		fmt.Sprintf(`<table id="%s" class="table is-fullwidth is-narrow otot-table otot-table-%d %s">`,
+			ft.ID,
+			ft.Column,
+			ft.Class,
+		),
+	)
 	lines = append(lines, "<tbody>")
 
 	cols := 0
-	lines = append(lines, "<tr>")
+	rows := 0
+	lines = append(
+		lines,
+		fmt.Sprintf(
+			`<tr class="otot-tr-nth-%d">`,
+			rows,
+		),
+	)
 	for i := 0; i < len(ft.Items); i++ {
 		s := ft.Items[i]
 		HTML := s.HTML
@@ -312,8 +326,15 @@ func (ft *FlowTable) Gen(b64 bool) string {
 
 		if cols+colspan > ft.Column {
 			cols = 0
+			rows += 1
 			lines = append(lines, "</tr>")
-			lines = append(lines, "<tr>")
+			lines = append(
+				lines,
+				fmt.Sprintf(
+					`<tr class="otot-tr-nth-%d">`,
+					rows,
+				),
+			)
 		}
 
 		var style string
@@ -328,8 +349,14 @@ func (ft *FlowTable) Gen(b64 bool) string {
 		}
 
 		line := fmt.Sprintf(
-			`<td rowspan="%d" colspan="%d" class="%s" style="%s">%s</td>`,
-			rowspan, colspan, class, style, HTML,
+			`<td rowspan="%d" colspan="%d" class="%s %s %s" style="%s">%s</td>`,
+			rowspan,
+			colspan,
+			fmt.Sprintf("otot-cell-%d-%d", rows, cols),
+			fmt.Sprintf("otot-td-nth-%d", cols),
+			class,
+			style,
+			HTML,
 		)
 		lines = append(lines, line)
 		cols += s.colspan
