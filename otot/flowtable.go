@@ -349,9 +349,11 @@ func (ft *FlowTable) Gen(b64 bool) string {
 		}
 
 		line := fmt.Sprintf(
-			`<td rowspan="%d" colspan="%d" class="%s %s %s" style="%s">%s</td>`,
+			`<td rowspan="%d" colspan="%d" class="%s %s %s %s %s" style="%s">%s</td>`,
 			rowspan,
 			colspan,
+			fmt.Sprintf("otot-td-rowspan-%d", rowspan),
+			fmt.Sprintf("otot-td-colspan-%d", colspan),
 			fmt.Sprintf("otot-cell-%d-%d", rows, cols),
 			fmt.Sprintf("otot-td-nth-%d", cols),
 			class,
