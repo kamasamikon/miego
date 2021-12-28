@@ -95,7 +95,6 @@ func (ft *FlowTable) AddOne(HTML string) *TD {
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -108,7 +107,6 @@ func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *TD {
 		colspan: colspan,
 		rowspan: rowspan,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -123,7 +121,6 @@ func (ft *FlowTable) AddTitleB(Title string) *TD {
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -138,7 +135,6 @@ func (ft *FlowTable) AddLabel(Label string) *TD {
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "right",
 			"vertical-align": "middle",
 			"white-space":    "nowrap",
 		},
@@ -153,7 +149,6 @@ func (ft *FlowTable) AddTitle(Label string) *TD {
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 			"white-space":    "nowrap",
 		},
@@ -166,11 +161,10 @@ func (ft *FlowTable) AddTitle(Label string) *TD {
 func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 	xxx := strings.Join(others, " ")
 	item := TD{
-		HTML:    fmt.Sprintf(`<input id="%s" v-model="%s" class="input is-fullwidth" %s>`, ElementID(), Model, xxx),
+		HTML:    fmt.Sprintf(`<input id="%s" v-model="%s" class="input is-fullwidth otot-input" %s>`, ElementID(), Model, xxx),
 		colspan: colspan,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -183,11 +177,10 @@ func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 func (ft *FlowTable) AddText(Model string, colspan int, others ...string) *TD {
 	xxx := strings.Join(others, " ")
 	item := TD{
-		HTML:    fmt.Sprintf(`<textarea class="textarea is-fullwidth" id="%s" v-model="%s" %s></textarea>`, ElementID(), Model, xxx),
+		HTML:    fmt.Sprintf(`<textarea class="textarea is-fullwidth otot-textarea" id="%s" v-model="%s" %s></textarea>`, ElementID(), Model, xxx),
 		colspan: colspan,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -216,7 +209,6 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -229,7 +221,7 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
 	item := TD{
 		HTML: fmt.Sprintf(
-			`<input id="%s" v-model="%s" data-allow-input="true" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active">`,
+			`<input id="%s" v-model="%s" data-allow-input="true" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active otot-date">`,
 			ElementID(),
 			Model,
 			minDate,
@@ -238,7 +230,6 @@ func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
@@ -288,7 +279,6 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 		colspan: 1,
 		rowspan: 1,
 		styleMap: map[string]string{
-			"text-align":     "left",
 			"vertical-align": "middle",
 		},
 	}
