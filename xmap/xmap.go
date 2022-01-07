@@ -249,6 +249,7 @@ func (xm Map) SafePut(args ...interface{}) Map {
 	return xm
 }
 
+// ReplaceKeys : Rename Keys, ReplaceKeys(oldKeyA, newKeyA, oldKeyB, newKeyB, ...)
 func (xm Map) ReplaceKeys(keys ...string) Map {
 	for i := 0; i < len(keys)/2; i++ {
 		oldKey := keys[2*i]

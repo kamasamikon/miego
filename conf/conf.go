@@ -24,7 +24,7 @@ type confEntry struct {
 	//
 	// refGet/refSet: count by Read or Write
 	//
-	// Safe: Not show by dump
+	// hidden: Not show by dump
 	kind byte
 	path string
 
@@ -36,7 +36,7 @@ type confEntry struct {
 	refGet int64
 	refSet int64
 
-	safe bool
+	hidden bool
 }
 
 // KConfMonitor is a Callback called when wathed entry modified.
@@ -62,7 +62,7 @@ func EntryAdd(line string) {
 		return
 	}
 
-	kind, safe, realpath := pathParse(path)
+	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
 	}
@@ -70,9 +70,9 @@ func EntryAdd(line string) {
 	e, ok := mapPathEntry[path]
 	if !ok {
 		e = &confEntry{
-			kind: kind,
-			safe: safe,
-			path: realpath,
+			kind:   kind,
+			hidden: hidden,
+			path:   realpath,
 		}
 	}
 
@@ -234,39 +234,51 @@ func List(sep string, paths ...string) []string {
 	return nil
 }
 
-func pathParse(path string) (kind byte, safe bool, realpath string) {
+func pathParse(path string) (kind byte, hidden bool, realpath string) {
 	switch path[0] {
 	case 'i', 'I':
 		kind = 'i'
-		safe = path[0] == 'I'
+		hidden = path[0] == 'I'
 		realpath = "i" + path[1:]
 
 	case 's', 'S':
 		kind = 's'
-		safe = path[0] == 'S'
+		hidden = path[0] == 'S'
 		realpath = "s" + path[1:]
 
 	case 'b', 'B':
 		kind = 'b'
-		safe = path[0] == 'B'
+		hidden = path[0] == 'B'
 		realpath = "b" + path[1:]
 
 	case 'o', 'O':
 		kind = 'o'
-		safe = path[0] == 'O'
+		hidden = path[0] == 'O'
 		realpath = "o" + path[1:]
 
 	default:
 		realpath = ""
 	}
 
-	return kind, safe, realpath
+	return kind, hidden, realpath
 }
 
+// Names : All Keys
 func Names() []string {
 	var names []string
 	for k, _ := range mapPathEntry {
 		names = append(names, k)
+	}
+	return names
+}
+
+// SafeNames : Keys not hidden
+func SafeNames() []string {
+	var names []string
+	for k, e := range mapPathEntry {
+		if !e.hidden {
+			names = append(names, k)
+		}
 	}
 	return names
 }
@@ -280,7 +292,7 @@ func Set(path string, value interface{}, force bool) {
 	var e *confEntry
 	var ok bool
 
-	kind, safe, realpath := pathParse(path)
+	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
 	}
@@ -290,9 +302,9 @@ func Set(path string, value interface{}, force bool) {
 	if !ok {
 		if force {
 			e = &confEntry{
-				kind: kind,
-				safe: safe,
-				path: realpath,
+				kind:   kind,
+				hidden: hidden,
+				path:   realpath,
 			}
 			mapPathEntry[e.path] = e
 		} else {
@@ -303,56 +315,64 @@ func Set(path string, value interface{}, force bool) {
 
 	switch kind {
 	case 'i':
-		var v int64
+		vOld := e.vInt
+
+		var vNew int64
 		if x, ok := value.(int64); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(int32); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(int); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(int16); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(int8); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(uint64); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(uint32); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(uint); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(uint16); ok {
-			v = int64(x)
+			vNew = int64(x)
 		} else if x, ok := value.(uint8); ok {
-			v = int64(x)
+			vNew = int64(x)
 		}
-		monitorCall(e, e.vInt, v)
-		e.vInt = v
+		e.vInt = vNew
 		e.refSet++
+		monitorCall(e, vOld, vNew)
 
 	case 's':
-		v := value.(string)
-		monitorCall(e, e.vStr, v)
-		e.vStr = v
+		vOld := e.vStr
+
+		vNew := value.(string)
+		e.vStr = vNew
 		e.refSet++
+		monitorCall(e, vOld, vNew)
 
 	case 'b':
-		v := value.(bool)
-		monitorCall(e, e.vBool, v)
-		e.vBool = v
+		vOld := e.vBool
+
+		vNew := value.(bool)
+		e.vBool = vNew
 		e.refSet++
+		monitorCall(e, vOld, vNew)
 
 	case 'o':
-		v := value.(interface{})
-		monitorCall(e, e.vObj, v)
-		e.vObj = v
+		vOld := e.vObj
+
+		vNew := value.(interface{})
+		e.vObj = vNew
 		e.refSet++
+		monitorCall(e, vOld, vNew)
 
 	default:
 		klog.E("Bad Kind: %c", kind)
 	}
 }
 
-// Monitor : Callback when entry changed.
+// Monitor : Callback AFTER entry changed.
 func Monitor(path string, callback func(path string, oVal interface{}, nVal interface{})) {
 	// path: i:/aaa/bbb
 
@@ -389,7 +409,7 @@ func Dump() string {
 
 	var lines []string
 	for _, v := range cList {
-		if v.safe {
+		if v.hidden {
 			continue
 		}
 
@@ -405,7 +425,6 @@ func Dump() string {
 
 		case 'o':
 			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%s", v.refGet, v.refSet, v.path, "..."))
-
 		}
 	}
 
@@ -426,7 +445,7 @@ func DumpRaw() string {
 
 	var lines []string
 	for _, v := range cList {
-		if v.safe {
+		if v.hidden {
 			continue
 		}
 

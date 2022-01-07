@@ -23,11 +23,15 @@ var ColorType_Reset = "\x1b[0m"
 var Conf struct {
 	ShortPath bool
 	NoColor   bool
-	Silence   bool
+	Mute      bool
 }
 
 // BT : Print back trace
 func BT(maxdep int, formating string, args ...interface{}) string {
+	if Conf.Mute {
+		return ""
+	}
+
 	now := time.Now()
 	nowQ := now.Format("2006/01/02 15:04:05.")
 	nowH := now.Nanosecond() / 1000 / 1000 % 1000
@@ -67,7 +71,7 @@ func BT(maxdep int, formating string, args ...interface{}) string {
 
 // KLogLN : Log with CR
 func KLogLN(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
-	if Conf.Silence {
+	if Conf.Mute {
 		return
 	}
 	if Conf.NoColor {
@@ -100,7 +104,7 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 
 // KLogX : No '\s' appended.
 func KLog(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
-	if Conf.Silence {
+	if Conf.Mute {
 		return
 	}
 	if Conf.NoColor {
@@ -211,5 +215,5 @@ func Dump(obj interface{}, strPart ...interface{}) {
 
 func init() {
 	spew.Config.Indent = "    "
-	Conf.Silence = false
+	Conf.Mute = false
 }
