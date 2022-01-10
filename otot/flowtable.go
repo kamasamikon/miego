@@ -84,16 +84,16 @@ func (ft *FlowTable) Last() *TD {
 func (ft *FlowTable) AddHeader(title string) {
 	colspan := ft.Column
 
-	ft.AddOne(`<label class="label otot-header" style="font-weight: unset; font-size: larger">` + title + `</label>`).SetColSpan(colspan)
+	ft.AddRaw(`<label class="label otot-header" style="font-weight: unset; font-size: larger">`+title+`</label>`, 1, 1).SetColSpan(colspan)
 
-	ft.AddOne(`<hr class="otot-header-line" style="margin: unset">`).SetColSpan(colspan).SetStyle("padding", "4px 16px")
+	ft.AddRaw(`<hr class="otot-header-line" style="margin: unset">`, 1, 1).SetColSpan(colspan).SetStyle("padding", "4px 16px")
 }
 
-func (ft *FlowTable) AddOne(HTML string) *TD {
+func (ft *FlowTable) AddRaw(HTML string, colspan int, rowspan int) *TD {
 	item := TD{
 		HTML:    HTML,
-		colspan: 1,
-		rowspan: 1,
+		colspan: colspan,
+		rowspan: rowspan,
 		styleMap: map[string]string{
 			"vertical-align": "middle",
 		},
@@ -101,9 +101,25 @@ func (ft *FlowTable) AddOne(HTML string) *TD {
 	ft.Items = append(ft.Items, &item)
 	return &item
 }
+
+// AddDiv : <div> YOUR_HTML </div>
+func (ft *FlowTable) AddDiv(HTML string, colspan int, rowspan int) *TD {
+	item := TD{
+		HTML:    "<div>" + HTML + "</div>",
+		colspan: colspan,
+		rowspan: rowspan,
+		styleMap: map[string]string{
+			"vertical-align": "middle",
+		},
+	}
+	ft.Items = append(ft.Items, &item)
+	return &item
+}
+
+// AddSpan : <span> YOUR_HTML </span>
 func (ft *FlowTable) AddSpan(HTML string, colspan int, rowspan int) *TD {
 	item := TD{
-		HTML:    HTML,
+		HTML:    "<span>" + HTML + "</span>",
 		colspan: colspan,
 		rowspan: rowspan,
 		styleMap: map[string]string{
@@ -128,7 +144,7 @@ func (ft *FlowTable) AddTitleB(Title string) *TD {
 	return &item
 }
 
-// AddLabel : shortcut
+// AddLabel : <label> YOUR_HTML </label>
 func (ft *FlowTable) AddLabel(Label string) *TD {
 	item := TD{
 		HTML:    fmt.Sprintf(`<label class="label" style="font-size:unset">%s</label>`, Label),

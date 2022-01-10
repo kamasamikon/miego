@@ -58,7 +58,7 @@ func (sd *SD) Gen(b64 bool) string {
 
 		if title == "" {
 			// 占位
-			ft.AddOne("").SetStyle("border", "0")
+			ft.AddRaw("", 1, 1).SetStyle("border", "0")
 			continue
 		}
 
@@ -70,7 +70,7 @@ func (sd *SD) Gen(b64 bool) string {
 		}
 		button += fmt.Sprintf(buttonH, title)
 
-		ft.AddOne(button).SetStyle("border", "0", "padding", "1px")
+		ft.AddRaw(button, 1, 1).SetStyle("border", "0", "padding", "1px")
 	}
 
 	return ft.Gen(b64)
