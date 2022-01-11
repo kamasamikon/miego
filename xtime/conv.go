@@ -2,8 +2,10 @@ package xtime
 
 import (
 	"fmt"
-	"github.com/kamasamikon/miego/atox"
+	"strings"
 	"time"
+
+	"github.com/kamasamikon/miego/atox"
 )
 
 func NumToStr(o interface{}) string {
@@ -32,6 +34,8 @@ func NumToStr(o interface{}) string {
 
 func StrToNum(s string, flag byte) uint64 {
 	var tmp string
+
+	s = strings.Replace(s, "/", "-", -1)
 
 	for {
 		if t, err := time.Parse("20060102", s); err == nil {
@@ -117,6 +121,7 @@ func StrToNum(s string, flag byte) uint64 {
 
 func AnyToNum(g interface{}) uint64 {
 	stime := fmt.Sprintf("%v000000", g)
+	stime = strings.Replace(stime, "/", "-", -1)
 
 	l := len(stime)
 
