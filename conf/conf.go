@@ -318,27 +318,29 @@ func Set(path string, value interface{}, force bool) {
 		vOld := e.vInt
 
 		var vNew int64
-		if x, ok := value.(int64); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(int32); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(int); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(int16); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(int8); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(uint64); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(uint32); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(uint); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(uint16); ok {
-			vNew = int64(x)
-		} else if x, ok := value.(uint8); ok {
-			vNew = int64(x)
+		switch value.(type) {
+		case int64:
+			vNew = int64(value.(int64))
+		case int32:
+			vNew = int64(value.(int32))
+		case int:
+			vNew = int64(value.(int))
+		case int16:
+			vNew = int64(value.(int16))
+		case int8:
+			vNew = int64(value.(int8))
+		case uint64:
+			vNew = int64(value.(uint64))
+		case uint32:
+			vNew = int64(value.(uint32))
+		case uint:
+			vNew = int64(value.(uint))
+		case uint16:
+			vNew = int64(value.(uint16))
+		case uint8:
+			vNew = int64(value.(uint8))
 		}
+
 		e.vInt = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
