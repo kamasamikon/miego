@@ -29,7 +29,7 @@ type SD struct {
 // bt = fmt.Sprintf(`<div onclick="sdPopupLocal(this)" data-sd="%s">{{ HospitalName }}</div>`, ss.Gen())
 // ft.AddOne(bt)
 func New(col int, id string, class string) *SD {
-	return &SD{col: col}
+	return &SD{col: col, id: id, class: class}
 }
 
 // Add : "辅仁大学", "app.setVueData", "SchoolName", "FuRen"

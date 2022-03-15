@@ -218,6 +218,14 @@ func (xm Map) SafeMerge(other Map) {
 	}
 }
 
+func (xm Map)MergeSome(other Map, names []string) {
+	for _, name := range names {
+		if other.Has(name) {
+			xm[name] = other[name]
+		}
+	}
+}
+
 func (xm Map) Put(args ...interface{}) Map {
 	for i := 0; i < len(args)/2; i++ {
 		k := args[2*i].(string)
@@ -303,7 +311,13 @@ func (xm Map) AsUint(name string, defv uint64) uint64 {
 	}
 	return defv
 }
-
+func (xm Map) AsFloat(name string, defv float64) float64 {
+	if x, ok := xm[name]; ok {
+		s := fmt.Sprintf("%v", x)
+		return atox.Float(s, defv)
+	}
+	return defv
+}
 func (xm Map) Str(name string, defv string) string {
 	if x, ok := xm[name]; ok {
 		return x.(string)
