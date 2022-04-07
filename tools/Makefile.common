@@ -132,7 +132,7 @@ userScriptLast: userScript
 	@echo >> .userScript "[ -f main.cfg ] && cp -f main.cfg ms/main.cfg || echo -n"
 	@echo >> .userScript "[ -f main.`cat /tmp/.mkCONFIG`.cfg ] && cp -f main.`cat /tmp/.mkCONFIG`.cfg ms/main.cfg || echo -n"
 	@echo >> .userScript "[ -f README.md ] && cp -fr README.md ms/ || echo -n"
-	@echo >> .userScript "[ -d templates ] && cp -fr templates ms/ || echo -n"
+	@echo >> .userScript "[ -d templates ] && echo cp -fr templates ms/ || echo -n"
 	@echo >> .userScript "[ -d static ] && cp -fr static ms/ || echo -n"
 	@echo "==> Writing userScript... DONE"
 

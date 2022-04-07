@@ -97,13 +97,13 @@ func init() {
 	}
 
 	Default.SetFuncMap(template.FuncMap{
-		"formatAsDate":  formatAsDate,
+		"FormatAsDate":  FormatAsDate,
 		"ToHTML":        ToHTML,
 		"ToJS":          ToJS,
 		"ToCSS":         ToCSS,
 		"Choice":        Choice,
 		"ToAttr":        ToAttr,
-		"ntimeToString": ntimeToString,
+		"NtimeToString": NtimeToString,
 		"MPGet":         MPGet,
 		"MapChoice":     MapChoice,
 		"SubStr":        SubStr,

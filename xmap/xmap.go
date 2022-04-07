@@ -218,7 +218,7 @@ func (xm Map) SafeMerge(other Map) {
 	}
 }
 
-func (xm Map)MergeSome(other Map, names []string) {
+func (xm Map) MergeSome(other Map, names []string) {
 	for _, name := range names {
 		if other.Has(name) {
 			xm[name] = other[name]

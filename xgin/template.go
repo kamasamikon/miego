@@ -53,12 +53,12 @@ func MapChoice(obj xmap.Map, name string, check string, eqstr string, nestr stri
 	return Choice(obj.Str(name, ""), check, eqstr, nestr)
 }
 
-func formatAsDate(t time.Time) string {
+func FormatAsDate(t time.Time) string {
 	year, month, day := t.Date()
 	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
 
-func ntimeToString(t string) string {
+func NtimeToString(t string) string {
 	nt, _ := xtime.NumTimeToTime(atox.Uint64(t, 0))
 	return nt.Format("2006-01-02 15:04:05")
 }

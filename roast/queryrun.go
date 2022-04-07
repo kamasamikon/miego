@@ -7,6 +7,7 @@ import (
 	"github.com/kamasamikon/miego/xmap"
 
 	"database/sql"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -148,7 +149,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 				var lines string
 				if err := res.Scan(&lines); err == nil {
 					allCount = atox.Int(lines, 0)
-					mc.Set(allCount, 60, cStmtHash)
+					mc.Set(allCount, 60, cStmtHash, "roast")
 				} else {
 					klog.E(err.Error())
 				}
@@ -208,7 +209,7 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows in
 				var lines string
 				if err := res.Scan(&lines); err == nil {
 					allCount = atox.Int(lines, 0)
-					mc.Set(allCount, 60, cStmtHash)
+					mc.Set(allCount, 60, cStmtHash, "roast")
 				} else {
 					klog.E(err.Error())
 				}

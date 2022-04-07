@@ -7,99 +7,101 @@ import (
 	"github.com/twinj/uuid"
 )
 
-// ID <> ExpTime, ID <> RealData
-var map_UUID_Exp map[string]int64
-var map_UUID_Data map[string]interface{}
+type Item struct {
+	data interface{} // 缓存的数据
+	exp  int64       // 过期时间
+	tag  string      // 标签，分类用
+}
+
+var Items map[string]*Item
 
 var mutex = &sync.Mutex{}
 
-// Set : Add a string to cache and return a UUID as a key with exp seconds
-func Set(data interface{}, exp int64, UUID string) string {
+// Set : Add a string to cache and return a UID as a key with exp seconds
+func Set(data interface{}, exp int64, uid string, tag string) string {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if UUID == "" {
-		UUID = uuid.NewV4().String()
+	if uid == "" {
+		uid = uuid.NewV4().String()
 	}
 
 	// Exp after exp seconds
-	map_UUID_Exp[UUID] = time.Now().Unix() + exp
-	map_UUID_Data[UUID] = data
-
-	return UUID
-}
-
-// Mod : 修改data而不改变exp
-func Mod(data interface{}, UUID string) bool {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	if _, ok := map_UUID_Data[UUID]; ok {
-		map_UUID_Data[UUID] = data
-		return true
+	Items[uid] = &Item{
+		data: data,
+		exp:  time.Now().Unix() + exp,
+		tag:  tag,
 	}
 
-	return false
+	return uid
 }
 
-func Rem(uuid string) {
+// Find : 通过Tag查找
+func Find(tag string) []string {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if _, ok := map_UUID_Exp[uuid]; ok {
-		map_UUID_Exp[uuid] = 0
-	}
-}
+	var uidList []string
 
-// Exp : Return expire time
-func Exp(uuid string) int64 {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	if _, ok := map_UUID_Exp[uuid]; ok {
-		return map_UUID_Exp[uuid]
-	}
-	return 0
-}
-
-// Get : UUID => Original string
-func V(uuid string) (interface{}, bool) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	nowUnix := time.Now().Unix()
-	if Data, ok := map_UUID_Data[uuid]; ok {
-		if Exp, ok := map_UUID_Exp[uuid]; ok {
-			if Exp > nowUnix {
-				return Data, true
-			}
+	now := time.Now().Unix()
+	for uid, item := range Items {
+		if item.exp > now {
+			uidList = append(uidList, uid)
 		}
 	}
+
+	return uidList
+}
+
+// Rem : 删除一些
+func Rem(uidList ...string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	for i := 0; i < len(uidList); i++ {
+		delete(Items, uidList[i])
+	}
+}
+
+// Get : UID => Original string
+func V(uid string) (interface{}, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	now := time.Now().Unix()
+	if item, ok := Items[uid]; ok {
+		if item.exp > now {
+			return item.data, true
+		}
+	}
+
 	return nil, false
 }
 
-func VMust(uuid string, New func(uuid string) (data interface{}, exp int64)) interface{} {
+// VMust : 获取，如果不存在就添加
+func VMust(uid string, New func(uid string) (data interface{}, exp int64, tag string)) interface{} {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	nowUnix := time.Now().Unix()
-	if Data, ok := map_UUID_Data[uuid]; ok {
-		if Exp, ok := map_UUID_Exp[uuid]; ok {
-			if Exp < nowUnix {
-				return Data
-			}
+	now := time.Now().Unix()
+	if item, ok := Items[uid]; ok {
+		if item.exp > now {
+			return item.data
 		}
 	}
 
-	data, exp := New(uuid)
-	map_UUID_Exp[uuid] = time.Now().Unix() + exp
-	map_UUID_Data[uuid] = data
+	data, exp, tag := New(uid)
+	Items[uid] = &Item{
+		data: data,
+		exp:  time.Now().Unix() + exp,
+		tag:  tag,
+	}
 
 	return data
 }
 
-func S(uuid string) (string, bool) {
-	if v, ok := V(uuid); !ok {
+func S(uid string) (string, bool) {
+	if v, ok := V(uid); !ok {
 		return "", false
 	} else if s, ok := v.(string); ok {
 		return s, true
@@ -107,8 +109,8 @@ func S(uuid string) (string, bool) {
 	return "", false
 }
 
-func I(uuid string) (int, bool) {
-	if v, ok := V(uuid); !ok {
+func I(uid string) (int, bool) {
+	if v, ok := V(uid); !ok {
 		return 0, false
 	} else if i, ok := v.(int); ok {
 		return i, true
@@ -116,31 +118,31 @@ func I(uuid string) (int, bool) {
 	return 0, false
 }
 
-func init() {
-	map_UUID_Exp = make(map[string]int64)
-	map_UUID_Data = make(map[string]interface{})
+func cleanup() {
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	nameCache := make(map[string]int)
 
-	var mutex = &sync.Mutex{}
+	now := time.Now().Unix()
+	for uid, item := range Items {
+		if now < item.exp {
+			continue
+		}
+		nameCache[uid] = 1
+	}
+	for uid, _ := range nameCache {
+		delete(Items, uid)
+	}
+}
+
+func init() {
+	Items = make(map[string]*Item)
 
 	go func() {
-		time.Sleep(time.Second * 30)
-
-		mutex.Lock()
-		nowUnix := time.Now().Unix()
-		for UUID, _ := range map_UUID_Data {
-			if Exp, ok := map_UUID_Exp[UUID]; ok {
-				if nowUnix < Exp {
-					continue
-				}
-			}
-			nameCache[UUID] = 1
+		for {
+			time.Sleep(time.Second * 30)
+			cleanup()
 		}
-		for UUID, _ := range nameCache {
-			delete(map_UUID_Exp, UUID)
-			delete(map_UUID_Data, UUID)
-		}
-		mutex.Unlock()
 	}()
 }
