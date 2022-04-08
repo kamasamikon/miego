@@ -108,8 +108,13 @@ func init() {
 		"MapChoice":     MapChoice,
 		"SubStr":        SubStr,
 	})
+}
 
-	if conf.Int(1, "gin/debug/routers") == 1 {
+func DebugSettings(xRouters int64, xReadme int64, xConf int64) {
+	if xRouters == -1 {
+		xRouters = conf.Int(1, "gin/debug/routers")
+	}
+	if xRouters == 1 {
 		Default.GET("/debug/routers", func(c *gin.Context) {
 			if c.Query("html") == "1" {
 				var lines []string
@@ -134,7 +139,10 @@ func init() {
 		})
 	}
 
-	if conf.Int(1, "gin/debug/readme") == 1 {
+	if xReadme == -1 {
+		xReadme = conf.Int(1, "gin/debug/readme")
+	}
+	if xReadme == 1 {
 		Default.GET("/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
 			opts := html.RendererOptions{Flags: htmlFlags}
@@ -155,7 +163,10 @@ func init() {
 		})
 	}
 
-	if conf.Int(1, "gin/debug/conf") == 1 {
+	if xConf == -1 {
+		xConf = conf.Int(1, "gin/debug/routers")
+	}
+	if xConf == 1 {
 		Default.GET("/debug/conf", func(c *gin.Context) {
 			c.String(200, conf.Dump())
 		})
