@@ -3,10 +3,19 @@
 fake:
 	@echo "Interesting..."
 
+
 build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ..."
-	daoker.py --ms-name=$(msName) --ms-vern=$(msVern) --ms-port=$(msPort) --ms-desc=$(msDesc) --ms-upstream=$(msUpstream) --ms-kind=$(msKind) --msa-base=$(msaBase)
+	daoker.py \
+		--ms-name=$(msName) \
+		--ms-vern=$(msVern) \
+		--ms-port=$(msPort) \
+		--ms-desc=$(msDesc) \
+		--ms-upstream=$(msUpstream) \
+		--ms-kind=$(msKind) \
+		--msa-base=$(msaBase)
 	@echo "==> Building docker ... DONE"
+
 
 run: build
 	@echo "==> Running docker ..."
@@ -19,6 +28,7 @@ run: build
 		mscontainer.sh -b -k; \
 	)
 
+
 dockerpack: build
 	@echo
 	@echo
@@ -29,6 +39,7 @@ dockerpack: build
 	@echo "<<<<<<<<<<<<< dockerpack >>>>>>>>>>>>>"
 	@echo
 	@echo
+
 
 xdockerpack:
 	@echo
@@ -128,12 +139,12 @@ userScriptFirst:
 
 
 userScriptLast: userScript
-	@echo >> .userScript "[ -f msa.cfg ] && cp -f msa.cfg ms/msa.cfg || echo -n"
-	@echo >> .userScript "[ -f main.cfg ] && cp -f main.cfg ms/main.cfg || echo -n"
-	@echo >> .userScript "[ -f main.`cat /tmp/.mkCONFIG`.cfg ] && cp -f main.`cat /tmp/.mkCONFIG`.cfg ms/main.cfg || echo -n"
-	@echo >> .userScript "[ -f README.md ] && cp -fr README.md ms/ || echo -n"
-	@echo >> .userScript "[ -d templates ] && echo cp -fr templates ms/ || echo -n"
-	@echo >> .userScript "[ -d static ] && cp -fr static ms/ || echo -n"
+	$(call sss, "[ -f msa.cfg ] && cp -f msa.cfg ms/msa.cfg || echo -n")
+	$(call sss, "[ -f main.cfg ] && cp -f main.cfg ms/main.cfg || echo -n")
+	$(call sss, "[ -f main.`cat /tmp/.mkCONFIG`.cfg ] && cp -f main.`cat /tmp/.mkCONFIG`.cfg ms/main.cfg || echo -n")
+	$(call sss, "[ -f README.md ] && cp -fr README.md ms/ || echo -n")
+	$(call sss, "[ -d templates ] && echo cp -fr templates ms/ || echo -n")
+	$(call sss, "[ -d static ] && cp -fr static ms/ || echo -n")
 	@echo "==> Writing userScript... DONE"
 
 
@@ -145,6 +156,7 @@ userDockerCommandFirst:
 
 userDockerCommandLast: userDockerCommand
 	@echo "==> Writing userDockerCommand... DONE"
+
 
 # appendline fileName line
 define append

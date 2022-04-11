@@ -1,10 +1,9 @@
 package conf
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
@@ -118,25 +117,23 @@ func EntryAdd(line string) {
 	mapPathEntry[e.path] = e
 }
 
-// Load configure from a file.
+// LoadString : Load setting from string (lines of configuration)
+func LoadString(s string) {
+	s = strings.Replace(s, "\r", "\n", -1)
+	Lines := strings.Split(s, "\n")
+	for _, Line := range Lines {
+		EntryAdd(Line)
+	}
+}
+
+// Load : configure from a file.
 func Load(fileName string) error {
-	f, err := os.Open(fileName)
+	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-
-	buf := bufio.NewReader(f)
-	for {
-		if line, err := buf.ReadString('\n'); err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		} else {
-			EntryAdd(line)
-		}
-	}
+	LoadString(string(data))
+	return nil
 }
 
 // Ref : refGet, refSet
