@@ -99,6 +99,9 @@ def createDockerfile():
     with open("Dockerfile", "w") as f:
         f.write(text)
 
+def colorprint(s):
+    print('\033[1;3{}m{}\033[0m'.format(2, s))
+
 def saferun(cmd, debug=True):
     try:
         if debug:
@@ -113,19 +116,17 @@ def saferun(cmd, debug=True):
 
 
 def callUserScript():
-    saferun(["rm", "-frv", "ms"])
+    saferun(["rm", "-fr", "ms"])
     saferun(["mkdir", "-p", "ms"])
     x = subprocess.run(["sh", "-e", "-u", "./.userScript"])
     if x.returncode != 0:
         sys.exit(x.returncode)
 
 def copyMain():
-    saferun(["cp", "-frv", "main", "ms"])
+    saferun(["cp", "-fr", "main", "ms"])
 
     saferun(["touch", "ms/main.cfg"])
     saferun(["touch", "ms/README.md"])
-
-    saferun(["cp", "-frvL", "/usr/local/bin/msahere.py", "ms"])
 
 def build():
     '''Generate the docker image'''
@@ -205,8 +206,6 @@ def main(foreground, container, share_mode, append_mode, kill,
     env = env
     extra = extra
 
-    print(shareMode)
-    print(appendMode)
     #
     # Set global
     #

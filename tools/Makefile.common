@@ -139,12 +139,7 @@ userScriptFirst:
 
 
 userScriptLast: userScript
-	$(call sss, "[ -f msa.cfg ] && cp -f msa.cfg ms/msa.cfg || echo -n")
-	$(call sss, "[ -f main.cfg ] && cp -f main.cfg ms/main.cfg || echo -n")
-	$(call sss, "[ -f main.`cat /tmp/.mkCONFIG`.cfg ] && cp -f main.`cat /tmp/.mkCONFIG`.cfg ms/main.cfg || echo -n")
-	$(call sss, "[ -f README.md ] && cp -fr README.md ms/ || echo -n")
-	$(call sss, "[ -d templates ] && echo cp -fr templates ms/ || echo -n")
-	$(call sss, "[ -d static ] && cp -fr static ms/ || echo -n")
+	$(call sss, "[ -f msa.cfg ] && cp -fv msa.cfg ms/msa.cfg || echo -n")
 	@echo "==> Writing userScript... DONE"
 
 
