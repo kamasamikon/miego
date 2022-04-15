@@ -370,6 +370,30 @@ func Set(path string, value interface{}, force bool) {
 		klog.E("Bad Kind: %c", kind)
 	}
 }
+func SetI(path string, value interface{}, force bool) {
+	Set("I:/"+path, value, force)
+}
+func Seti(path string, value interface{}, force bool) {
+	Set("i:/"+path, value, force)
+}
+func SetS(path string, value interface{}, force bool) {
+	Set("S:/"+path, value, force)
+}
+func Sets(path string, value interface{}, force bool) {
+	Set("s:/"+path, value, force)
+}
+func SetB(path string, value interface{}, force bool) {
+	Set("B:/"+path, value, force)
+}
+func Setb(path string, value interface{}, force bool) {
+	Set("b:/"+path, value, force)
+}
+func SetO(path string, value interface{}, force bool) {
+	Set("O:/"+path, value, force)
+}
+func Seto(path string, value interface{}, force bool) {
+	Set("o:/"+path, value, force)
+}
 
 // Monitor : Callback AFTER entry changed.
 func Monitor(path string, callback func(path string, oVal interface{}, nVal interface{})) {
