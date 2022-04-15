@@ -57,8 +57,8 @@ def headVersion():
 
 def isUpdated():
     try:
-        cmd = ("git", "status", "-uno")
-        return len(subprocess.check_output(cmd).strip().decode().split("\n")) < 5
+        cmd = ("git", "status", "-uno", "-s")
+        return not bool(subprocess.check_output(cmd))
     except:
         return False
 
