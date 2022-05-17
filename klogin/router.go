@@ -1,12 +1,10 @@
-package auth
+package klogin
 
 import (
 	"github.com/gin-gonic/gin"
-
-	"github.com/kamasamikon/miego/klogin"
 )
 
-var loginMap map[string]klogin.Login
+var loginMap map[string]Login
 
 type RouterParam struct {
 	LoginType    string
@@ -66,49 +64,49 @@ func Start() {
 	for _, rp := range RouterParamList {
 		switch rp.Method {
 		case "POST":
-			klogin.Default.POST(rp.LoginType, rp.RelativePath, rp.Handler)
+			Default.POST(rp.LoginType, rp.RelativePath, rp.Handler)
 		case "GET":
-			klogin.Default.GET(rp.LoginType, rp.RelativePath, rp.Handler)
+			Default.GET(rp.LoginType, rp.RelativePath, rp.Handler)
 		case "PUT":
-			klogin.Default.PUT(rp.LoginType, rp.RelativePath, rp.Handler)
+			Default.PUT(rp.LoginType, rp.RelativePath, rp.Handler)
 		case "DELETE":
-			klogin.Default.DELETE(rp.LoginType, rp.RelativePath, rp.Handler)
+			Default.DELETE(rp.LoginType, rp.RelativePath, rp.Handler)
 		}
 	}
 }
 
 func Get(c *gin.Context, key string) interface{} {
-	return klogin.Default.Get(c, key)
+	return Default.Get(c, key)
 }
 
 func Set(c *gin.Context, key string, val interface{}) {
-	klogin.Default.Set(c, key, val)
+	Default.Set(c, key, val)
 }
 
 func Save(c *gin.Context) {
-	klogin.Default.Save(c)
+	Default.Save(c)
 }
 
-func Register(Type string, login klogin.Login) {
+func Register(Type string, login Login) {
 	loginMap[Type] = login
 }
 
 func Setup(Gin *gin.Engine, SessionName string) {
 	for k, v := range loginMap {
-		klogin.Default.Register(k, v)
+		Default.Register(k, v)
 	}
-	klogin.Default.Setup(Gin, SessionName)
+	Default.Setup(Gin, SessionName)
 }
 
 // sessionItem
 func SessionGet(c *gin.Context, name string) string {
-	return klogin.Default.Get(c, name)
+	return Default.Get(c, name)
 }
 
 func LoginType(c *gin.Context) string {
-	return klogin.Default.GetLoginType(c)
+	return Default.GetLoginType(c)
 }
 
 func init() {
-	loginMap = make(map[string]klogin.Login)
+	loginMap = make(map[string]Login)
 }
