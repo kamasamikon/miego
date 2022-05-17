@@ -210,20 +210,26 @@ func (xm Map) Merge(other Map) {
 	}
 }
 
-func (xm Map) SafeMerge(other Map) {
+func (xm Map) SafeMerge(other Map) int {
+	cnt := 0
 	for k, v := range other {
 		if _, ok := xm[k]; !ok {
 			xm[k] = v
+			cnt += 1
 		}
 	}
+	return cnt
 }
 
-func (xm Map) MergeSome(other Map, names []string) {
+func (xm Map) MergeSome(other Map, names ...string) int {
+	cnt := 0
 	for _, name := range names {
 		if other.Has(name) {
 			xm[name] = other[name]
+			cnt += 1
 		}
 	}
+	return cnt
 }
 
 func (xm Map) Put(args ...interface{}) Map {
