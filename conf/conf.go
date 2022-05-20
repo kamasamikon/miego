@@ -494,26 +494,56 @@ func DumpRaw() string {
 }
 
 func init() {
-	cfgList := os.Getenv("KCFG_FILES")
-	files := strings.Split(cfgList, ":")
-	for _, f := range files {
-		if f != "" {
-			if err := Load(f); err != nil {
-				klog.E("LOAD KCFG_FILES Error: %s", err.Error())
-			}
-		}
-	}
-
-	for _, argv := range os.Args {
-		if strings.HasPrefix(argv, "--kfg=") {
-			f := argv[6:]
+	{
+		cfgList := os.Getenv("KCFG_FILES")
+		files := strings.Split(cfgList, ":")
+		for _, f := range files {
 			if f != "" {
 				if err := Load(f); err != nil {
-					klog.E("LOAD --kfg=xxx Error: %s", err.Error())
+					klog.E("LOAD KCFG_FILES Error: %s", err.Error())
 				}
 			}
 		}
 	}
+	{
+		cfgList := os.Getenv("KCFG_QQQ_FILES")
+		files := strings.Split(cfgList, ":")
+		for _, f := range files {
+			if f != "" {
+				if err := Load(f); err != nil {
+					klog.E("LOAD KCFG_QQQ_FILES Error: %s", err.Error())
+				}
+				os.Remove(f)
+			}
+		}
+	}
+
+	{
+		for _, argv := range os.Args {
+			if strings.HasPrefix(argv, "--kfg=") {
+				f := argv[6:]
+				if f != "" {
+					if err := Load(f); err != nil {
+						klog.E("LOAD --kfg=xxx Error: %s", err.Error())
+					}
+				}
+			}
+		}
+	}
+	{
+		for _, argv := range os.Args {
+			if strings.HasPrefix(argv, "--kfg-qqq=") {
+				f := argv[6:]
+				if f != "" {
+					if err := Load(f); err != nil {
+						klog.E("LOAD --kfg-qqq=xxx Error: %s", err.Error())
+					}
+					os.Remove(f)
+				}
+			}
+		}
+	}
+
 	for _, argv := range os.Args {
 		if strings.HasPrefix(argv, "--kfg-item=") {
 			item := argv[11:]
