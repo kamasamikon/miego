@@ -36,6 +36,24 @@ func Set(data interface{}, exp int64, uid string, tag string) string {
 	return uid
 }
 
+// Mod : Modify
+func Mod(uid string, data interface{}, exp int64, tag string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if item, ok := Items[uid]; ok {
+		if data != nil {
+			item.data = data
+		}
+		if exp != 0 {
+			item.exp = time.Now().Unix() + exp
+		}
+		if tag != "" {
+			item.tag = tag
+		}
+	}
+}
+
 // Find : 通过Tag查找
 func Find(tag string) []string {
 	mutex.Lock()
