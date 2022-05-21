@@ -32,9 +32,9 @@ func New(col int, id string, class string) *SD {
 	return &SD{col: col, id: id, class: class}
 }
 
-// Add : "辅仁大学", "app.setVueData", "SchoolName", "FuRen"
+// Add : "辅仁大学", "setVueData", "SchoolName", "FuRen"
 // args[0] = Title = 弹窗窗口显示的文本
-// args[1] = Function = 点击按钮时调用的函数，默认是app.setVueData
+// args[1] = Function = 点击按钮时调用的函数，默认是setVueData
 // args[x] = 对应了Vue的Key
 // args[x+1] = 对应了Vue的Val
 func (sd *SD) Add(kv ...string) {
@@ -53,7 +53,7 @@ func (sd *SD) Gen(b64 bool) string {
 		title := args[0]
 		function := args[1]
 		if function == "" {
-			function = "app.setVueData" // 默认是这个
+			function = "setVueData" // 默认是这个
 		}
 
 		if title == "" {
