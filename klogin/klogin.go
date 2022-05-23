@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/kamasamikon/miego/klog"
+	"github.com/kamasamikon/miego/pong"
 	"github.com/kamasamikon/miego/xgin"
 	"github.com/kamasamikon/miego/xmap"
 )
@@ -17,7 +18,7 @@ import (
 type Login interface {
 	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
 	BeforeLogin(c *gin.Context) (StatusCode int, PageName string, PageParam xmap.Map)
-	LoginDataChecker(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, err error)
+	LoginDataChecker(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, noPageMode bool, err error)
 
 	LoginRouter() []string
 	LogoutRouter() []string
@@ -137,7 +138,7 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 
 	l := o.MapLogin[LoginType]
 	if l != nil {
-		sessionItems, OKRedirectURL, NGPageName, NGPageParam, err := l.LoginDataChecker(c)
+		sessionItems, OKRedirectURL, NGPageName, NGPageParam, noPageMode, err := l.LoginDataChecker(c)
 		if err == nil {
 			var Keys []string
 			for k, v := range sessionItems {
@@ -147,12 +148,20 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 			session.Set(LoginType, strings.Join(Keys, ";"))
 			session.Save()
 
-			c.Redirect(302, OKRedirectURL)
+			if noPageMode {
+				pong.OK(c, "")
+			} else {
+				c.Redirect(302, OKRedirectURL)
+			}
 		} else {
 			session.Delete(LoginType)
 			session.Save()
 
-			c.HTML(200, NGPageName, NGPageParam)
+			if noPageMode {
+				pong.NG(c, 200, -1, NGPageParam)
+			} else {
+				c.HTML(200, NGPageName, NGPageParam)
+			}
 		}
 	}
 }
