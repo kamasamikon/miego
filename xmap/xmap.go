@@ -285,7 +285,9 @@ func (xm Map) Has(name string) bool {
 
 func (xm Map) Get(name string) (string, bool) {
 	if x, ok := xm[name]; ok {
-		return x.(string), true
+		if s, ok := x.(string); ok {
+			return s, true
+		}
 	}
 	return "", false
 }
@@ -326,7 +328,9 @@ func (xm Map) AsFloat(name string, defv float64) float64 {
 }
 func (xm Map) Str(name string, defv string) string {
 	if x, ok := xm[name]; ok {
-		return x.(string)
+		if s, ok := x.(string); ok {
+			return s
+		}
 	}
 	return defv
 }
@@ -390,8 +394,9 @@ func (xm Map) Bool(name string, defv bool) bool {
 // List : xm["aa"]="a;b;c" ==> ["a", "b", "c"]
 func (xm Map) List(name string, sep string) []string {
 	if x, ok := xm[name]; ok {
-		key := x.(string)
-		return strings.Split(key, sep)
+		if key, ok := x.(string); ok {
+			return strings.Split(key, sep)
+		}
 	}
 	return nil
 }
@@ -400,9 +405,10 @@ func (xm Map) List(name string, sep string) []string {
 func (xm Map) Set(name string, sep string) map[string]int {
 	set := make(map[string]int)
 	if x, ok := xm[name]; ok {
-		key := x.(string)
-		for _, v := range strings.Split(key, sep) {
-			set[v] = 1
+		if key, ok := x.(string); ok {
+			for _, v := range strings.Split(key, sep) {
+				set[v] = 1
+			}
 		}
 	}
 	return set

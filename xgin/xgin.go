@@ -79,7 +79,6 @@ func Run(addr string) {
 		port := conf.Int(8888, "ms/port")
 		addr = fmt.Sprintf(":%d", port)
 	}
-	// Default.Run(addr)
 	gracefulRun(addr)
 }
 
