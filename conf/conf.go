@@ -49,7 +49,7 @@ var mapPathEntry = make(map[string]*confEntry)
 var mapPathMonitors = make(map[string]*confMonitors)
 
 // Load file from configure
-func EntryAdd(line string) {
+func EntryAdd(line string, overwrite bool) {
 	line = strings.TrimSpace(line)
 	segs := strings.SplitN(line, "=", 2)
 	if len(segs) < 2 {
@@ -73,6 +73,8 @@ func EntryAdd(line string) {
 			hidden: hidden,
 			path:   realpath,
 		}
+	} else if (!overwrite) {
+		return
 	}
 
 	switch kind {
@@ -118,11 +120,11 @@ func EntryAdd(line string) {
 }
 
 // LoadString : Load setting from string (lines of configuration)
-func LoadString(s string) {
+func LoadString(s string, overwrite bool) {
 	s = strings.Replace(s, "\r", "\n", -1)
 	Lines := strings.Split(s, "\n")
 	for _, Line := range Lines {
-		EntryAdd(Line)
+		EntryAdd(Line, overwrite)
 	}
 }
 
@@ -132,7 +134,7 @@ func Load(fileName string) error {
 	if err != nil {
 		return err
 	}
-	LoadString(string(data))
+	LoadString(string(data), true)
 	return nil
 }
 
@@ -547,7 +549,7 @@ func init() {
 	for _, argv := range os.Args {
 		if strings.HasPrefix(argv, "--kfg-item=") {
 			item := argv[11:]
-			EntryAdd(item)
+			EntryAdd(item, true)
 		}
 	}
 }
