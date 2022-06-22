@@ -6,15 +6,17 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var ColorType_F = "\x1b[1;31;40m"
-var ColorType_A = "\x1b[91;40m"
-var ColorType_C = "\x1b[1;36;40m"
-var ColorType_E = "\x1b[96;40m"
-var ColorType_W = "\x1b[1;33;40m"
-var ColorType_N = "\x1b[93;40m"
-var ColorType_I = "\x1b[1;32;40m"
-var ColorType_D = "\x1b[92;40m"
-var ColorType_Reset = "\x1b[0m"
+const (
+	ColorType_F     = "\x1b[1;31;40m"
+	ColorType_A     = "\x1b[91;40m"
+	ColorType_C     = "\x1b[1;36;40m"
+	ColorType_E     = "\x1b[96;40m"
+	ColorType_W     = "\x1b[1;33;40m"
+	ColorType_N     = "\x1b[93;40m"
+	ColorType_I     = "\x1b[1;32;40m"
+	ColorType_D     = "\x1b[92;40m"
+	ColorType_Reset = "\x1b[0m"
+)
 
 var Conf struct {
 	ShortPath bool

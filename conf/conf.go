@@ -424,14 +424,26 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 
 // Dump : Print all entries
 func Dump() string {
+	keyMaxLength := 0
 	var cList []*confEntry
-	for _, v := range mapPathEntry {
+
+	for k, v := range mapPathEntry {
 		cList = append(cList, v)
+		if len(k) > keyMaxLength {
+			keyMaxLength = len(k)
+		}
 	}
+
 	sort.Slice(cList, func(i int, j int) bool {
 		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
 	})
 
+	fmtstr := fmt.Sprintf(
+		"%s(%%04d/%%04d)%s %%-%ds : %s%%v%s",
+		klog.ColorType_I, klog.ColorType_Reset,
+		keyMaxLength,
+		klog.ColorType_W, klog.ColorType_Reset,
+	)
 	var lines []string
 	for _, v := range cList {
 		if v.hidden {
@@ -440,17 +452,18 @@ func Dump() string {
 
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%d", v.refGet, v.refSet, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t\"%s\"", v.refGet, v.refSet, v.path, v.vStr))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%t", v.refGet, v.refSet, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vBool))
 
 		case 'o':
-			lines = append(lines, fmt.Sprintf("(%04d/%04d) \t%-20s \t%s", v.refGet, v.refSet, v.path, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, "..."))
 		}
+
 	}
 
 	// Add the last \n
