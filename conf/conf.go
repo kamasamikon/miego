@@ -73,7 +73,7 @@ func EntryAdd(line string, overwrite bool) {
 			hidden: hidden,
 			path:   realpath,
 		}
-	} else if (!overwrite) {
+	} else if !overwrite {
 		return
 	}
 
