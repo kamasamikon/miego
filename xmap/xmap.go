@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
-	"github.com/kamasamikon/miego/atox"
-	"github.com/kamasamikon/miego/in"
 	"github.com/kamasamikon/miego/klog"
 )
 
@@ -308,21 +307,33 @@ func (xm Map) AsS(name string) string {
 func (xm Map) AsInt(name string, defv int64) int64 {
 	if x, ok := xm[name]; ok {
 		s := fmt.Sprintf("%v", x)
-		return atox.Int64(s, defv)
+		xx, e := strconv.ParseInt(s, 0, 64)
+		if e != nil {
+			return defv
+		}
+		return xx
 	}
 	return defv
 }
 func (xm Map) AsUint(name string, defv uint64) uint64 {
 	if x, ok := xm[name]; ok {
 		s := fmt.Sprintf("%v", x)
-		return atox.Uint64(s, defv)
+		xx, e := strconv.ParseUint(s, 0, 64)
+		if e != nil {
+			return defv
+		}
+		return xx
 	}
 	return defv
 }
 func (xm Map) AsFloat(name string, defv float64) float64 {
 	if x, ok := xm[name]; ok {
 		s := fmt.Sprintf("%v", x)
-		return atox.Float(s, defv)
+		xx, e := strconv.ParseFloat(s, 64)
+		if e != nil {
+			return defv
+		}
+		return xx
 	}
 	return defv
 }
@@ -340,7 +351,11 @@ func (xm Map) S(name string) string {
 
 func (xm Map) Int(name string, defv int) int {
 	if x, ok := xm[name]; ok {
-		return atox.Int(x.(string), defv)
+		xx, e := strconv.ParseInt(x.(string), 0, 64)
+		if e != nil {
+			return defv
+		}
+		return int(xx)
 	}
 	return defv
 }
@@ -350,7 +365,11 @@ func (xm Map) I(name string) int {
 
 func (xm Map) Uint(name string, defv uint) uint {
 	if x, ok := xm[name]; ok {
-		return atox.Uint(x.(string), defv)
+		xx, e := strconv.ParseUint(x.(string), 0, 64)
+		if e != nil {
+			return defv
+		}
+		return uint(xx)
 	}
 	return defv
 }
@@ -360,14 +379,22 @@ func (xm Map) U(name string) uint {
 
 func (xm Map) Int64(name string, defv int64) int64 {
 	if x, ok := xm[name]; ok {
-		return atox.Int64(x.(string), defv)
+		xx, e := strconv.ParseInt(x.(string), 0, 64)
+		if e != nil {
+			return defv
+		}
+		return xx
 	}
 	return defv
 }
 
 func (xm Map) Uint64(name string, defv uint64) uint64 {
 	if x, ok := xm[name]; ok {
-		return atox.Uint64(x.(string), defv)
+		xx, e := strconv.ParseUint(x.(string), 0, 64)
+		if e != nil {
+			return defv
+		}
+		return xx
 	}
 	return defv
 }
@@ -377,11 +404,10 @@ func (xm Map) Bool(name string, defv bool) bool {
 		if b, ok := x.(bool); ok {
 			return b
 		} else if s, ok := x.(string); ok {
-			c := s[0]
-			if in.C(c, 'T', 't', 'Y', 'y', '1') {
+			switch s[0] {
+			case 'T', 't', 'Y', 'y', '1':
 				return true
-			}
-			if in.C(c, 'F', 'f', 'N', 'n', '0') {
+			case 'F', 'f', 'N', 'n', '0':
 				return false
 			}
 		} else if i, ok := x.(int); ok {

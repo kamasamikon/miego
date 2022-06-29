@@ -3,6 +3,7 @@ package wxcorp
 import (
 	"fmt"
 
+	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/httpdo"
 	"github.com/kamasamikon/miego/klog"
 )
@@ -10,7 +11,7 @@ import (
 var (
 	CORP_ID     string
 	CORP_SECRET string
-	AGENTID     string
+	AGENTID     int
 	URLBASE     string
 )
 
@@ -54,10 +55,10 @@ type WxToken struct {
 var wxToken *WxToken = nil
 
 func init() {
-	CORP_ID = conf.String("", "wxnotify/corp_id")
-	CORP_SECRET = conf.String("", "wxnotify/corp_secret")
-	AGENTID = conf.String("", "wxnotify/agentid")
-	URLBASE = conf.String("", "wxnotify/urlbase")
+	CORP_ID = conf.Str("", "wxnotify/corp_id")
+	CORP_SECRET = conf.Str("", "wxnotify/corp_secret")
+	AGENTID = int(conf.Int(0, "wxnotify/agentid"))
+	URLBASE = conf.Str("", "wxnotify/urlbase")
 }
 
 func token() *WxToken {
