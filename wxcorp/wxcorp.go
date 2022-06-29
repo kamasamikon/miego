@@ -7,11 +7,11 @@ import (
 	"github.com/kamasamikon/miego/klog"
 )
 
-const (
-	CORP_ID     = "ww74d52b788de6b22e"
-	CORP_SECRET = "uPyBEJK-_hePSnZQGj4fcr5X-rU6LGlJpAfTs0ASaVE"
-	AGENTID     = 1000007
-	URLBASE     = "https://qyapi.weixin.qq.com/cgi-bin/"
+var (
+	CORP_ID     string
+	CORP_SECRET string
+	AGENTID     string
+	URLBASE     string
 )
 
 type KPong_GetToken struct {
@@ -52,6 +52,13 @@ type WxToken struct {
 }
 
 var wxToken *WxToken = nil
+
+func init() {
+	CORP_ID = conf.String("", "wxnotify/corp_id")
+	CORP_SECRET = conf.String("", "wxnotify/corp_secret")
+	AGENTID = conf.String("", "wxnotify/agentid")
+	URLBASE = conf.String("", "wxnotify/urlbase")
+}
 
 func token() *WxToken {
 	if wxToken == nil {

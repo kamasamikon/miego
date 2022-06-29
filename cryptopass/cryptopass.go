@@ -15,7 +15,7 @@ func Make(password string, salt string) string {
 
 func Hide(name string) (string, string) {
 	Now := time.Now()
-	va := Make(name, Now.Format("200601021504"))[0:6]
+	va := Make(name, Now.Format("200601021505"))[0:6]
 	vb := Make(name, Now.Format("20060102150405"))
 
 	var output string

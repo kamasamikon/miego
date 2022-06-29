@@ -1,9 +1,5 @@
 package visionstandard
 
-import (
-// "github.com/kamasamikon/miego/klog"
-)
-
 //裸眼和矫正
 func Vision(age int) string {
 	if age >= 0 && age < 1 {
@@ -456,12 +452,5 @@ func QuGuangLevel(v int, Age int) int {
 		return CH
 	}
 
-	// klog.F("----------------")
-	// klog.D("Age: %d", Age)
-	// klog.D("近视: X <= %d", js)
-	// klog.D("较快: %d <= X <= %d", jkLo, jkHi)
-	// klog.D("正常: %d <= X <= %d", zcLo, zcHi)
-	// klog.D("迟缓: %d <= X", ch)
-	// klog.D("屈光度: %d, 级别:%d\n", v, x)
 	return ZC
 }

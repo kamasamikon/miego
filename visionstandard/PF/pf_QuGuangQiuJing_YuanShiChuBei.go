@@ -2,7 +2,6 @@ package pf
 
 import (
 	"github.com/kamasamikon/miego/atox"
-	// "github.com/kamasamikon/miego/klog"
 )
 
 //
@@ -285,8 +284,6 @@ func XXX_QuGuangQiuJing(Gender string, fAge float32, vStr string) int {
 	}
 
 	sl, ok := slMapQiuJing[xAge]
-	// klog.Dump(xAge)
-	// klog.Dump(sl)
 	if ok {
 		fInt := atox.Float(vStr, 0)
 		s, _ := sl.Score(fInt)

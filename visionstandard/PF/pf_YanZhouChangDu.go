@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/kamasamikon/miego/atox"
-	"github.com/kamasamikon/miego/klog"
 )
 
 //
@@ -198,7 +197,6 @@ func XXX_YanZhouChangDu(Gender string, fAge float32, vStr string) int {
 	}
 
 	Key := fmt.Sprintf("%s_%s", Gender, xAge)
-	klog.D("KEY:::::::::::::::%s", Key)
 	sl, ok := slMapYanZhouChangDu[Key]
 	if ok {
 		s, _ := sl.Score(fInt)

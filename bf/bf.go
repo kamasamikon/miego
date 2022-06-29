@@ -21,8 +21,10 @@ func (c *XLogger) Output(calldepth int, s string) error {
 var xLogger = &XLogger{}
 
 func init() {
-	// mgo.SetLogger(xLogger)
-	// mgo.SetDebug(true)
+	if conf.Bool(false, "db/mg/debug") {
+		mgo.SetLogger(xLogger)
+		mgo.SetDebug(true)
+	}
 }
 
 func Bye(session *mgo.Session) {
