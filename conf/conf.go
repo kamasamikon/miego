@@ -448,7 +448,7 @@ func Dump() string {
 	})
 
 	fmtstr := fmt.Sprintf(
-		"%s(%%04d/%%04d)%s %%%ds : %s%%v%s",
+		"%s(%%04d/%%04d)%s %%-%ds : %s%%v%s",
 		klog.ColorType_I, klog.ColorType_Reset,
 		keyMaxLength,
 		klog.ColorType_W, klog.ColorType_Reset,
