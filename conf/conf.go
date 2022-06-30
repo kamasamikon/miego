@@ -220,17 +220,26 @@ func Obj(defval interface{}, paths ...string) interface{} {
 	return defval
 }
 
-// List : get a List entry
-func List(sep string, paths ...string) []string {
+// List : get a List entry. s:/names=:aaa:bbb first char is the seperator
+func List(paths ...string) []string {
 	// path: aaa/bbb
+	var slice []string
+
 	for _, path := range paths {
 		key := "s:/" + path
 		if v, ok := mapPathEntry[key]; ok {
-			v.refGet++
-			return strings.Split(v.vStr, sep)
+			if len(v.vStr) > 0 {
+				v.refGet++
+				for _, s := range strings.Split(v.vStr, v.vStr[0:1]) {
+					if s != "" {
+						slice = append(slice, s)
+					}
+				}
+			}
 		}
 	}
-	return nil
+
+	return slice
 }
 
 func pathParse(path string) (kind byte, hidden bool, realpath string) {
