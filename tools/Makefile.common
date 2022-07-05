@@ -1,4 +1,4 @@
-.PHONY: userDockerCommand userScript build run deploy clean
+.PHONY: userDockerCommand userScript build deploy clean
 
 fake:
 	@echo "Interesting..."
@@ -17,30 +17,6 @@ build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ... DONE"
 
 
-run: build
-	@echo "==> Running docker ..."
-	@echo > /tmp/.msName $(msName)
-	( \
-		touch /tmp/.msbName /tmp/.msSUFFIX; \
-		export MSB_NAME=`cat /tmp/.msbName`; \
-		export MS_SUFFIX=`cat /tmp/.msSUFFIX`; \
-		export MS_NAME=`cat /tmp/.msName`; \
-		mscontainer.sh -b -k; \
-	)
-
-
-dockerpack: build
-	@echo
-	@echo
-	@echo ">>>>>>>>>>>>> dockerpack <<<<<<<<<<<<<"
-	sudo docker save -o one.tar ${msName}
-	sudo tar czvf one.tar.gz one.tar
-	sudo chmod a+rwx one.tar.gz
-	@echo "<<<<<<<<<<<<< dockerpack >>>>>>>>>>>>>"
-	@echo
-	@echo
-
-
 xdockerpack:
 	@echo
 	@echo
@@ -52,11 +28,12 @@ xdockerpack:
 	@echo
 	@echo
 
+dockerpack: build xdockerpack
+
 
 deploy: remoteloadms
 
-
-remoteloadms: dockerpack
+xremotereloadms:
 	@echo
 	@echo
 	@echo ">>>> /tmp/.mkREMOTE"
@@ -65,16 +42,16 @@ remoteloadms: dockerpack
 	@cat /tmp/.msbName
 	@echo ">>>> /tmp/.msSUFFIX"
 	@cat /tmp/.msSUFFIX
-	@echo ">>>>>>>>>>>>> remoteloadms <<<<<<<<<<<<<"
+	@echo ">>>>>>>>>>>>> xremoteloadms <<<<<<<<<<<<<"
 	( \
-		touch /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
-		export mkREMOTE=`cat /tmp/.mkREMOTE`; \
-		export msbName=`cat /tmp/.msbName`; \
-		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
-		scp one.tar.gz $${mkREMOTE}:/tmp ; \
-		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
+		touch /tmp/.dockerRunPara /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
+		export dockerRunPara="`cat /tmp/.dockerRunPara`"; \
+		export mkREMOTE="`cat /tmp/.mkREMOTE`"; \
+		export msbName="`cat /tmp/.msbName`"; \
+		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
+		ssh $${mkREMOTE} "mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
 	)
-	@echo "<<<<<<<<<<<<< remoteloadms >>>>>>>>>>>>>"
+	@echo "<<<<<<<<<<<<< xremoteloadms >>>>>>>>>>>>>"
 	@echo
 	@echo
 
@@ -90,33 +67,39 @@ xremoteloadms:
 	@cat /tmp/.msSUFFIX
 	@echo ">>>>>>>>>>>>> xremoteloadms <<<<<<<<<<<<<"
 	( \
-		touch /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
-		export mkREMOTE=`cat /tmp/.mkREMOTE`; \
-		export msbName=`cat /tmp/.msbName`; \
-		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
+		touch /tmp/.dockerRunPara /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
+		export dockerRunPara="`cat /tmp/.dockerRunPara`"; \
+		export mkREMOTE="`cat /tmp/.mkREMOTE`"; \
+		export msbName="`cat /tmp/.msbName`"; \
+		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
 		scp one.tar.gz $${mkREMOTE}:/tmp ; \
-		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
+		ssh $${mkREMOTE} "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
 	)
 	@echo "<<<<<<<<<<<<< xremoteloadms >>>>>>>>>>>>>"
 	@echo
 	@echo
 
 
-localdeploy: dockerpack
+remoteloadms: dockerpack xremoteloadms
+
+
+xlocaldeploy: 
 	@echo
 	@echo
-	@echo ">>>>>>>>>>>>> localdeploy <<<<<<<<<<<<<"
+	@echo ">>>>>>>>>>>>> xlocaldeploy <<<<<<<<<<<<<"
 	( \
-		touch /tmp/.msbName /tmp/.msSUFFIX; \
-		export msbName=`cat /tmp/.msbName`; \
-		export msSUFFIX=`cat /tmp/.msSUFFIX`; \
+		touch /tmp/.dockerRunPara /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX; \
+		export dockerRunPara="`cat /tmp/.dockerRunPara`"; \
+		export msbName="`cat /tmp/.msbName`"; \
+		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
 		sudo docker load -i one.tar; \
-		mscontainer.sh -b -k --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}; \
+		mscontainer.sh -b -k --runopt="${dockerRunPara}" --msbName=${msbName} --suffix=${msSUFFIX} ${msName}; \
 	)
-	@echo "<<<<<<<<<<<<< localdeploy >>>>>>>>>>>>>"
+	@echo "<<<<<<<<<<<<< xlocaldeploy >>>>>>>>>>>>>"
 	@echo
 	@echo
 
+localdeploy: dockerpack xlocaldeploy
 
 vet:
 	@go vet
@@ -124,6 +107,7 @@ vet:
 
 clean:
 	@echo "==> Cleanup ..."
+	@rm /tmp/.dockerRunPara /tmp/.mkREMOTE /tmp/.mkCONFIG /tmp/.msbName /tmp/.msSUFFIX
 	@rm -fr Dockerfile
 	@rm -fr .userScript
 	@rm -fr .userDockerCommand

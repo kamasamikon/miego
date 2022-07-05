@@ -3,13 +3,17 @@
 import subprocess
 import os
 import sys
+import shlex
 
 MSB_NAME = "msb"
 MS_SUFFIX = ""
 MSB_ADDR = ""
 
+f = open("/tmp/mscontainer.log", "w+")
+
 def saferun(cmd, debug=True):
     try:
+        print(cmd, file=f)
         if debug:
             color = 3
             cmdline = " ".join(cmd)
@@ -18,7 +22,6 @@ def saferun(cmd, debug=True):
         return subprocess.check_output(cmd).strip().decode("utf-8")
     except:
         return None
-
 
 def currentDir():
     return os.path.realpath(os.getcwd())
@@ -49,15 +52,22 @@ def dockerRun(imageName, msbIP, backrun, append):
         print(container)
 
     cmd = [
-            "sudo", 
-            "docker", 
-            "run", 
-            "-it", 
-            "--restart=always", 
+            "sudo",
+            "docker",
+            "run",
+            "-it",
+            "--restart=always",
             "--log-opt", "max-size=2m",
             "--log-opt", "max-file=5",
             "--name", container,
             ]
+
+    for i in range(len(sys.argv)):
+        if sys.argv[i].startswith("--runopt="):
+            runopt = sys.argv[i][9:]
+            segs = shlex.split(runopt)
+            if segs:
+                cmd.extend(segs)
 
     if backrun:
         cmd.extend(["-d"])
