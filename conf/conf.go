@@ -133,8 +133,10 @@ func Load(fileName string) error {
 	klog.D("fileName: %s", fileName)
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
+		klog.E("%s", err.Error())
 		return err
 	}
+	klog.D("fileName: %s DONE", fileName)
 	LoadString(string(data), true)
 	return nil
 }
