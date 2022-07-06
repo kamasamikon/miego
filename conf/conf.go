@@ -61,6 +61,8 @@ func EntryAdd(line string, overwrite bool) {
 		return
 	}
 
+	klog.D("%s", line)
+
 	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
