@@ -73,7 +73,6 @@ def dockerRun(imageName, msbIP, backrun, append):
         cmd.extend(["-d"])
     cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % container])
     cmd.extend(["-v", "%s:/tmp/host" % currentDir()])
-    cmd.extend(["-e", "KCFG_FILES=/tmp/host/main.cfg"])
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
