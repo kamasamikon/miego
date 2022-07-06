@@ -73,7 +73,7 @@ func CreateTable(db *gorm.DB, models ...interface{}) {
 
 func OpenByConf(confprefix string, models ...interface{}) *gorm.DB {
 	if confprefix == "" {
-		confprefix = "db"
+		confprefix = "db/my"
 	}
 
 	dbDatabase := conf.Str("gene", confprefix+"/database")
