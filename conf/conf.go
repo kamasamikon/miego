@@ -50,6 +50,7 @@ var mapPathMonitors = make(map[string]*confMonitors)
 
 // Load file from configure
 func EntryAdd(line string, overwrite bool) {
+	klog.W("%s", line)
 	line = strings.TrimSpace(line)
 	segs := strings.SplitN(line, "=", 2)
 	if len(segs) < 2 {
