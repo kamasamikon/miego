@@ -27,7 +27,7 @@ func DSNByDB(db *gorm.DB) string {
 
 func DSN(confprefix string) string {
 	if confprefix == "" {
-		confprefix = "db"
+		confprefix = "db/my"
 	}
 
 	dbDatabase := conf.Str("gene", confprefix+"/database")
