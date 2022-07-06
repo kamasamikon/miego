@@ -130,6 +130,7 @@ func LoadString(s string, overwrite bool) {
 
 // Load : configure from a file.
 func Load(fileName string) error {
+	klog.D("fileName: %s", fileName)
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
