@@ -61,8 +61,6 @@ func EntryAdd(line string, overwrite bool) {
 		return
 	}
 
-	klog.D("%s", line)
-
 	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
@@ -132,13 +130,11 @@ func LoadString(s string, overwrite bool) {
 
 // Load : configure from a file.
 func Load(fileName string) error {
-	klog.D("fileName: %s", fileName)
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		klog.E("%s", err.Error())
 		return err
 	}
-	klog.D("fileName: %s DONE", fileName)
 	LoadString(string(data), true)
 	return nil
 }

@@ -36,8 +36,7 @@ func Raw(db *sql.DB, stmt string, verbose bool) ([]xmap.Map, error) {
 	}
 	rows, err := db.Query(stmt)
 	if err != nil {
-		bt := klog.BT(10, err.Error())
-		klog.E(bt)
+		klog.E(err.Error())
 		return nil, err
 	}
 	defer rows.Close()

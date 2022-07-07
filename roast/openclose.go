@@ -48,7 +48,6 @@ func Open(db string, user string, pass string, host string, port string, verbose
 	x, err := gorm.Open("mysql", args)
 	if err != nil {
 		klog.E(err.Error())
-		klog.BT(20, "Open....")
 		return nil
 	}
 
