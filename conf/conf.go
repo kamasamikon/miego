@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/kamasamikon/miego/klog"
+	"github.com/twinj/uuid"
 )
 
 // See confcenter
@@ -38,15 +39,95 @@ type confEntry struct {
 	hidden bool
 }
 
-// KConfMonitor is a Callback called when wathed entry modified.
-type KConfMonitor func(path string, oVal interface{}, nVal interface{})
+// ////////////////////////////////////////////////////////////////////////
+// Monitor, callback when configure changed
+//
 
-type confMonitors struct {
-	funcList []KConfMonitor
+// KConfMonitor is a Callback called when wathed entry modified.
+type KConfMonitor func(path string, monitorID string, oVal interface{}, nVal interface{})
+
+// map[s:Path]map[s:MonitorID]KConfMonitor
+var mapPathMonitorCallback = make(map[string]map[string]KConfMonitor)
+
+func MonitorAdd(Path string, MonitorID string, Callback KConfMonitor) string {
+	if MonitorID == "" {
+		MonitorID = uuid.NewV4().String()
+	}
+
+	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
+	if !ok {
+		mapMonitorCallback = make(map[string]KConfMonitor)
+	}
+	mapMonitorCallback[MonitorID] = Callback
+	mapPathMonitorCallback[Path] = mapMonitorCallback
+
+	return MonitorID
+}
+
+func MonitorRem(Path string, MonitorID string) {
+	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
+	if ok {
+		delete(mapMonitorCallback, MonitorID)
+	}
+}
+
+func MonitorDump() string {
+	var lines []string
+
+	pathMaxLength := 0
+	var pList []string
+
+	for Path, _ := range mapPathMonitorCallback {
+		pList = append(pList, Path)
+		if len(Path) > pathMaxLength {
+			pathMaxLength = len(Path)
+		}
+	}
+
+	sort.Slice(pList, func(i int, j int) bool {
+		return strings.Compare(pList[i], pList[j]) < 0
+	})
+
+	fmtstr := fmt.Sprintf(
+		"%s%%-%ds%s : %%v",
+		klog.ColorType_I,
+		pathMaxLength,
+		klog.ColorType_Reset,
+	)
+
+	for _, Path := range pList {
+		for MonitorID, _ := range mapPathMonitorCallback[Path] {
+			lines = append(
+				lines,
+				fmt.Sprintf(
+					fmtstr,
+					Path,
+					MonitorID,
+				),
+			)
+		}
+	}
+
+	lines = append(lines, "")
+	return strings.Join(lines, "\n")
+}
+
+func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
+	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
+		for MonitorID, Callback := range mapMonitorCallback {
+			if Callback != nil {
+				go Callback(e.path, MonitorID, oVal, nVal)
+			}
+		}
+	}
 }
 
 var mapPathEntry = make(map[string]*confEntry)
-var mapPathMonitors = make(map[string]*confMonitors)
+
+// Delete an entry
+func EntryRem(path string) {
+	delete(mapPathEntry, path)
+}
 
 // Load file from configure
 func EntryAdd(line string, overwrite bool) {
@@ -407,30 +488,9 @@ func Seto(path string, value interface{}, force bool) {
 	Set("o:/"+path, value, force)
 }
 
-// Monitor : Callback AFTER entry changed.
-func Monitor(path string, callback func(path string, oVal interface{}, nVal interface{})) {
-	// path: i:/aaa/bbb
-
-	var m *confMonitors
-	if monitors, ok := mapPathMonitors[path]; ok {
-		m = monitors
-	} else {
-		m = &confMonitors{}
-		mapPathMonitors[path] = m
-	}
-
-	m.funcList = append(m.funcList, callback)
-}
-
-func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
-	if monitors, ok := mapPathMonitors[e.path]; ok {
-		for _, f := range monitors.funcList {
-			if f != nil {
-				go f(e.path, oVal, nVal)
-			}
-		}
-	}
-}
+// ////////////////////////////////////////////////////////////////////////
+// Dump : Print all entries
+//
 
 // Dump : Print all entries
 func Dump(safeMode bool) string {
@@ -482,6 +542,7 @@ func Dump(safeMode bool) string {
 	return strings.Join(lines, "\n")
 }
 
+// DumpRaw : Dump without Get/Get refs
 func DumpRaw(safeMode bool) string {
 	var cList []*confEntry
 	for _, v := range mapPathEntry {
