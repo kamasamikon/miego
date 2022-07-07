@@ -433,7 +433,7 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 }
 
 // Dump : Print all entries
-func Dump() string {
+func Dump(safeMode bool) string {
 	keyMaxLength := 0
 	var cList []*confEntry
 
@@ -456,7 +456,7 @@ func Dump() string {
 	)
 	var lines []string
 	for _, v := range cList {
-		if v.hidden {
+		if v.hidden && safeMode {
 			continue
 		}
 
@@ -482,7 +482,7 @@ func Dump() string {
 	return strings.Join(lines, "\n")
 }
 
-func DumpRaw() string {
+func DumpRaw(safeMode bool) string {
 	var cList []*confEntry
 	for _, v := range mapPathEntry {
 		cList = append(cList, v)
@@ -493,7 +493,7 @@ func DumpRaw() string {
 
 	var lines []string
 	for _, v := range cList {
-		if v.hidden {
+		if v.hidden && safeMode {
 			continue
 		}
 

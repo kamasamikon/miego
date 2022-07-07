@@ -167,7 +167,7 @@ func DebugSettings(xRouters int64, xReadme int64, xConf int64) {
 	}
 	if xConf == 1 {
 		Default.GET("/debug/conf", func(c *gin.Context) {
-			c.String(200, conf.Dump())
+			c.String(200, conf.Dump(true))
 		})
 	}
 }

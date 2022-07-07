@@ -393,7 +393,7 @@ func main() {
 	})
 
 	Gin.GET("/conf", func(c *gin.Context) {
-		data := conf.DumpRaw()
+		data := conf.DumpRaw(true)
 		c.String(200, data)
 	})
 
