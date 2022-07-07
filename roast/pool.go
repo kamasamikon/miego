@@ -4,6 +4,7 @@ import (
 	"github.com/kamasamikon/miego/klog"
 
 	"database/sql"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )
@@ -16,7 +17,7 @@ func SQL(prefix string) *sql.DB {
 	var ok bool
 
 	if prefix == "" {
-		prefix = "db"
+		prefix = "db/my"
 	}
 
 	add := func(prefix string) *sql.DB {
@@ -47,7 +48,7 @@ func ORM(prefix string) *gorm.DB {
 	var ok bool
 
 	if prefix == "" {
-		prefix = "db"
+		prefix = "db/my"
 	}
 
 	add := func(prefix string) *gorm.DB {
