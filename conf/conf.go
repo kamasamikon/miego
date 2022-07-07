@@ -112,11 +112,12 @@ func MonitorDump() string {
 	return strings.Join(lines, "\n")
 }
 
+// 同步调用，处理函数应该把真正的逻辑放到goroutine中去
 func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
 		for MonitorID, Callback := range mapMonitorCallback {
 			if Callback != nil {
-				go Callback(e.path, MonitorID, oVal, nVal)
+				Callback(e.path, MonitorID, oVal, nVal)
 			}
 		}
 	}
