@@ -18,7 +18,7 @@ func Str__Nvn(mp xmap.Map, field string, nvnClass string) {
 // 1. PageSize: default to 10
 // 2. ID: clear RemAt
 // 3. UUID: default to last
-func Preset(mp xmap.Map, Prefix string) string {
+func PresetQuery(mp xmap.Map, Prefix string) string {
 	var preset string
 
 	// Default to 50 lines
