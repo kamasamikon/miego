@@ -58,10 +58,6 @@ func MonitorDump() string {
 		}
 	}
 
-	sort.Slice(pList, func(i int, j int) bool {
-		return strings.Compare(pList[i], pList[j]) < 0
-	})
-
 	fmtstr := fmt.Sprintf(
 		"%s%%-%ds%s : %%v",
 		klog.ColorType_I,
@@ -83,6 +79,11 @@ func MonitorDump() string {
 	}
 
 	lines = append(lines, "")
+
+	sort.Slice(lines, func(i int, j int) bool {
+		return strings.Compare(lines[i], lines[j]) < 0
+	})
+
 	return strings.Join(lines, "\n")
 }
 
