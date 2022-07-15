@@ -1,17 +1,23 @@
 package conf
 
 import (
+	_ "embed"
+
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/kamasamikon/miego/klog"
-	"github.com/twinj/uuid"
 )
+
+//go:embed main.cfg
+var main_cfg string
+
+func init() {
+	LoadString(main_cfg, false)
+}
 
 // See confcenter
 type confEntry struct {
@@ -37,90 +43,6 @@ type confEntry struct {
 	refSet int64
 
 	hidden bool
-}
-
-// ////////////////////////////////////////////////////////////////////////
-// Monitor, callback when configure changed
-//
-
-// KConfMonitor is a Callback called when wathed entry modified.
-type KConfMonitor func(path string, monitorID string, oVal interface{}, nVal interface{})
-
-// map[s:Path]map[s:MonitorID]KConfMonitor
-var mapPathMonitorCallback = make(map[string]map[string]KConfMonitor)
-
-func MonitorAdd(Path string, MonitorID string, Callback KConfMonitor) string {
-	if MonitorID == "" {
-		MonitorID = uuid.NewV4().String()
-	}
-
-	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
-	if !ok {
-		mapMonitorCallback = make(map[string]KConfMonitor)
-	}
-	mapMonitorCallback[MonitorID] = Callback
-	mapPathMonitorCallback[Path] = mapMonitorCallback
-
-	return MonitorID
-}
-
-func MonitorRem(Path string, MonitorID string) {
-	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
-	if ok {
-		delete(mapMonitorCallback, MonitorID)
-	}
-}
-
-func MonitorDump() string {
-	var lines []string
-
-	pathMaxLength := 0
-	var pList []string
-
-	for Path, _ := range mapPathMonitorCallback {
-		pList = append(pList, Path)
-		if len(Path) > pathMaxLength {
-			pathMaxLength = len(Path)
-		}
-	}
-
-	sort.Slice(pList, func(i int, j int) bool {
-		return strings.Compare(pList[i], pList[j]) < 0
-	})
-
-	fmtstr := fmt.Sprintf(
-		"%s%%-%ds%s : %%v",
-		klog.ColorType_I,
-		pathMaxLength,
-		klog.ColorType_Reset,
-	)
-
-	for _, Path := range pList {
-		for MonitorID, _ := range mapPathMonitorCallback[Path] {
-			lines = append(
-				lines,
-				fmt.Sprintf(
-					fmtstr,
-					Path,
-					MonitorID,
-				),
-			)
-		}
-	}
-
-	lines = append(lines, "")
-	return strings.Join(lines, "\n")
-}
-
-// 同步调用，处理函数应该把真正的逻辑放到goroutine中去
-func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
-	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
-		for MonitorID, Callback := range mapMonitorCallback {
-			if Callback != nil {
-				Callback(e.path, MonitorID, oVal, nVal)
-			}
-		}
-	}
 }
 
 var mapPathEntry = make(map[string]*confEntry)
@@ -211,13 +133,14 @@ func LoadString(s string, overwrite bool) {
 }
 
 // Load : configure from a file.
-func Load(fileName string) error {
+func Load(fileName string, overwrite bool) error {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		klog.E("%s", err.Error())
+		klog.E("Load %s, Error is %s", fileName, err.Error())
 		return err
 	}
-	LoadString(string(data), true)
+	klog.D("Load %s, Done.", fileName)
+	LoadString(string(data), overwrite)
 	return nil
 }
 
@@ -489,104 +412,13 @@ func Seto(path string, value interface{}, force bool) {
 	Set("o:/"+path, value, force)
 }
 
-// ////////////////////////////////////////////////////////////////////////
-// Dump : Print all entries
-//
-
-// Dump : Print all entries
-func Dump(safeMode bool) string {
-	keyMaxLength := 0
-	var cList []*confEntry
-
-	for k, v := range mapPathEntry {
-		cList = append(cList, v)
-		if len(k) > keyMaxLength {
-			keyMaxLength = len(k)
-		}
-	}
-
-	sort.Slice(cList, func(i int, j int) bool {
-		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
-	})
-
-	fmtstr := fmt.Sprintf(
-		"%s(%%04d/%%04d)%s %%-%ds : %s%%v%s",
-		klog.ColorType_I, klog.ColorType_Reset,
-		keyMaxLength,
-		klog.ColorType_W, klog.ColorType_Reset,
-	)
-	var lines []string
-	for _, v := range cList {
-		if v.hidden && safeMode {
-			continue
-		}
-
-		switch v.kind {
-		case 'i':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vInt))
-
-		case 's':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vStr))
-
-		case 'b':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vBool))
-
-		case 'o':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, "..."))
-		}
-
-	}
-
-	// Add the last \n
-	lines = append(lines, "")
-
-	return strings.Join(lines, "\n")
-}
-
-// DumpRaw : Dump without Get/Get refs
-func DumpRaw(safeMode bool) string {
-	var cList []*confEntry
-	for _, v := range mapPathEntry {
-		cList = append(cList, v)
-	}
-	sort.Slice(cList, func(i int, j int) bool {
-		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
-	})
-
-	var lines []string
-	for _, v := range cList {
-		if v.hidden && safeMode {
-			continue
-		}
-
-		switch v.kind {
-		case 'i':
-			lines = append(lines, fmt.Sprintf("%s=%d", v.path, v.vInt))
-
-		case 's':
-			lines = append(lines, fmt.Sprintf("%s=%s", v.path, v.vStr))
-
-		case 'b':
-			lines = append(lines, fmt.Sprintf("%s=%t", v.path, v.vBool))
-
-		case 'o':
-			lines = append(lines, fmt.Sprintf("%s=%s", v.path, "..."))
-		}
-	}
-
-	// Add the last \n
-	lines = append(lines, "")
-
-	return strings.Join(lines, "\n")
-}
-
 func init() {
 	{
 		cfgList := os.Getenv("KCFG_FILES")
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				if err := Load(f); err != nil {
+				if err := Load(f, true); err != nil {
 					klog.E("LOAD KCFG_FILES Error: %s", err.Error())
 				}
 			}
@@ -597,7 +429,7 @@ func init() {
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				if err := Load(f); err != nil {
+				if err := Load(f, true); err != nil {
 					klog.E("LOAD KCFG_QQQ_FILES Error: %s", err.Error())
 				}
 				os.Remove(f)
@@ -610,7 +442,7 @@ func init() {
 			if strings.HasPrefix(argv, "--kfg=") {
 				f := argv[6:]
 				if f != "" {
-					if err := Load(f); err != nil {
+					if err := Load(f, true); err != nil {
 						klog.E("LOAD --kfg=xxx Error: %s", err.Error())
 					}
 				}
@@ -622,7 +454,7 @@ func init() {
 			if strings.HasPrefix(argv, "--kfg-qqq=") {
 				f := argv[6:]
 				if f != "" {
-					if err := Load(f); err != nil {
+					if err := Load(f, true); err != nil {
 						klog.E("LOAD --kfg-qqq=xxx Error: %s", err.Error())
 					}
 					os.Remove(f)

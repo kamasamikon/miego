@@ -27,7 +27,7 @@ type WatchChanges struct {
 func New(names ...string) (*WatchChanges, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		klog.E("error:%s", err.Error())
+		klog.E("fsnotify.NewWatcher: %s", err.Error())
 		return nil, err
 	}
 

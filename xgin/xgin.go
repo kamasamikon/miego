@@ -45,10 +45,10 @@ var htmlFoot = []byte(`
 var Default *gin.Engine
 
 // XXX: Copied from gin/examples/graceful-shutdown/...
-func gracefulRun(addr string) {
+func gracefulRun(Engine *gin.Engine, addr string) {
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: Default,
+		Handler: Engine,
 	}
 
 	go func() {
@@ -74,12 +74,15 @@ func gracefulRun(addr string) {
 }
 
 // Run :Default listening on localhost:8888
-func Run(addr string) {
+func Run(Engine *gin.Engine, addr string) {
 	if addr == "" {
 		port := conf.Int(8888, "ms/port")
 		addr = fmt.Sprintf(":%d", port)
 	}
-	gracefulRun(addr)
+	if Engine == nil {
+		Engine = Default
+	}
+	gracefulRun(Engine, addr)
 }
 
 //
@@ -109,24 +112,27 @@ func init() {
 	})
 }
 
-func DebugSettings(xRouters int64, xReadme int64, xConf int64) {
+func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int64) {
+	if Engine == nil {
+		Engine = Default
+	}
 	if xRouters == -1 {
 		xRouters = conf.Int(1, "gin/debug/routers")
 	}
 	if xRouters == 1 {
-		Default.GET("/debug/routers", func(c *gin.Context) {
+		Engine.GET("/debug/routers", func(c *gin.Context) {
 			if c.Query("html") == "1" {
 				var lines []string
 				lines = append(lines, "| Method | Path |")
 				lines = append(lines, "| ---- | ---- |")
-				for _, x := range Default.Routes() {
+				for _, x := range Engine.Routes() {
 					lines = append(lines, fmt.Sprintf("| %s | %s |", x.Method, x.Path))
 				}
 				html := page.Markdown("", "", strings.Join(lines, "\\n"))
 				c.Data(200, "text/html", []byte(html))
 			} else {
 				var routers []gin.H
-				for _, x := range Default.Routes() {
+				for _, x := range Engine.Routes() {
 					r := gin.H{
 						"Method": x.Method,
 						"Path":   x.Path,
@@ -142,7 +148,7 @@ func DebugSettings(xRouters int64, xReadme int64, xConf int64) {
 		xReadme = conf.Int(1, "gin/debug/readme")
 	}
 	if xReadme == 1 {
-		Default.GET("/debug/readme", func(c *gin.Context) {
+		Engine.GET("/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
 			opts := html.RendererOptions{Flags: htmlFlags}
 			renderer := html.NewRenderer(opts)
@@ -166,7 +172,7 @@ func DebugSettings(xRouters int64, xReadme int64, xConf int64) {
 		xConf = conf.Int(1, "gin/debug/routers")
 	}
 	if xConf == 1 {
-		Default.GET("/debug/conf", func(c *gin.Context) {
+		Engine.GET("/debug/conf", func(c *gin.Context) {
 			c.String(200, conf.Dump(true))
 		})
 	}

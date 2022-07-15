@@ -5,9 +5,7 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/kamasamikon/miego/atox"
 	"github.com/kamasamikon/miego/xmap"
-	"github.com/kamasamikon/miego/xtime"
 )
 
 func ToHTML(x string) interface{} {
@@ -58,7 +56,19 @@ func FormatAsDate(t time.Time) string {
 	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
 
-func NtimeToString(t string) string {
-	nt, _ := xtime.NumTimeToTime(atox.Uint64(t, 0))
-	return nt.Format("2006-01-02 15:04:05")
+// "20060102150405" => "2006-01-02 15:04:05"
+func NtimeToString(s string) string {
+	if len(s) == 14 {
+		// "20060102150405"
+		if t, err := time.Parse("20060102150405", s); err == nil {
+			return t.Format("2006-01-02 15:04:05")
+		}
+	}
+	if len(s) == 8 {
+		// "20060102"
+		if t, err := time.Parse("20060102", s); err == nil {
+			return t.Format("2006-01-02")
+		}
+	}
+	return "NA"
 }
