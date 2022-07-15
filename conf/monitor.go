@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/kamasamikon/miego/klog"
 )
+
+var mutex = &sync.Mutex{}
+var nextMonitorID int
 
 // ////////////////////////////////////////////////////////////////////////
 // Monitor, callback when configure changed
@@ -18,13 +22,20 @@ type KConfMonitor func(path string, monitorID string, oVal interface{}, nVal int
 // map[s:Path]map[s:MonitorID]KConfMonitor
 var mapPathMonitorCallback = make(map[string]map[string]KConfMonitor)
 
-func MonitorAdd(Path string, MonitorID string, Callback KConfMonitor) {
+func MonitorAdd(Path string, Callback KConfMonitor) string {
+	mutex.Lock()
+	defer mutex.Unlock()
+	MonitorID := fmt.Sprintf("%d", nextMonitorID)
+	nextMonitorID++
+
 	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
 	if !ok {
 		mapMonitorCallback = make(map[string]KConfMonitor)
 	}
 	mapMonitorCallback[MonitorID] = Callback
 	mapPathMonitorCallback[Path] = mapMonitorCallback
+
+	return MonitorID
 }
 
 func MonitorRem(Path string, MonitorID string) {
