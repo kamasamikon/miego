@@ -1,8 +1,6 @@
 package conf
 
 import (
-	_ "embed"
-
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -12,12 +10,9 @@ import (
 	"github.com/kamasamikon/miego/klog"
 )
 
-//go:embed main.cfg
-var main_cfg string
-
-func init() {
-	LoadString(main_cfg, false)
-}
+const (
+	PathReady = "b:/conf/ready"
+)
 
 // See confcenter
 type confEntry struct {
@@ -412,7 +407,23 @@ func Seto(path string, value interface{}, force bool) {
 	Set("o:/"+path, value, force)
 }
 
+func Ready() {
+	Set(PathReady, true, true)
+}
+
 func init() {
+	//
+	// Some builtin entries
+	//
+	{
+		mapPathEntry[PathReady] = &confEntry{
+			kind:   'b',
+			hidden: true,
+			path:   PathReady,
+			vBool:  false,
+		}
+	}
+
 	{
 		cfgList := os.Getenv("KCFG_FILES")
 		files := strings.Split(cfgList, ":")
