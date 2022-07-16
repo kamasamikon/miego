@@ -4,44 +4,35 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
-
-	"github.com/kamasamikon/miego/klog"
 )
-
-var mutex = &sync.Mutex{}
-var nextMonitorID int
 
 // ////////////////////////////////////////////////////////////////////////
 // Monitor, callback when configure changed
 //
+const (
+	ColorType_I     = "\x1b[1;32;40m"
+	ColorType_Reset = "\x1b[0m"
+)
 
 // KConfMonitor is a Callback called when wathed entry modified.
-type KConfMonitor func(path string, monitorID string, oVal interface{}, nVal interface{})
+type KConfMonitor func(path string, oVal interface{}, nVal interface{})
 
-// map[s:Path]map[s:MonitorID]KConfMonitor
-var mapPathMonitorCallback = make(map[string]map[string]KConfMonitor)
+// map[s:Path]map[KConfMonitor]int
+var mapPathMonitorCallback = make(map[string]map[*KConfMonitor]int)
 
-func MonitorAdd(Path string, Callback KConfMonitor) string {
-	mutex.Lock()
-	defer mutex.Unlock()
-	MonitorID := fmt.Sprintf("%d", nextMonitorID)
-	nextMonitorID++
-
+func MonitorAdd(Path string, Callback KConfMonitor) {
 	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
 	if !ok {
-		mapMonitorCallback = make(map[string]KConfMonitor)
+		mapMonitorCallback = make(map[*KConfMonitor]int)
 	}
-	mapMonitorCallback[MonitorID] = Callback
+	mapMonitorCallback[&Callback] = 1
 	mapPathMonitorCallback[Path] = mapMonitorCallback
-
-	return MonitorID
 }
 
-func MonitorRem(Path string, MonitorID string) {
+func MonitorRem(Path string, Callback KConfMonitor) {
 	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
 	if ok {
-		delete(mapMonitorCallback, MonitorID)
+		delete(mapMonitorCallback, &Callback)
 	}
 }
 
@@ -60,39 +51,36 @@ func MonitorDump() string {
 
 	fmtstr := fmt.Sprintf(
 		"%s%%-%ds%s : %%v",
-		klog.ColorType_I,
+		ColorType_I,
 		pathMaxLength,
-		klog.ColorType_Reset,
+		ColorType_Reset,
 	)
 
 	for _, Path := range pList {
-		for MonitorID, _ := range mapPathMonitorCallback[Path] {
+		for Monitor, _ := range mapPathMonitorCallback[Path] {
 			lines = append(
 				lines,
 				fmt.Sprintf(
 					fmtstr,
 					Path,
-					MonitorID,
+					Monitor,
 				),
 			)
 		}
 	}
 
 	lines = append(lines, "")
-
 	sort.Slice(lines, func(i int, j int) bool {
 		return strings.Compare(lines[i], lines[j]) < 0
 	})
-
 	return strings.Join(lines, "\n")
 }
 
-// 同步调用，处理函数应该把真正的逻辑放到goroutine中去
 func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
-		for MonitorID, Callback := range mapMonitorCallback {
+		for Callback, _ := range mapMonitorCallback {
 			if Callback != nil {
-				Callback(e.path, MonitorID, oVal, nVal)
+				(*Callback)(e.path, oVal, nVal)
 			}
 		}
 	}

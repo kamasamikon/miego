@@ -65,8 +65,8 @@ func EntryAdd(line string, overwrite bool) {
 		return
 	}
 
-	e, ok := mapPathEntry[path]
-	if !ok {
+	e, exists := mapPathEntry[path]
+	if !exists {
 		e = &confEntry{
 			kind:   kind,
 			hidden: hidden,
@@ -76,25 +76,27 @@ func EntryAdd(line string, overwrite bool) {
 		return
 	}
 
+	var vNew interface{}
+
 	switch kind {
 	case 'i':
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
-			e.vInt = vInt
+			vNew = vInt
 		} else {
 			return
 		}
 
 	case 's':
-		e.vStr = value
+		vNew = value
 
 	case 'b':
 		// true: 1, t, T
 		// false: 0, f, F
 		x := value[0]
 		if x == '1' || x == 't' || x == 'T' || x == 'y' || x == 'Y' {
-			e.vBool = true
+			vNew = true
 		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
-			e.vBool = false
+			vNew = false
 		} else {
 			return
 		}
@@ -105,17 +107,14 @@ func EntryAdd(line string, overwrite bool) {
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
 			klog.E(err.Error())
 		}
-		e.vObj = o
+		vNew = o
 
 	default:
 		return
 	}
 
-	if ok {
-		e.refSet++
-	}
-	// Simply overwrite the old value.
 	mapPathEntry[e.path] = e
+	setByEntry(e, vNew)
 }
 
 // LoadString : Load setting from string (lines of configuration)
@@ -168,17 +167,17 @@ func Int(defval int64, paths ...string) int64 {
 
 // Inc : Increase or Decrease on int
 func Inc(inc int64, path string) {
-	if v, ok := mapPathEntry[path]; ok {
-		v.refSet++
-		v.vInt += inc
+	if e, ok := mapPathEntry[path]; ok {
+		vNew := e.vInt + 1
+		setByEntry(e, vNew)
 	}
 }
 
 // Flip : flip on bool
 func Flip(path string) {
-	if v, ok := mapPathEntry[path]; ok {
-		v.refSet++
-		v.vBool = !v.vBool
+	if e, ok := mapPathEntry[path]; ok {
+		vNew := !e.vBool
+		setByEntry(e, vNew)
 	}
 }
 
@@ -225,7 +224,6 @@ func Obj(defval interface{}, paths ...string) interface{} {
 func List(paths ...string) []string {
 	// path: aaa/bbb
 	var slice []string
-
 	for _, path := range paths {
 		key := "s:/" + path
 		if v, ok := mapPathEntry[key]; ok {
@@ -239,7 +237,6 @@ func List(paths ...string) []string {
 			}
 		}
 	}
-
 	return slice
 }
 
@@ -296,33 +293,8 @@ func Add(path string, value interface{}) {
 	Set(path, value, true)
 }
 
-// Set : Modify or Add conf entry
-func Set(path string, value interface{}, force bool) {
-	var e *confEntry
-	var ok bool
-
-	kind, hidden, realpath := pathParse(path)
-	if realpath == "" {
-		return
-	}
-
-	// FIXME: Set("B:/aaa/bbb", ...) will makes query failed.
-	e, ok = mapPathEntry[realpath]
-	if !ok {
-		if force {
-			e = &confEntry{
-				kind:   kind,
-				hidden: hidden,
-				path:   realpath,
-			}
-			mapPathEntry[e.path] = e
-		} else {
-			klog.D("path:%s and force:false", path)
-			return
-		}
-	}
-
-	switch kind {
+func setByEntry(e *confEntry, value interface{}) {
+	switch e.kind {
 	case 'i':
 		vOld := e.vInt
 
@@ -377,11 +349,38 @@ func Set(path string, value interface{}, force bool) {
 		e.vObj = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
-
-	default:
-		klog.E("Bad Kind: %c", kind)
 	}
 }
+
+// Set : Modify or Add conf entry
+func Set(path string, value interface{}, force bool) {
+	var e *confEntry
+	var ok bool
+
+	kind, hidden, realpath := pathParse(path)
+	if realpath == "" {
+		return
+	}
+
+	// FIXME: Set("B:/aaa/bbb", ...) will makes query failed.
+	e, ok = mapPathEntry[realpath]
+	if !ok {
+		if force {
+			e = &confEntry{
+				kind:   kind,
+				hidden: hidden,
+				path:   realpath,
+			}
+			mapPathEntry[e.path] = e
+		} else {
+			klog.D("path:%s and force:false", path)
+			return
+		}
+	}
+
+	setByEntry(e, value)
+}
+
 func SetI(path string, value interface{}, force bool) {
 	Set("I:/"+path, value, force)
 }
