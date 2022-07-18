@@ -2,10 +2,8 @@ package xtime
 
 import (
 	"fmt"
+	"strconv"
 	"time"
-
-	"github.com/kamasamikon/miego/atox"
-	"github.com/kamasamikon/miego/klog"
 )
 
 func NumToStr(o interface{}) string {
@@ -157,7 +155,6 @@ func StrToNum(s string, flag byte) (Num uint64) {
 		Num = NNNN*10000000000 + YY*100000000 + RR*1000000 + SS*10000 + FF*100 + MM
 	}
 
-	klog.F("FLAG:%c\tS:(%v)\tN:%v\n", flag, s, Num)
 	return
 }
 
@@ -213,9 +210,12 @@ func OffsetDate(sDate string) uint64 {
 	now := time.Now()
 
 	if sDate[0] == '+' || sDate[0] == '-' {
-		offset := atox.Int(sDate, 0)
-		tmp := now.AddDate(0, 0, offset).Format("20060102")
-		return atox.Uint64(tmp, 0)
+		offset, _ := strconv.ParseInt(sDate, 0, 64)
+		tmp := now.AddDate(0, 0, int(offset)).Format("20060102")
+
+		x, _ := strconv.ParseUint(tmp, 0, 64)
+		return x
 	}
-	return atox.Uint64(sDate, 0)
+	x, _ := strconv.ParseUint(sDate, 0, 64)
+	return x
 }
