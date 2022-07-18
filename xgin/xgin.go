@@ -13,13 +13,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 
 	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/page"
+)
+
+const (
+	MIMEHTML = "text/html"
 )
 
 var htmlHead = []byte(`
@@ -159,12 +162,12 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 				return
 			}
 
-			c.Data(200, binding.MIMEHTML, htmlHead)
+			c.Data(200, MIMEHTML, htmlHead)
 
 			body := markdown.ToHTML(md, nil, renderer)
-			c.Data(200, binding.MIMEHTML, body)
+			c.Data(200, MIMEHTML, body)
 
-			c.Data(200, binding.MIMEHTML, htmlFoot)
+			c.Data(200, MIMEHTML, htmlFoot)
 		})
 	}
 
