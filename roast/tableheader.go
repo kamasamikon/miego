@@ -1,7 +1,8 @@
 package roast
 
 import (
-	"github.com/kamasamikon/miego/xtime"
+	"strconv"
+	"time"
 )
 
 const (
@@ -35,7 +36,7 @@ type TableHeader struct {
 }
 
 func Setup(h *TableHeader, NewBy string) {
-	now := xtime.TimeNowToNum()
+	now, _ := strconv.ParseUint(time.Now().Format("20060102150405"), 0, 64)
 
 	h.ID = 0
 	h.NewAt = now

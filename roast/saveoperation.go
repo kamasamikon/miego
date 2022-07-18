@@ -3,10 +3,11 @@ package roast
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kamasamikon/miego/xmap"
-	"github.com/kamasamikon/miego/xtime"
 
 	"github.com/jinzhu/gorm"
 )
@@ -180,8 +181,9 @@ func SafeRem(db *gorm.DB, tableName string, RemBy string, RemWhy int, where xmap
 		return nil
 	}
 
+	now, _ := strconv.ParseUint(time.Now().Format("20060102150405"), 0, 64)
 	set := xmap.Make(
-		"RemAt", xtime.TimeNowToNum(),
+		"RemAt", now,
 		"RemBy", RemBy,
 		"RemWhy", RemWhy,
 	)

@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kamasamikon/miego/klog"
 	"github.com/twinj/uuid"
 
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func IDNew() string {
@@ -21,7 +19,6 @@ func IDNxt(db *sql.DB, TableName string, where string) uint64 {
 		where = " WHERE " + where
 	}
 	stmt := fmt.Sprintf(stmtfmt, TableName, where)
-	klog.F("%s", stmt)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return 1
@@ -35,11 +32,9 @@ func IDNxt(db *sql.DB, TableName string, where string) uint64 {
 		if err != nil {
 			return 1
 		}
-		klog.F("UUID: %s", UUID)
 		if num, err := strconv.ParseUint(UUID, 10, 64); err != nil {
 			return 1
 		} else {
-			klog.F("num: %d", num)
 			return num + 1
 		}
 	}
