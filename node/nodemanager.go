@@ -2,8 +2,9 @@ package node
 
 import (
 	"fmt"
-	"github.com/kamasamikon/miego/klog"
 	"strings"
+
+	"github.com/kamasamikon/miego/klog"
 )
 
 type KNodeManager struct {

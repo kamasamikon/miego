@@ -19,14 +19,14 @@ type WXCard struct {
 
 func WxCardNew(hashDocURL string) *WXCard {
 	if hashDocURL == "" {
-		hashDocURL = conf.Str("", "hashdoc/URL")
+		hashDocURL = conf.Str("", "s:/hashdoc/URL")
 	}
 
 	c := WXCard{
 		hashDocURL: hashDocURL,
-		corpId:     conf.Str("", "wxcorp/corpId"),
-		corpSecret: conf.Str("", "wxcorp/corpSecret"),
-		agentId:    int(conf.Int(0, "wxcorp/agentId")),
+		corpId:     conf.Str("", "s:/wxcorp/corpId"),
+		corpSecret: conf.Str("", "s:/wxcorp/corpSecret"),
+		agentId:    int(conf.Int(0, "i:/wxcorp/agentId")),
 	}
 	return &c
 }

@@ -7,6 +7,14 @@ import subprocess
 import shlex
 import time
 
+#
+# - 生成Dockerfile
+# - 根据当前的工程Git，搜集一些信息
+# - 生成ms/msa.cfg文件
+# - copy main ms/
+# - docker build -t <msname> .
+#
+
 
 dfTempl = '''
 FROM %s
@@ -159,7 +167,7 @@ def dockerGateway():
 
 # Service
 @click.option('--ms-name', '-n', help="(demo):    Service Name.")
-@click.option('--ms-upstream', '-u', help="():        Upsteam name in nginx.conf.")
+@click.option('--ms-upstream', '-u', help="():        Upstream name in nginx.conf.")
 @click.option('--ms-kind', '-t', help="(http):    Service Type, grpc or http.")
 @click.option('--ms-vern', '-v', help="(v1):      Service Version.")
 @click.option('--ms-port', '-p', help="(8888):    Service Port.")

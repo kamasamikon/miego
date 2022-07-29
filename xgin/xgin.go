@@ -79,7 +79,7 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 // Run :Default listening on localhost:8888
 func Run(Engine *gin.Engine, addr string) {
 	if addr == "" {
-		port := conf.Int(8888, "ms/port")
+		port := conf.Int(8888, "i:/ms/port")
 		addr = fmt.Sprintf(":%d", port)
 	}
 	if Engine == nil {
@@ -93,7 +93,7 @@ func Run(Engine *gin.Engine, addr string) {
 //
 
 func init() {
-	if conf.Int(0, "gin/releaseMode") == 1 {
+	if conf.Int(0, "i:/gin/releaseMode") == 1 {
 		gin.SetMode(gin.ReleaseMode)
 		Default = gin.New()
 	} else {
@@ -120,7 +120,7 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 		Engine = Default
 	}
 	if xRouters == -1 {
-		xRouters = conf.Int(1, "gin/debug/routers")
+		xRouters = conf.Int(1, "i:/gin/debug/routers")
 	}
 	if xRouters == 1 {
 		Engine.GET("/debug/routers", func(c *gin.Context) {
@@ -148,7 +148,7 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 	}
 
 	if xReadme == -1 {
-		xReadme = conf.Int(1, "gin/debug/readme")
+		xReadme = conf.Int(1, "i:/gin/debug/readme")
 	}
 	if xReadme == 1 {
 		Engine.GET("/debug/readme", func(c *gin.Context) {
@@ -172,7 +172,7 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 	}
 
 	if xConf == -1 {
-		xConf = conf.Int(1, "gin/debug/routers")
+		xConf = conf.Int(1, "i:/gin/debug/routers")
 	}
 	if xConf == 1 {
 		Engine.GET("/debug/conf", func(c *gin.Context) {

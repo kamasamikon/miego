@@ -43,7 +43,7 @@ func Markdown(title string, markedjs string, markdown string) string {
 	}
 	if markedjs == "" {
 		URL := "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
-		markedjs = conf.Str(URL, "mie/page/markedjs")
+		markedjs = conf.Str(URL, "s:/mie/page/markedjs")
 	}
 	markdown = strings.Replace(markdown, "\r", "\\r", -1)
 	markdown = strings.Replace(markdown, "\n", "\\n", -1)

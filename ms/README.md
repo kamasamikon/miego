@@ -1,0 +1,1 @@
+Micro Service runs in docker container and managed by msb.

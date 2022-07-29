@@ -48,6 +48,9 @@ func Dump(safeMode bool) string {
 
 		case 'o':
 			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, "..."))
+
+		case 'e':
+			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, "..."))
 		}
 
 	}

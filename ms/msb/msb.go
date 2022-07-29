@@ -12,33 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/klog"
+
+	mscommon "github.com/kamasamikon/miego/ms/common"
 )
 
 // KService : Micro Service definition
 type KService struct {
 	// Base info
-	ServiceName string `json:"serviceName"`
-	Version     string `json:"version"`
-	Desc        string `json:"desc"`
-	Upstream    string `json:"upstream"`
-
-	// ipAddress
-	IPAddr string `json:"ipAddr"`
-	Port   int    `json:"port"`
-
-	// container info
-	HostName string `json:"hostName"`
-
-	// Project
-	ProjName    string `json:"projName"`
-	ProjVersion string `json:"projVersion"`
-	ProjTime    string `json:"projTime"`
-
-	// This msa instance
-	CreatedAt int64 `json:"createdAt"`
-
-	// Kind: grpc? http?
-	Kind string `json:"kind"`
+	mscommon.KService
 
 	//
 	// Additional part
@@ -67,17 +48,12 @@ func msPretty(s *KService, c *gin.Context) {
 	s.RefreshWhen = fmt.Sprintf("%d seconds ago.", ago)
 }
 
-func hashKey(serviceName string, version string, ipAddr string, port int) string {
-	// return: 'msdemo:v1@127.0.0.1:8765'
-	return fmt.Sprintf("%s:%s@%s:%d", serviceName, version, ipAddr, port)
-}
-
-func (s *KService) toKey() string {
-	return hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
+func hashKey(ServiceName string, Version string, IPAddr string, Port int) string {
+	return fmt.Sprintf("%s:%s@%s:%d", ServiceName, Version, IPAddr, Port)
 }
 
 func msSet(s *KService) bool {
-	key := s.toKey()
+	key := hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
 	if a, ok := mapServices[key]; ok {
 		if a.CreatedAt != s.CreatedAt {
 			*a = *s
@@ -121,7 +97,7 @@ func RefreshLoop() {
 		now := time.Now().UnixNano()
 		for _, s := range mapServices {
 			if diff := now - s.RefreshTime; diff > 10*1000*1000*1000 {
-				key := s.toKey()
+				key := hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
 				remKeys = append(remKeys, key)
 			}
 		}
@@ -204,13 +180,13 @@ func nginxConfWrite() error {
 	// 3. Write back to nginx.conf
 	redirListHttp, redirListGrpc, upsList := genLocationAndUpstream()
 
-	tmpl := TemplLoad(conf.Str("/etc/nginx/nginx.conf.tmpl", "msb/nginx/tmpl"))
+	tmpl := TemplLoad(conf.Str("/etc/nginx/nginx.conf.tmpl", "s:/msb/nginx/tmpl"))
 
 	tmpl = strings.Replace(tmpl, "#@@UPSTREAM_LIST@@", upsList, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
 
-	path := conf.Str("/etc/nginx/nginx.conf", "msb/nginx/conf")
+	path := conf.Str("/etc/nginx/nginx.conf", "s:/msb/nginx/conf")
 	if err := ioutil.WriteFile(path, []byte(tmpl), os.ModeAppend); err != nil {
 		klog.E(err.Error())
 		return err
@@ -220,8 +196,8 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	if reload := conf.Bool(true, "msb/nginx/reload"); reload == true {
-		nginx := conf.Str("/usr/sbin/nginx", "msb/nginx/exec")
+	if reload := conf.Bool(true, "b:/msb/nginx/reload"); reload == true {
+		nginx := conf.Str("/usr/sbin/nginx", "s:/msb/nginx/exec")
 		cmd := exec.Command(nginx, "-s", "reload")
 		err := cmd.Run()
 		if err != nil {
@@ -352,7 +328,7 @@ func serverRem(c *gin.Context) {
 	} else {
 		for _, s := range services {
 			klog.D(s.ServiceName)
-			key := s.toKey()
+			key := hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
 			delete(mapServices, key)
 		}
 
@@ -367,8 +343,8 @@ func main() {
 	// s:/msb/nginx/conf=/etc/nginx/nginx.conf
 	// s:/msb/nginx/tmpl=/etc/nginx/nginx.conf
 	// s:/msb/nginx/exec=/usr/sbin/nginx
-	conf.Load("./etc/msb.cfg")
-	conf.Load("./msb.cfg")
+	conf.Load("./etc/msb.cfg", true)
+	conf.Load("./msb.cfg", true)
 
 	gin.SetMode(gin.ReleaseMode)
 	Gin := gin.New()
@@ -405,6 +381,6 @@ func main() {
 
 	go RefreshLoop()
 
-	port := conf.Int(9100, "msb/port")
+	port := conf.Int(9100, "i:/msb/port")
 	Gin.Run(fmt.Sprintf(":%d", port))
 }

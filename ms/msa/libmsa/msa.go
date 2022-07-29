@@ -1,4 +1,4 @@
-package main
+package msa
 
 import (
 	"encoding/json"
@@ -21,33 +21,31 @@ import (
 // KService : Micro Service definition
 type KService struct {
 	// Base info
-	ServiceName string `json:"serviceName"`
-	Version     string `json:"version"`
-	Desc        string `json:"desc"`
-	Upstream    string `json:"upstream"`
+	ServiceName string `json:"serviceName"` // 服务的名字
+	Version     string `json:"version"`     // 服务的版本号，一般是v1，但基本没有用
+	Desc        string `json:"desc"`        // 服务的一句话说明
+	Upstream    string `json:"upstream"`    // 对应了nginx中，proxy_pass对应的upstream
 
 	// ipAddress
-	IPAddr string `json:"ipAddr"`
-	Port   int    `json:"port"`
+	IPAddr string `json:"ipAddr"` // 本机的地址
+	Port   int    `json:"port"`   // 服务监听的地址
 
 	// container info
-	HostName string `json:"hostName"`
+	HostName string `json:"hostName"` // 服务所在容器的主机名
 
 	// Project
-	ProjName    string `json:"projName"`
-	ProjVersion string `json:"projVersion"`
-	ProjTime    string `json:"projTime"`
+	ProjName    string `json:"projName"`    // 源码的目录名
+	ProjVersion string `json:"projVersion"` // 源码的Git版本
+	ProjTime    string `json:"projTime"`    // 工程编译的时间
 
 	// This msa instance
-	CreatedAt int64 `json:"createdAt"`
+	CreatedAt int64 `json:"createdAt"` // 服务启动的时间
 
 	// Kind: grpc? http?
-	Kind string `json:"kind"`
+	Kind string `json:"kind"` // 是GRPC还是HTTP？
 
-	//
 	// Process Information
-	//
-	Cmd *exec.Cmd
+	Cmd *exec.Cmd // 如果服务的单独的进程，通过这个来运行
 }
 
 var service *KService
@@ -64,7 +62,7 @@ func hostnameGet() string {
 
 // GetOutboundIP : Get preferred outbound ip of this machine
 func GetOutboundIP() string {
-	if addr := conf.Str("", "ms/addr"); addr != "" {
+	if addr := conf.Str("", "s:/ms/addr"); addr != "" {
 		return addr
 	}
 
@@ -86,7 +84,7 @@ func exists(path string) bool {
 }
 
 func (s *KService) programRun() {
-	exePath := conf.Str("/root/ms/main", "ms/exe")
+	exePath := conf.Str("/root/ms/main", "s:/ms/exe")
 	workDir := path.Dir(exePath)
 
 	if !exists(exePath) {
@@ -94,8 +92,8 @@ func (s *KService) programRun() {
 		return
 	}
 
-	waitOK := time.Duration(conf.Int(1, "ms/relaunch/ok"))
-	waitNG := time.Duration(conf.Int(1, "ms/relaunch/ng"))
+	waitOK := time.Duration(conf.Int(1, "i:/ms/relaunch/ok"))
+	waitNG := time.Duration(conf.Int(1, "i:/ms/relaunch/ng"))
 
 	go func() {
 		//
@@ -143,15 +141,15 @@ func (s *KService) programRun() {
 }
 
 func msbInfoSet() {
-	msbHost = conf.Str("172.17.0.1", "msb/host")
+	msbHost = conf.Str("172.17.0.1", "s:/msb/host")
 	if ip := os.Getenv("MSBHOST"); ip != "" {
 		msbHost = ip
 	}
 }
 
 func (s *KService) regLoop() {
-	waitOK := time.Duration(conf.Int(10, "msb/regWait/ok"))
-	waitNG := time.Duration(conf.Int(1, "msb/regWait/ng"))
+	waitOK := time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
+	waitNG := time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
 
 	j, _ := json.Marshal(&s)
 	klog.Dump(s, "KService: ")
@@ -177,20 +175,20 @@ func main() {
 	conf.Load("./ms/usr.cfg")
 
 	service = &KService{
-		ServiceName: conf.Str("demo", "ms/name"),
-		Version:     conf.Str("v1", "ms/version"),
-		Desc:        conf.Str("", "ms/desc"),
-		Upstream:    conf.Str("", "ms/upstream"),
-		Kind:        conf.Str("http", "ms/kind"),
+		ServiceName: conf.Str("demo", "s:/ms/name"),
+		Version:     conf.Str("v1", "s:/ms/version"),
+		Desc:        conf.Str("", "s:/ms/desc"),
+		Upstream:    conf.Str("", "s:/ms/upstream"),
+		Kind:        conf.Str("http", "s:/ms/kind"),
 
 		IPAddr: GetOutboundIP(),
-		Port:   int(conf.Int(8888, "ms/port")),
+		Port:   int(conf.Int(8888, "i:/ms/port")),
 
 		HostName: hostnameGet(),
 
-		ProjName:    conf.Str("FIXME", "build/dirname"),
-		ProjVersion: conf.Str("FIXME", "build/version"),
-		ProjTime:    conf.Str("FIXME", "build/time"),
+		ProjName:    conf.Str("FIXME", "s:/build/dirname"),
+		ProjVersion: conf.Str("FIXME", "s:/build/version"),
+		ProjTime:    conf.Str("FIXME", "s:/build/time"),
 
 		CreatedAt: time.Now().UnixNano(),
 	}

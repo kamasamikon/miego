@@ -116,6 +116,7 @@ type ColumnItem struct {
 	Hidden     bool
 	Sortable   bool
 	Filterable bool
+	DataType   string
 }
 
 type Columns struct {
@@ -134,13 +135,18 @@ func (c *Columns) AddItem(item *ColumnItem) *Columns {
 	return c
 }
 
-func (c *Columns) Add(Show string, Label string, Hidden bool, Sortable bool, Filterable bool) *Columns {
+func (c *Columns) Add(Show string, Label string, Hidden bool, Sortable bool, Filterable bool, Numeric bool) *Columns {
+	DataType := "string"
+	if Numeric {
+		DataType = "numeric"
+	}
 	return c.AddItem(&ColumnItem{
 		Show:       Show,
 		Label:      Label,
 		Hidden:     Hidden,
 		Sortable:   Sortable,
 		Filterable: Filterable,
+		DataType:   DataType,
 	})
 }
 

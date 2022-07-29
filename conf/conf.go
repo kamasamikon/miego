@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	PathReady = "b:/conf/ready"
+	PathReady = "e:/conf/ready"
 )
 
 // See confcenter
@@ -50,29 +50,28 @@ func EntryRem(path string) {
 // Load file from configure
 func EntryAdd(line string, overwrite bool) {
 	line = strings.TrimSpace(line)
+
 	segs := strings.SplitN(line, "=", 2)
-	if len(segs) < 2 {
+	if len(segs) == 0 {
 		return
 	}
 
-	path, value := segs[0], segs[1]
-	if path[1] != ':' {
+	path := segs[0]
+	if len(path) < 4 || path[1] != ':' {
 		return
 	}
-
 	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
 	}
 
+	var value string
+	if len(segs) == 2 {
+		value = segs[1]
+	}
+
 	e, exists := mapPathEntry[path]
-	if !exists {
-		e = &confEntry{
-			kind:   kind,
-			hidden: hidden,
-			path:   realpath,
-		}
-	} else if !overwrite {
+	if exists && !overwrite {
 		return
 	}
 
@@ -105,15 +104,26 @@ func EntryAdd(line string, overwrite bool) {
 		// line is json string
 		o := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
-			klog.E(err.Error())
+			return
 		}
 		vNew = o
+
+	case 'e':
+		// event, no data at all, value treated as a parameter
+		vNew = value
 
 	default:
 		return
 	}
 
-	mapPathEntry[e.path] = e
+	if !exists {
+		e = &confEntry{
+			kind:   kind,
+			hidden: hidden,
+			path:   realpath,
+		}
+		mapPathEntry[e.path] = e
+	}
 	setByEntry(e, vNew)
 }
 
@@ -156,8 +166,7 @@ func Has(path string) bool {
 func Int(defval int64, paths ...string) int64 {
 	// path: aaa/bbb
 	for _, path := range paths {
-		key := "i:/" + path
-		if v, ok := mapPathEntry[key]; ok {
+		if v, ok := mapPathEntry[path]; ok {
 			v.refGet++
 			return v.vInt
 		}
@@ -185,8 +194,7 @@ func Flip(path string) {
 func Str(defval string, paths ...string) string {
 	// path: aaa/bbb
 	for _, path := range paths {
-		key := "s:/" + path
-		if v, ok := mapPathEntry[key]; ok {
+		if v, ok := mapPathEntry[path]; ok {
 			v.refGet++
 			return v.vStr
 		}
@@ -198,8 +206,7 @@ func Str(defval string, paths ...string) string {
 func Bool(defval bool, paths ...string) bool {
 	// path: aaa/bbb
 	for _, path := range paths {
-		key := "b:/" + path
-		if v, ok := mapPathEntry[key]; ok {
+		if v, ok := mapPathEntry[path]; ok {
 			v.refGet++
 			return v.vBool
 		}
@@ -211,8 +218,7 @@ func Bool(defval bool, paths ...string) bool {
 func Obj(defval interface{}, paths ...string) interface{} {
 	// path: aaa/bbb
 	for _, path := range paths {
-		key := "o:/" + path
-		if v, ok := mapPathEntry[key]; ok {
+		if v, ok := mapPathEntry[path]; ok {
 			v.refGet++
 			return v.vObj
 		}
@@ -225,8 +231,7 @@ func List(paths ...string) []string {
 	// path: aaa/bbb
 	var slice []string
 	for _, path := range paths {
-		key := "s:/" + path
-		if v, ok := mapPathEntry[key]; ok {
+		if v, ok := mapPathEntry[path]; ok {
 			if len(v.vStr) > 0 {
 				v.refGet++
 				for _, s := range strings.Split(v.vStr, v.vStr[0:1]) {
@@ -261,6 +266,11 @@ func pathParse(path string) (kind byte, hidden bool, realpath string) {
 		kind = 'o'
 		hidden = path[0] == 'O'
 		realpath = "o" + path[1:]
+
+	case 'e', 'E':
+		kind = 'e'
+		hidden = path[0] == 'E'
+		realpath = "e" + path[1:]
 
 	default:
 		realpath = ""
@@ -349,6 +359,12 @@ func setByEntry(e *confEntry, value interface{}) {
 		e.vObj = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
+
+	case 'e':
+		e.refSet++
+
+		vNew := value.(string)
+		monitorCall(e, 0, vNew)
 	}
 }
 
@@ -362,7 +378,6 @@ func Set(path string, value interface{}, force bool) {
 		return
 	}
 
-	// FIXME: Set("B:/aaa/bbb", ...) will makes query failed.
 	e, ok = mapPathEntry[realpath]
 	if !ok {
 		if force {
@@ -373,7 +388,6 @@ func Set(path string, value interface{}, force bool) {
 			}
 			mapPathEntry[e.path] = e
 		} else {
-			klog.D("path:%s and force:false", path)
 			return
 		}
 	}
@@ -381,33 +395,8 @@ func Set(path string, value interface{}, force bool) {
 	setByEntry(e, value)
 }
 
-func SetI(path string, value interface{}, force bool) {
-	Set("I:/"+path, value, force)
-}
-func Seti(path string, value interface{}, force bool) {
-	Set("i:/"+path, value, force)
-}
-func SetS(path string, value interface{}, force bool) {
-	Set("S:/"+path, value, force)
-}
-func Sets(path string, value interface{}, force bool) {
-	Set("s:/"+path, value, force)
-}
-func SetB(path string, value interface{}, force bool) {
-	Set("B:/"+path, value, force)
-}
-func Setb(path string, value interface{}, force bool) {
-	Set("b:/"+path, value, force)
-}
-func SetO(path string, value interface{}, force bool) {
-	Set("O:/"+path, value, force)
-}
-func Seto(path string, value interface{}, force bool) {
-	Set("o:/"+path, value, force)
-}
-
 func Ready() {
-	Set(PathReady, true, true)
+	Set(PathReady, "", true)
 }
 
 func init() {
@@ -415,12 +404,7 @@ func init() {
 	// Some builtin entries
 	//
 	{
-		mapPathEntry[PathReady] = &confEntry{
-			kind:   'b',
-			hidden: true,
-			path:   PathReady,
-			vBool:  false,
-		}
+		EntryAdd(PathReady, false)
 	}
 
 	{

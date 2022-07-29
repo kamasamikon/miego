@@ -55,10 +55,10 @@ type WxToken struct {
 var wxToken *WxToken = nil
 
 func init() {
-	CORP_ID = conf.Str("", "wxnotify/corp_id")
-	CORP_SECRET = conf.Str("", "wxnotify/corp_secret")
-	AGENTID = int(conf.Int(0, "wxnotify/agentid"))
-	URLBASE = conf.Str("", "wxnotify/urlbase")
+	CORP_ID = conf.Str("", "s:/wxnotify/corp_id")
+	CORP_SECRET = conf.Str("", "s:/wxnotify/corp_secret")
+	AGENTID = int(conf.Int(0, "i:/wxnotify/agentid"))
+	URLBASE = conf.Str("", "s:/wxnotify/urlbase")
 }
 
 func token() *WxToken {

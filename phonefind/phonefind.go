@@ -180,6 +180,6 @@ func Find(phone_num string, checkMode bool) (pr *PhoneRecord, err error) {
 }
 
 func init() {
-	phoneData := conf.Str("", "phonefind/datafile")
+	phoneData := conf.Str("", "s:/phonefind/datafile")
 	Init(phoneData)
 }
