@@ -56,7 +56,6 @@ func (c *context) Post() (n int, err error) {
 		}
 	}
 
-	klog.D("<<<%s>>>", pingString)
 	r, err := http.Post(c.url, c.mime, strings.NewReader(pingString))
 	if err != nil {
 		klog.E(err.Error())
