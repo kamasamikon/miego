@@ -64,7 +64,6 @@ func (o *LoginCenter) GetLoginType(c *gin.Context) string {
 
 	Key := fmt.Sprintf("%s@%s", Method, fullPath)
 	LoginType, _ := o.MapRouterVsLogin[Key]
-	klog.D("Method:%s fullPath:%s LoginType:%s", Method, fullPath, LoginType)
 	return LoginType
 }
 
@@ -77,11 +76,11 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		if LoginType != "" {
 			Type := session.Get(LoginType)
 			if Type != nil {
-				segs := strings.Split(Type.(string), ";")
-				for _, s := range segs {
-					v := session.Get(s)
-					klog.E("%10s = %v", s, v)
-				}
+				// segs := strings.Split(Type.(string), ";")
+				// for _, s := range segs {
+				// v := session.Get(s)
+				// klog.E("%10s = %v", s, v)
+				// }
 				h(c)
 				return
 			}
@@ -94,10 +93,8 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 			// Return Status or Login page
 			StatusCode, LoginPageName, LoginPageParam := l.BeforeLogin(c)
 			if LoginPageName == "" {
-				klog.Dump(LoginPageParam, "IsLoggin: NG: JSON")
 				c.JSON(StatusCode, LoginPageParam)
 			} else {
-				klog.Dump(LoginPageParam, "IsLoggin: NG: HTML")
 				c.HTML(StatusCode, LoginPageName, LoginPageParam)
 			}
 		}
