@@ -64,8 +64,7 @@ def dockerRun(imageName, msbIP, backrun, append):
 
     for i in range(len(sys.argv)):
         if sys.argv[i].startswith("--runopt="):
-            runopt = sys.argv[i][9:]
-            segs = shlex.split(runopt)
+            segs = [x for x in shlex.split(sys.argv[i][9:]) if x]
             if segs:
                 cmd.extend(segs)
 

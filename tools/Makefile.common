@@ -93,7 +93,7 @@ xlocaldeploy:
 		export msbName="`cat /tmp/.msbName`"; \
 		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
 		sudo docker load -i one.tar; \
-		mscontainer.sh -b -k --runopt="${dockerRunPara}" --msbName=${msbName} --suffix=${msSUFFIX} ${msName}; \
+		mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}; \
 	)
 	@echo "<<<<<<<<<<<<< xlocaldeploy >>>>>>>>>>>>>"
 	@echo
