@@ -70,8 +70,8 @@ def dockerRun(imageName, msbIP, backrun, append):
 
     if backrun:
         cmd.extend(["-d"])
-    cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % container])
-    cmd.extend(["-v", "%s:/tmp/host" % currentDir()])
+    # cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % container])
+    # cmd.extend(["-v", "%s:/tmp/host" % currentDir()])
     cmd.extend(["-e", "MSBHOST=%s" % msbIP])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 

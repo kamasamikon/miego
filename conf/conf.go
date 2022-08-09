@@ -23,7 +23,6 @@ type confEntry struct {
 	//
 	// vXxx: value for each type
 	//
-	// refGet/refSet: count by Read or Write
 	//
 	// hidden: Not show by dump
 	kind byte
@@ -33,9 +32,6 @@ type confEntry struct {
 	vStr  string
 	vBool bool
 	vObj  interface{}
-
-	refGet int64
-	refSet int64
 
 	hidden bool
 }
@@ -148,14 +144,6 @@ func Load(fileName string, overwrite bool) error {
 	return nil
 }
 
-// Ref : refGet, refSet
-func Ref(path string) (int64, int64) {
-	if v, ok := mapPathEntry[path]; ok {
-		return v.refGet, v.refSet
-	}
-	return -1, -1
-}
-
 // Has : Check if a entry exists
 func Has(path string) bool {
 	_, ok := mapPathEntry[path]
@@ -167,7 +155,6 @@ func Int(defval int64, paths ...string) int64 {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
 			return v.vInt
 		}
 	}
@@ -195,7 +182,6 @@ func Str(defval string, paths ...string) string {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
 			return v.vStr
 		}
 	}
@@ -207,7 +193,6 @@ func Bool(defval bool, paths ...string) bool {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
 			return v.vBool
 		}
 	}
@@ -219,7 +204,6 @@ func Obj(defval interface{}, paths ...string) interface{} {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
 			return v.vObj
 		}
 	}
@@ -233,7 +217,6 @@ func List(paths ...string) []string {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			if len(v.vStr) > 0 {
-				v.refGet++
 				for _, s := range strings.Split(v.vStr, v.vStr[0:1]) {
 					if s != "" {
 						slice = append(slice, s)
@@ -333,7 +316,6 @@ func setByEntry(e *confEntry, value interface{}) {
 		}
 
 		e.vInt = vNew
-		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 's':
@@ -341,7 +323,6 @@ func setByEntry(e *confEntry, value interface{}) {
 
 		vNew := value.(string)
 		e.vStr = vNew
-		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'b':
@@ -349,7 +330,6 @@ func setByEntry(e *confEntry, value interface{}) {
 
 		vNew := value.(bool)
 		e.vBool = vNew
-		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'o':
@@ -357,12 +337,9 @@ func setByEntry(e *confEntry, value interface{}) {
 
 		vNew := value.(interface{})
 		e.vObj = vNew
-		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'e':
-		e.refSet++
-
 		vNew := value.(string)
 		monitorCall(e, 0, vNew)
 	}

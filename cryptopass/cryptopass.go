@@ -3,10 +3,12 @@ package cryptopass
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"time"
 )
 
 func Make(password string, salt string) string {
+	fmt.Printf("%s %s\n", password, salt)
 	ctx := md5.New()
 	ctx.Write([]byte(password))
 	ctx.Write([]byte(salt))
@@ -14,9 +16,9 @@ func Make(password string, salt string) string {
 }
 
 func Hide(name string) (string, string) {
-	Now := time.Now()
-	va := Make(name, Now.Format("200601021505"))[0:6]
-	vb := Make(name, Now.Format("20060102150405"))
+	Now := time.Now().Format("20060102150405")
+	va := Make(name, Now[0:12])[0:6]
+	vb := Make(name, Now)
 
 	var output string
 

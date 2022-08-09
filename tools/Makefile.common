@@ -130,7 +130,7 @@ userScriptLast: userScript
 userDockerCommandFirst:
 	@echo "==> Writing userDockerCommand..."
 	@echo > .userDockerCommand -n
-	@echo >> .userDockerCommand "ENV KCFG_FILES ./msa.cfg:./main.cfg:/tmp/conf/main.cfg"
+	@echo >> .userDockerCommand "ENV KCFG_FILES /root/msa.cfg:/root/main.cfg"
 
 
 userDockerCommandLast: userDockerCommand

@@ -25,9 +25,10 @@ func Dump(safeMode bool) string {
 	})
 
 	fmtstr := fmt.Sprintf(
-		"%s(%%04d/%%04d)%s %%-%ds : %s%%v%s",
-		klog.ColorType_I, klog.ColorType_Reset,
+		"%s%%-%ds%s : %s%%v%s",
+		klog.ColorType_D,
 		keyMaxLength,
+		klog.ColorType_Reset,
 		klog.ColorType_W, klog.ColorType_Reset,
 	)
 	var lines []string
@@ -38,19 +39,19 @@ func Dump(safeMode bool) string {
 
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vStr))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.vBool))
 
 		case 'o':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, "..."))
 
 		case 'e':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.refGet, v.refSet, v.path, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, "..."))
 		}
 
 	}

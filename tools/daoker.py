@@ -17,14 +17,18 @@ import time
 
 
 dfTempl = '''
-FROM %s
+# FROM %s
+FROM alpine:3.9
+
+WORKDIR /root
+COPY ./PRC /etc/localtime
+ENTRYPOINT /root/main
 
 # >>> User part >>>
-
 %s
 # <<< User part <<<
 
-COPY ms/ ./ms
+COPY ms/ ./
 '''
 
 
@@ -133,9 +137,6 @@ def callUserScript():
 def copyMain():
     saferun(["cp", "-fr", "main", "ms"])
 
-    saferun(["touch", "ms/main.cfg"])
-    saferun(["touch", "ms/README.md"])
-
 def build():
     '''Generate the docker image'''
 
@@ -144,7 +145,7 @@ def build():
     createDockerfile()
     copyMain()
 
-    cmd = ["sudo", "docker", "build", "-t", _msName, "."]
+    cmd = ["sudo", "docker", "build", "--no-cache", "-t", _msName, "."]
     for e in _extra:
         segs = shlex.split(e)
         cmd.extend(segs)
