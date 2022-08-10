@@ -3,6 +3,7 @@
 fake:
 	@echo "Interesting..."
 
+# xXxx means do Xxx without build
 
 build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ..."
@@ -17,6 +18,7 @@ build: userScriptLast userDockerCommandLast
 	@echo "==> Building docker ... DONE"
 
 
+# 把已经生成的镜像打包成压缩包
 xdockerpack:
 	@echo
 	@echo
@@ -28,11 +30,8 @@ xdockerpack:
 	@echo
 	@echo
 
-dockerpack: build xdockerpack
 
-
-deploy: remoteloadms
-
+# 远程重新加载服务
 xremotereloadms:
 	@echo
 	@echo
@@ -56,6 +55,7 @@ xremotereloadms:
 	@echo
 
 
+# 远程重新加载镜像并启动容器
 xremoteloadms:
 	@echo
 	@echo
@@ -80,9 +80,11 @@ xremoteloadms:
 	@echo
 
 
-remoteloadms: dockerpack xremoteloadms
+# 远程大全套：编译、打包、上传、加载、启动
+remotedeploy: build xdockerpack xremoteloadms
 
 
+# 本地启动服务
 xlocaldeploy: 
 	@echo
 	@echo
@@ -92,14 +94,11 @@ xlocaldeploy:
 		export dockerRunPara="`cat /tmp/.dockerRunPara`"; \
 		export msbName="`cat /tmp/.msbName`"; \
 		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
-		sudo docker load -i one.tar; \
 		mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}; \
 	)
 	@echo "<<<<<<<<<<<<< xlocaldeploy >>>>>>>>>>>>>"
 	@echo
 	@echo
-
-localdeploy: dockerpack xlocaldeploy
 
 vet:
 	@go vet
