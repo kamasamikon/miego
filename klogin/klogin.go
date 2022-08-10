@@ -178,7 +178,7 @@ func (o *LoginCenter) doLogout(c *gin.Context) {
 	}
 }
 
-func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
+func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr string) {
 	if o.Gin != nil {
 		return
 	}
@@ -188,8 +188,10 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
 	o.SessionName = SessionName
 
 	// Redis/Session
-	redisHost := os.Getenv("DOCKER_GATEWAY")
-	redisAddr := redisHost + ":6379"
+	if redisAddr == "" {
+		redisHost := os.Getenv("DOCKER_GATEWAY")
+		redisAddr = redisHost + ":6379"
+	}
 	store, err := redis.NewStore(10, "tcp", redisAddr, "", []byte("secret"))
 	if err != nil {
 		klog.E(err.Error())
@@ -222,57 +224,70 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string) {
 }
 
 func (o *LoginCenter) POST(LoginType string, relativePath string, handler gin.HandlerFunc) {
-	o.SetLoginType(LoginType, "POST", relativePath)
-
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
-	if o.BCheckerList != nil {
-		decors = append(decors, o.BCheckerList...)
-	}
-	decors = append(decors, o.isLoggin)
-	if o.ACheckerList != nil {
-		decors = append(decors, o.ACheckerList...)
-	}
 
+	if LoginType != "" {
+		o.SetLoginType(LoginType, "POST", relativePath)
+
+		if o.BCheckerList != nil {
+			decors = append(decors, o.BCheckerList...)
+		}
+		decors = append(decors, o.isLoggin)
+		if o.ACheckerList != nil {
+			decors = append(decors, o.ACheckerList...)
+		}
+	}
 	o.Gin.POST(relativePath, xgin.Decorator(handler, decors...))
 }
 func (o *LoginCenter) GET(LoginType string, relativePath string, handler gin.HandlerFunc) {
-	o.SetLoginType(LoginType, "GET", relativePath)
-
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
-	if o.BCheckerList != nil {
-		decors = append(decors, o.BCheckerList...)
-	}
-	decors = append(decors, o.isLoggin)
-	if o.ACheckerList != nil {
-		decors = append(decors, o.ACheckerList...)
+
+	if LoginType != "" {
+		o.SetLoginType(LoginType, "GET", relativePath)
+
+		if o.BCheckerList != nil {
+			decors = append(decors, o.BCheckerList...)
+		}
+		decors = append(decors, o.isLoggin)
+		if o.ACheckerList != nil {
+			decors = append(decors, o.ACheckerList...)
+		}
 	}
 
 	o.Gin.GET(relativePath, xgin.Decorator(handler, decors...))
+
 }
 func (o *LoginCenter) PUT(LoginType string, relativePath string, handler gin.HandlerFunc) {
-	o.SetLoginType(LoginType, "PUT", relativePath)
-
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
-	if o.BCheckerList != nil {
-		decors = append(decors, o.BCheckerList...)
-	}
-	decors = append(decors, o.isLoggin)
-	if o.ACheckerList != nil {
-		decors = append(decors, o.ACheckerList...)
+
+	if LoginType != "" {
+		o.SetLoginType(LoginType, "PUT", relativePath)
+
+		if o.BCheckerList != nil {
+			decors = append(decors, o.BCheckerList...)
+		}
+		decors = append(decors, o.isLoggin)
+		if o.ACheckerList != nil {
+			decors = append(decors, o.ACheckerList...)
+		}
 	}
 
 	o.Gin.PUT(relativePath, xgin.Decorator(handler, decors...))
+
 }
 func (o *LoginCenter) DELETE(LoginType string, relativePath string, handler gin.HandlerFunc) {
-	o.SetLoginType(LoginType, "DELETE", relativePath)
-
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
-	if o.BCheckerList != nil {
-		decors = append(decors, o.BCheckerList...)
-	}
-	decors = append(decors, o.isLoggin)
-	if o.ACheckerList != nil {
-		decors = append(decors, o.ACheckerList...)
+
+	if LoginType != "" {
+		o.SetLoginType(LoginType, "DELETE", relativePath)
+
+		if o.BCheckerList != nil {
+			decors = append(decors, o.BCheckerList...)
+		}
+		decors = append(decors, o.isLoggin)
+		if o.ACheckerList != nil {
+			decors = append(decors, o.ACheckerList...)
+		}
 	}
 
 	o.Gin.DELETE(relativePath, xgin.Decorator(handler, decors...))
