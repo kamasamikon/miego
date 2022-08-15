@@ -115,7 +115,7 @@ func init() {
 	})
 }
 
-func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int64) {
+func DebugSettings(Engine *gin.Engine, prefix string, xRouters int64, xReadme int64, xConf int64) {
 	if Engine == nil {
 		Engine = Default
 	}
@@ -123,7 +123,7 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 		xRouters = conf.Int(1, "i:/gin/debug/routers")
 	}
 	if xRouters == 1 {
-		Engine.GET("/debug/routers", func(c *gin.Context) {
+		Engine.GET(prefix+"/debug/routers", func(c *gin.Context) {
 			if c.Query("html") == "1" {
 				var lines []string
 				lines = append(lines, "| Method | Path |")
@@ -151,7 +151,7 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 		xReadme = conf.Int(1, "i:/gin/debug/readme")
 	}
 	if xReadme == 1 {
-		Engine.GET("/debug/readme", func(c *gin.Context) {
+		Engine.GET(prefix+"/debug/readme", func(c *gin.Context) {
 			htmlFlags := html.CommonFlags | html.HrefTargetBlank
 			opts := html.RendererOptions{Flags: htmlFlags}
 			renderer := html.NewRenderer(opts)
@@ -175,8 +175,8 @@ func DebugSettings(Engine *gin.Engine, xRouters int64, xReadme int64, xConf int6
 		xConf = conf.Int(1, "i:/gin/debug/routers")
 	}
 	if xConf == 1 {
-		Engine.GET("/debug/conf", func(c *gin.Context) {
-			c.String(200, conf.Dump(true))
+		Engine.GET(prefix+"/debug/conf", func(c *gin.Context) {
+			c.String(200, conf.DumpRaw(true))
 		})
 	}
 }

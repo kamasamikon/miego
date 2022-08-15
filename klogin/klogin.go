@@ -208,8 +208,8 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr strin
 			Key = fmt.Sprintf("%s@%s", "POST", URL)
 			o.MapRouterVsLogin[Key] = LoginType
 
-			o.Gin.POST(URL, o.doLogin)
-			o.Gin.GET(URL, o.doLogin)
+			POST("", URL, o.doLogin)
+			GET("", URL, o.doLogin)
 		}
 		for _, URL := range l.LogoutRouter() {
 			Key = fmt.Sprintf("%s@%s", "GET", URL)
@@ -217,8 +217,8 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr strin
 			Key = fmt.Sprintf("%s@%s", "POST", URL)
 			o.MapRouterVsLogin[Key] = LoginType
 
-			o.Gin.POST(URL, o.doLogout)
-			o.Gin.GET(URL, o.doLogout)
+			POST("", URL, o.doLogout)
+			GET("", URL, o.doLogout)
 		}
 	}
 }

@@ -63,6 +63,12 @@ func DELETE(LoginType string, relativePath string, handler gin.HandlerFunc) {
 	)
 }
 
+func ForeachRouter(cb func(rp *RouterParam)) {
+	for _, rp := range RouterParamList {
+		cb(rp)
+	}
+}
+
 // routerfilters = (Enable, Method, LoginType, RelativePath), ...
 func Start(initEnable bool, routerfilters ...interface{}) {
 	var match bool
