@@ -8,13 +8,6 @@ import (
 	"github.com/kamasamikon/miego/klog"
 )
 
-var (
-	CORP_ID     string
-	CORP_SECRET string
-	AGENTID     int
-	URLBASE     string
-)
-
 type KPong_GetToken struct {
 	AccessToken string `json:"access_token"`
 }
@@ -54,13 +47,6 @@ type WxToken struct {
 
 var wxToken *WxToken = nil
 
-func init() {
-	CORP_ID = conf.Str("", "s:/wxnotify/corp_id")
-	CORP_SECRET = conf.Str("", "s:/wxnotify/corp_secret")
-	AGENTID = int(conf.Int(0, "i:/wxnotify/agentid"))
-	URLBASE = conf.Str("", "s:/wxnotify/urlbase")
-}
-
 func token() *WxToken {
 	if wxToken == nil {
 		wxToken = &WxToken{}
@@ -75,12 +61,15 @@ func (t *WxToken) Get(corpId string, corpSecret string) string {
 		return token
 	}
 
+	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
 	url := fmt.Sprintf("%sgettoken?corpid=%s&corpsecret=%s", URLBASE, corpId, corpSecret)
+	klog.D("%s", url)
 	pong := KPong_GetToken{}
 	if _, err := httpdo.Get(url, &pong); err != nil {
-		fmt.Println(err.Error())
+		klog.E("%s", err.Error())
 		return ""
 	}
+	klog.Dump(pong)
 
 	t.tokens[seed] = pong.AccessToken
 	return pong.AccessToken
@@ -94,13 +83,13 @@ func (t *WxToken) Rem(corpId string, corpSecret string) {
 func SendText(text string, toUser string, corpId string, corpSecret string, agentId int) {
 	// Set default
 	if corpId == "" {
-		corpId = CORP_ID
+		corpId = conf.Str("", "s:/wxnotify/corp_id")
 	}
 	if corpSecret == "" {
-		corpSecret = CORP_SECRET
+		corpSecret = conf.Str("", "s:/wxnotify/corp_secret")
 	}
 	if agentId == 0 {
-		agentId = AGENTID
+		agentId = int(conf.Int(0, "i:/wxnotify/agentid"))
 	}
 
 	// set data
@@ -115,6 +104,7 @@ func SendText(text string, toUser string, corpId string, corpSecret string, agen
 
 	// Send
 	t := token().Get(corpId, corpSecret)
+	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
 	url := fmt.Sprintf("%smessage/send?access_token=%s", URLBASE, t)
 	klog.D(url)
 	if _, err := httpdo.Post(url, &ping, &pong); err != nil {
@@ -136,13 +126,13 @@ func SendText(text string, toUser string, corpId string, corpSecret string, agen
 func SendCard(title string, description string, URL string, toUser string, corpId string, corpSecret string, agentId int) {
 	// Set default
 	if corpId == "" {
-		corpId = CORP_ID
+		corpId = conf.Str("", "s:/wxnotify/corp_id")
 	}
 	if corpSecret == "" {
-		corpSecret = CORP_SECRET
+		corpSecret = conf.Str("", "s:/wxnotify/corp_secret")
 	}
 	if agentId == 0 {
-		agentId = AGENTID
+		agentId = int(conf.Int(0, "i:/wxnotify/agentid"))
 	}
 
 	// set data
@@ -158,6 +148,7 @@ func SendCard(title string, description string, URL string, toUser string, corpI
 
 	// Send
 	t := token().Get(corpId, corpSecret)
+	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
 	url := fmt.Sprintf("%smessage/send?access_token=%s", URLBASE, t)
 	klog.D(url)
 	if _, err := httpdo.Post(url, &ping, &pong); err != nil {

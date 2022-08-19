@@ -4,6 +4,7 @@ import (
 	"github.com/kamasamikon/miego/atox"
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/mc"
+	"github.com/kamasamikon/miego/wxcard"
 	"github.com/kamasamikon/miego/xmap"
 
 	"database/sql"
@@ -94,6 +95,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 	rows, err := db.Query(qStmt)
 	if err != nil {
 		klog.E(err.Error())
+		go wxcard.WxCardNew("").SendStr("db.Query", err.Error(), "")
 		return nil, -1, err
 	}
 	defer rows.Close()

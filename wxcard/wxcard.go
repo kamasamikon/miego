@@ -24,9 +24,9 @@ func WxCardNew(hashDocURL string) *WXCard {
 
 	c := WXCard{
 		hashDocURL: hashDocURL,
-		corpId:     conf.Str("", "s:/wxcorp/corpId"),
-		corpSecret: conf.Str("", "s:/wxcorp/corpSecret"),
-		agentId:    int(conf.Int(0, "i:/wxcorp/agentId")),
+		corpId:     conf.Str("", "s:/wxnotify/corp_id"),
+		corpSecret: conf.Str("", "s:/wxnotify/corp_secret"),
+		agentId:    int(conf.Int(0, "i:/wxnotify/agent_id")),
 	}
 	return &c
 }
