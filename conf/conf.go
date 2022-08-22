@@ -2,6 +2,7 @@ package conf
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -37,6 +38,8 @@ type confEntry struct {
 }
 
 var mapPathEntry = make(map[string]*confEntry)
+var LoadOKCount = 0
+var LoadNGCount = 0
 
 // Delete an entry
 func EntryRem(path string) {
@@ -137,9 +140,28 @@ func Load(fileName string, overwrite bool) error {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		klog.E("Load %s, Error is %s", fileName, err.Error())
+		EntryAdd(
+			fmt.Sprintf(
+				"s:/conf/Load/NG/%d=%s",
+				LoadNGCount,
+				fileName,
+			),
+			false,
+		)
+		LoadNGCount++
 		return err
 	}
-	klog.D("Load %s, Done.", fileName)
+
+	EntryAdd(
+		fmt.Sprintf(
+			"s:/conf/Load/OK/%d=%s",
+			LoadOKCount,
+			fileName,
+		),
+		false,
+	)
+	LoadOKCount++
+
 	LoadString(string(data), overwrite)
 	return nil
 }
