@@ -15,6 +15,14 @@ import (
 	"github.com/kamasamikon/miego/xmap"
 )
 
+// HTTP Response header: yes, no, auto, ...
+const (
+	// Header: Need Login
+	// $ echo -n NEED-LOGIN | md5sum
+	// 26bb6bc34e2e91420e7d0a8a522d26f8  -
+	H_NEED_LOGIN = "K-26bb6bc34e2e91420e7d0a8a522d26f8"
+)
+
 type Login interface {
 	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
 	BeforeLogin(c *gin.Context) (StatusCode int, PageName string, PageParam xmap.Map)
@@ -89,6 +97,7 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		l := o.MapLogin[LoginType]
 		if l != nil {
 			c.Set("LoginType", LoginType)
+			c.Header(H_NEED_LOGIN, "yes")
 
 			// Return Status or Login page
 			StatusCode, LoginPageName, LoginPageParam := l.BeforeLogin(c)

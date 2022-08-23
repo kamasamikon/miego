@@ -9,10 +9,6 @@ import (
 // ////////////////////////////////////////////////////////////////////////
 // Monitor, callback when configure changed
 //
-const (
-	ColorType_I     = "\x1b[1;32;40m"
-	ColorType_Reset = "\x1b[0m"
-)
 
 // KConfMonitor is a Callback called when wathed entry modified.
 type KConfMonitor func(path string, oVal interface{}, nVal interface{})

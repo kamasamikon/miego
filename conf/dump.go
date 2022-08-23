@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/kamasamikon/miego/klog"
 )
 
 // Dump : Print all entries
@@ -26,10 +24,10 @@ func Dump(safeMode bool) string {
 
 	fmtstr := fmt.Sprintf(
 		"%s%%-%ds%s : %s%%v%s",
-		klog.ColorType_D,
+		ColorType_D,
 		keyMaxLength,
-		klog.ColorType_Reset,
-		klog.ColorType_W, klog.ColorType_Reset,
+		ColorType_Reset,
+		ColorType_W, ColorType_Reset,
 	)
 	var lines []string
 	for _, v := range cList {
