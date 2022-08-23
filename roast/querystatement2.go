@@ -147,7 +147,9 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string, st
 	if EtcPart != "" {
 		qStmt += EtcPart + "\n"
 	}
-	klog.D("%s", qStmt)
+	if Conf.Noisy {
+		klog.D("%s", qStmt)
+	}
 
 	//
 	// cStmt: Count Statement
@@ -213,7 +215,9 @@ func (s *QueryStatement) String2(mp xmap.Map, FoundRows int) (string, string, st
 		}
 
 		cStmt = strings.Join(cStmtList, "\n")
-		klog.D("%s", cStmt)
+		if Conf.Noisy {
+			klog.D("%s", cStmt)
+		}
 
 		sort.Strings(cStmtList)
 		ctx := md5.New()

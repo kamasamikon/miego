@@ -85,3 +85,13 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 		}
 	}
 }
+
+// OnReady : Called when all configure loaded.
+func OnReady(cb func()) {
+	MonitorAdd(
+		PathReady,
+		func(p string, o, n interface{}) {
+			cb()
+		},
+	)
+}

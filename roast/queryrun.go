@@ -32,11 +32,15 @@ func callPstQ(mp xmap.Map, pongs []xmap.Map) {
 
 // Raw: Raw(db, "SELECT a, b FROM xxxx") => {"a":"xxx", "b":"xxx"}
 func Raw(db *sql.DB, stmt string, verbose bool) ([]xmap.Map, error) {
-	if verbose {
+	if verbose && Conf.Noisy {
 		klog.D("%s", stmt)
 	}
 	rows, err := db.Query(stmt)
 	if err != nil {
+		if Conf.NotifyQueryError {
+			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), stmt)
+		}
+
 		klog.E(err.Error())
 		return nil, err
 	}
@@ -94,8 +98,11 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 
 	rows, err := db.Query(qStmt)
 	if err != nil {
+		if Conf.NotifyQueryError {
+			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+		}
+
 		klog.E(err.Error())
-		go wxcard.WxCardNew("").SendStr("db.Query", err.Error(), "")
 		return nil, -1, err
 	}
 	defer rows.Close()
@@ -155,6 +162,10 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 					klog.E(err.Error())
 				}
 			} else {
+				if Conf.NotifyQueryError {
+					go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+				}
+
 				klog.E(err.Error())
 			}
 			klog.D("AllCount:%d", allCount)
@@ -175,6 +186,10 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows in
 	qStmt, cStmt, cStmtHash := queryStmt.String2(mp, FoundRows)
 	rows, err := db.Query(qStmt)
 	if err != nil {
+		if Conf.NotifyQueryError {
+			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+		}
+
 		klog.E(err.Error())
 		return 0, err
 	}
@@ -215,6 +230,10 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows in
 					klog.E(err.Error())
 				}
 			} else {
+				if Conf.NotifyQueryError {
+					go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+				}
+
 				klog.E(err.Error())
 			}
 		}

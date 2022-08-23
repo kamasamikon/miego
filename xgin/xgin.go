@@ -93,14 +93,8 @@ func Run(Engine *gin.Engine, addr string) {
 //
 
 func init() {
-	if conf.Int(0, "i:/gin/releaseMode") == 1 {
-		gin.SetMode(gin.ReleaseMode)
-		Default = gin.New()
-	} else {
-		gin.SetMode(gin.DebugMode)
-		Default = gin.Default()
-	}
-
+	gin.SetMode(gin.ReleaseMode)
+	Default = gin.New()
 	Default.SetFuncMap(template.FuncMap{
 		"FormatAsDate":  FormatAsDate,
 		"ToHTML":        ToHTML,

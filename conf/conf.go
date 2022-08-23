@@ -7,8 +7,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/kamasamikon/miego/klog"
 )
 
 const (
@@ -137,29 +135,22 @@ func LoadString(s string, overwrite bool) {
 
 // Load : configure from a file.
 func Load(fileName string, overwrite bool) error {
+	const (
+		NGName = "s:/conf/Load/NG/%d/Name=%s"
+		NGWhy  = "s:/conf/Load/NG/%d/Why=%s"
+		OKName = "s:/conf/Load/OK/%d=%s"
+	)
+
+	sp := fmt.Sprintf
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		klog.E("Load %s, Error is %s", fileName, err.Error())
-		EntryAdd(
-			fmt.Sprintf(
-				"s:/conf/Load/NG/%d=%s",
-				LoadNGCount,
-				fileName,
-			),
-			false,
-		)
+		EntryAdd(sp(NGName, LoadNGCount, fileName), false)
+		EntryAdd(sp(NGWhy, LoadNGCount, err.Error()), false)
 		LoadNGCount++
 		return err
 	}
 
-	EntryAdd(
-		fmt.Sprintf(
-			"s:/conf/Load/OK/%d=%s",
-			LoadOKCount,
-			fileName,
-		),
-		false,
-	)
+	EntryAdd(sp(OKName, LoadOKCount, fileName), false)
 	LoadOKCount++
 
 	LoadString(string(data), overwrite)
@@ -411,9 +402,7 @@ func init() {
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				if err := Load(f, true); err != nil {
-					klog.E("LOAD KCFG_FILES Error: %s", err.Error())
-				}
+				Load(f, true)
 			}
 		}
 	}
@@ -422,9 +411,7 @@ func init() {
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				if err := Load(f, true); err != nil {
-					klog.E("LOAD KCFG_QQQ_FILES Error: %s", err.Error())
-				}
+				Load(f, true)
 				os.Remove(f)
 			}
 		}
@@ -435,9 +422,7 @@ func init() {
 			if strings.HasPrefix(argv, "--kfg=") {
 				f := argv[6:]
 				if f != "" {
-					if err := Load(f, true); err != nil {
-						klog.E("LOAD --kfg=xxx Error: %s", err.Error())
-					}
+					Load(f, true)
 				}
 			}
 		}
@@ -447,9 +432,7 @@ func init() {
 			if strings.HasPrefix(argv, "--kfg-qqq=") {
 				f := argv[6:]
 				if f != "" {
-					if err := Load(f, true); err != nil {
-						klog.E("LOAD --kfg-qqq=xxx Error: %s", err.Error())
-					}
+					Load(f, true)
 					os.Remove(f)
 				}
 			}
