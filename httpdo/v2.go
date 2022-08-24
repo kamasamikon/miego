@@ -17,6 +17,7 @@ type context struct {
 	contentType string
 	header      map[string]string
 	cookie      map[string]string
+	noRedirect  bool
 }
 
 func New(url string) *context {
@@ -46,6 +47,10 @@ func (c *context) ContentType(contentType string) *context {
 	c.contentType = contentType
 	return c
 }
+func (c *context) Redirect(Redirect bool) *context {
+	c.noRedirect = !Redirect
+	return c
+}
 
 func (c *context) Ping(ping interface{}) *context {
 	c.ping = ping
@@ -59,6 +64,12 @@ func (c *context) Pong(pong interface{}) *context {
 
 func (c *context) Post() (resp *http.Response, err error) {
 	client := &http.Client{}
+
+	if c.noRedirect {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
 
 	// PostData
 	var pingString string
@@ -137,6 +148,12 @@ func (c *context) Post() (resp *http.Response, err error) {
 // Get : HTTPGet convert the response to pongObj structure
 func (c *context) Get() (resp *http.Response, err error) {
 	client := &http.Client{}
+
+	if c.noRedirect {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
 
 	// New Request
 	req, err := http.NewRequest("GET", c.url, nil)

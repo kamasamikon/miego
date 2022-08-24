@@ -94,7 +94,8 @@ func Run(Engine *gin.Engine, addr string) {
 
 func init() {
 	gin.SetMode(gin.ReleaseMode)
-	Default = gin.New()
+	// Default = gin.New()
+	Default = gin.Default()
 	Default.SetFuncMap(template.FuncMap{
 		"FormatAsDate":  FormatAsDate,
 		"ToHTML":        ToHTML,
