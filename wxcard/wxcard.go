@@ -39,7 +39,7 @@ func (c *WXCard) SendStr(title string, desc string, content string) {
 		}
 
 		pong := struct{ UUID string }{}
-		httpdo.Post(c.hashDocURL+"/doc/add", &ping, &pong)
+		httpdo.New(c.hashDocURL + "/doc/add").Ping(&ping).Pong(&pong).Post()
 
 		url := c.hashDocURL + "/doc?uuid=" + pong.UUID
 		wxcorp.SendCard(title, desc, url, "@all", c.corpId, c.corpSecret, c.agentId)
@@ -66,7 +66,7 @@ func (c *WXCard) SendObj(title string, desc string, doc interface{}, format stri
 	}
 
 	pong := struct{ UUID string }{}
-	_, err := httpdo.Post(c.hashDocURL+"/doc/add", &ping, &pong)
+	_, err := httpdo.New(c.hashDocURL + "/doc/add").Ping(&ping).Pong(&pong).Post()
 	klog.Dump(err)
 	klog.Dump(&ping)
 	klog.Dump(&pong)

@@ -21,6 +21,11 @@ const (
 	// $ echo -n NEED-LOGIN | md5sum
 	// 26bb6bc34e2e91420e7d0a8a522d26f8  -
 	H_NEED_LOGIN = "K-26bb6bc34e2e91420e7d0a8a522d26f8"
+
+	// Header: Login URL
+	// $ echo -n LOGIN-URL | md5sum
+	// 76cf351b86b71ce0e5c514fc520e26f2  -
+	H_LOGIN_URL = "K-76cf351b86b71ce0e5c514fc520e26f2"
 )
 
 type Login interface {
@@ -97,7 +102,7 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		l := o.MapLogin[LoginType]
 		if l != nil {
 			c.Set("LoginType", LoginType)
-			c.Header(H_NEED_LOGIN, "yes")
+			c.Header(H_LOGIN_URL, l.LoginRouter()[0])
 
 			// Return Status or Login page
 			StatusCode, LoginPageName, LoginPageParam := l.BeforeLogin(c)

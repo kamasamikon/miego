@@ -65,7 +65,7 @@ func (t *WxToken) Get(corpId string, corpSecret string) string {
 	url := fmt.Sprintf("%sgettoken?corpid=%s&corpsecret=%s", URLBASE, corpId, corpSecret)
 	klog.D("%s", url)
 	pong := KPong_GetToken{}
-	if _, err := httpdo.Get(url, &pong); err != nil {
+	if _, err := httpdo.New(url).Pong(&pong).Get(); err != nil {
 		klog.E("%s", err.Error())
 		return ""
 	}
@@ -107,7 +107,7 @@ func SendText(text string, toUser string, corpId string, corpSecret string, agen
 	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
 	url := fmt.Sprintf("%smessage/send?access_token=%s", URLBASE, t)
 	klog.D(url)
-	if _, err := httpdo.Post(url, &ping, &pong); err != nil {
+	if _, err := httpdo.New(url).Ping(&ping).Pong(&pong).Post(); err != nil {
 		klog.E(err.Error())
 		return
 	}
@@ -151,7 +151,7 @@ func SendCard(title string, description string, URL string, toUser string, corpI
 	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
 	url := fmt.Sprintf("%smessage/send?access_token=%s", URLBASE, t)
 	klog.D(url)
-	if _, err := httpdo.Post(url, &ping, &pong); err != nil {
+	if _, err := httpdo.New(url).Ping(&ping).Pong(&pong).Post(); err != nil {
 		klog.E(err.Error())
 		return
 	}

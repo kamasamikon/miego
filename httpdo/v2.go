@@ -11,21 +11,39 @@ import (
 )
 
 type context struct {
-	url  string
-	ping interface{}
-	pong interface{}
-	mime string
+	url         string
+	ping        interface{}
+	pong        interface{}
+	contentType string
+	header      map[string]string
+	cookie      map[string]string
 }
 
 func New(url string) *context {
 	return &context{
-		url:  url,
-		mime: "application/json;charset=utf-8",
+		url:         url,
+		contentType: "application/json;charset=utf-8",
 	}
 }
 
-func (c *context) MIME(mime string) *context {
-	c.mime = mime
+func (c *context) Header(k string, v string) *context {
+	if c.header == nil {
+		c.header = make(map[string]string)
+	}
+	c.header[k] = v
+	return c
+}
+
+func (c *context) Cookie(k string, v string) *context {
+	if c.cookie == nil {
+		c.cookie = make(map[string]string)
+	}
+	c.cookie[k] = v
+	return c
+}
+
+func (c *context) ContentType(contentType string) *context {
+	c.contentType = contentType
 	return c
 }
 
@@ -40,8 +58,10 @@ func (c *context) Pong(pong interface{}) *context {
 }
 
 func (c *context) Post() (resp *http.Response, err error) {
-	var pingString string
+	client := &http.Client{}
 
+	// PostData
+	var pingString string
 	if c.ping == nil {
 		pingString = ""
 	} else {
@@ -56,7 +76,30 @@ func (c *context) Post() (resp *http.Response, err error) {
 		}
 	}
 
-	r, err := http.Post(c.url, c.mime, strings.NewReader(pingString))
+	// New Request
+	req, err := http.NewRequest("POST", c.url, strings.NewReader(pingString))
+
+	// Set Cookie
+	for k, v := range c.cookie {
+		req.AddCookie(
+			&http.Cookie{
+				Name:     k,
+				Value:    v,
+				HttpOnly: true,
+			},
+		)
+	}
+
+	// Set Header, include contentType
+	for k, v := range c.header {
+		req.Header.Add(k, v)
+	}
+	req.Header.Add("Content-Type", c.contentType)
+
+	//
+	// Go
+	//
+	r, err := client.Do(req)
 	if err != nil {
 		klog.E(err.Error())
 		return nil, err
@@ -93,7 +136,32 @@ func (c *context) Post() (resp *http.Response, err error) {
 
 // Get : HTTPGet convert the response to pongObj structure
 func (c *context) Get() (resp *http.Response, err error) {
-	r, err := http.Get(c.url)
+	client := &http.Client{}
+
+	// New Request
+	req, err := http.NewRequest("GET", c.url, nil)
+
+	// Set Cookie
+	for k, v := range c.cookie {
+		req.AddCookie(
+			&http.Cookie{
+				Name:     k,
+				Value:    v,
+				HttpOnly: true,
+			},
+		)
+	}
+
+	// Set Header, include contentType
+	for k, v := range c.cookie {
+		req.Header.Add(k, v)
+	}
+	req.Header.Add("Content-Type", c.contentType)
+
+	//
+	// Go
+	//
+	r, err := client.Do(req)
 	if err != nil {
 		klog.E(err.Error())
 		return r, err
