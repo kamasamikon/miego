@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"time"
-
-	"github.com/kamasamikon/miego/xmap"
 )
 
 func ToHTML(x string) interface{} {
@@ -42,13 +40,24 @@ func ToAttr(s string) template.HTMLAttr {
 }
 
 // 返回obj[name]，如果不存在，返回defval
-func MPGet(obj xmap.Map, name string, defval string) string {
-	return obj.Str(name, defval)
+func MapGet(obj map[string]interface{}, name string, defval string) string {
+	if x, ok := obj[name]; ok {
+		if s, ok := x.(string); ok {
+			return s
+		}
+	}
+	return defval
 }
 
-// 结合MPGet和Choice
-func MapChoice(obj xmap.Map, name string, check string, eqstr string, nestr string) string {
-	return Choice(obj.Str(name, ""), check, eqstr, nestr)
+// 结合MapGet和Choice
+func MapChoice(obj map[string]interface{}, name string, check string, eqstr string, nestr string) string {
+	val := ""
+	if x, ok := obj[name]; ok {
+		if s, ok := x.(string); ok {
+			val = s
+		}
+	}
+	return Choice(val, check, eqstr, nestr)
 }
 
 func FormatAsDate(t time.Time) string {

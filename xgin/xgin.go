@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,9 +12,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/html"
 
 	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/page"
@@ -104,7 +100,7 @@ func init() {
 		"Choice":        Choice,
 		"ToAttr":        ToAttr,
 		"NtimeToString": NtimeToString,
-		"MPGet":         MPGet,
+		"MapGet":        MapGet,
 		"MapChoice":     MapChoice,
 		"SubStr":        SubStr,
 	})
@@ -142,32 +138,8 @@ func DebugSettings(Engine *gin.Engine, prefix string, xRouters int64, xReadme in
 		})
 	}
 
-	if xReadme == -1 {
-		xReadme = conf.Int(1, "i:/gin/debug/readme")
-	}
-	if xReadme == 1 {
-		Engine.GET(prefix+"/debug/readme", func(c *gin.Context) {
-			htmlFlags := html.CommonFlags | html.HrefTargetBlank
-			opts := html.RendererOptions{Flags: htmlFlags}
-			renderer := html.NewRenderer(opts)
-
-			md, err := ioutil.ReadFile("README.md")
-			if err != nil {
-				c.String(200, err.Error())
-				return
-			}
-
-			c.Data(200, MIMEHTML, htmlHead)
-
-			body := markdown.ToHTML(md, nil, renderer)
-			c.Data(200, MIMEHTML, body)
-
-			c.Data(200, MIMEHTML, htmlFoot)
-		})
-	}
-
 	if xConf == -1 {
-		xConf = conf.Int(1, "i:/gin/debug/routers")
+		xConf = conf.Int(1, "i:/gin/debug/conf")
 	}
 	if xConf == 1 {
 		Engine.GET(prefix+"/debug/conf", func(c *gin.Context) {
