@@ -70,7 +70,7 @@ func ForeachRouter(cb func(rp *RouterParam)) {
 }
 
 // routerfilters = (Enable, Method, LoginType, RelativePath), ...
-func Start(initEnable bool, routerfilters ...interface{}) {
+func Go(initEnable bool, routerfilters ...interface{}) {
 	var match bool
 	var err error
 

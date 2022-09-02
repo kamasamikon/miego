@@ -146,7 +146,7 @@ func LoadString(s string, overwrite bool) {
 }
 
 // Load : configure from a file.
-func Load(fileName string, overwrite bool) error {
+func LoadFile(fileName string, overwrite bool) error {
 	const (
 		NGName = "s:/conf/Load/NG/%d/Name=%s"
 		NGWhy  = "s:/conf/Load/NG/%d/Why=%s"
@@ -405,16 +405,17 @@ func init() {
 	//
 	// Some builtin entries
 	//
-	{
-		EntryAdd(PathReady, false)
-	}
+	EntryAdd(PathReady, false)
 
+}
+
+func LoadFromEnv() {
 	{
 		cfgList := os.Getenv("KCFG_FILES")
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				Load(f, true)
+				LoadFile(f, true)
 			}
 		}
 	}
@@ -423,18 +424,20 @@ func init() {
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				Load(f, true)
+				LoadFile(f, true)
 				os.Remove(f)
 			}
 		}
 	}
+}
 
+func LoadFromArg() {
 	{
 		for _, argv := range os.Args {
 			if strings.HasPrefix(argv, "--kfg=") {
 				f := argv[6:]
 				if f != "" {
-					Load(f, true)
+					LoadFile(f, true)
 				}
 			}
 		}
@@ -444,7 +447,7 @@ func init() {
 			if strings.HasPrefix(argv, "--kfg-qqq=") {
 				f := argv[6:]
 				if f != "" {
-					Load(f, true)
+					LoadFile(f, true)
 					os.Remove(f)
 				}
 			}
@@ -457,4 +460,12 @@ func init() {
 			EntryAdd(item, true)
 		}
 	}
+}
+
+// Last to call
+func Go() {
+	LoadFromEnv()
+	LoadFromArg() // 命令行优先级比环境变量更高
+
+	Ready()
 }

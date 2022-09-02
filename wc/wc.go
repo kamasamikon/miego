@@ -3,7 +3,6 @@ package wc
 import (
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fsnotify/fsnotify"
 	"github.com/kamasamikon/miego/klog"
 )
@@ -76,7 +75,7 @@ func (wc *WatchChanges) Run() error {
 				}
 
 				if wc.onEverything != nil {
-					spew.Dump(event)
+					klog.Dump(event)
 					wc.onEverything(event.Name, "ALL")
 				}
 

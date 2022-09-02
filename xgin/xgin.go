@@ -17,29 +17,6 @@ import (
 	"github.com/kamasamikon/miego/page"
 )
 
-const (
-	MIMEHTML = "text/html"
-)
-
-var htmlHead = []byte(`
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-    <title>README</title>
-    <style>
-      html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-    </style>
-</head>
-<body>
-`)
-
-var htmlFoot = []byte(`
-</body>
-</html>
-`)
-
 // Default :Only and default Engine
 var Default *gin.Engine
 
@@ -72,8 +49,8 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 	fmt.Println("Server exiting")
 }
 
-// Run :Default listening on localhost:8888
-func Run(Engine *gin.Engine, addr string) {
+// Go :Default listening on localhost:8888
+func Go(Engine *gin.Engine, addr string) {
 	if addr == "" {
 		port := conf.Int(8888, "i:/ms/port")
 		addr = fmt.Sprintf(":%d", port)
@@ -89,7 +66,8 @@ func Run(Engine *gin.Engine, addr string) {
 //
 
 func init() {
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	// Default = gin.New()
 	Default = gin.Default()
 	Default.SetFuncMap(template.FuncMap{
