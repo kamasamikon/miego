@@ -84,7 +84,7 @@ func init() {
 	})
 }
 
-func DebugSettings(Engine *gin.Engine, prefix string, xRouters int64, xReadme int64, xConf int64) {
+func DebugSettings(Engine *gin.Engine, prefix string, xRouters int64, xConf int64) {
 	if Engine == nil {
 		Engine = Default
 	}
