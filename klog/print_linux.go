@@ -20,14 +20,11 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 		color = ""
 	}
 
-	filename, line, funcname := "???", 0, "???"
-	pc, filename, line, ok := runtime.Caller(dep)
+	pc, filename, line, _ := runtime.Caller(dep)
 
-	if ok {
-		funcname = runtime.FuncForPC(pc).Name()
-		funcname = filepath.Ext(funcname)
-		funcname = strings.TrimPrefix(funcname, ".")
-	}
+	funcname := runtime.FuncForPC(pc).Name()
+	funcname = filepath.Ext(funcname)
+	funcname = strings.TrimPrefix(funcname, ".")
 
 	if shortPath {
 		filename = filepath.Base(filename)
@@ -38,10 +35,8 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 		cEnd = ""
 	}
 
-	now := time.Now()
-	nowQ := now.Format("2006/01/02 15:04:05.")
-	nowH := now.Nanosecond() / 1000 / 1000 % 1000
-	fmt.Printf("%s|%s|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", color, class, nowQ, nowH, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
+	now := time.Now().Format("2006/01/02 15:04:05.000")
+	fmt.Printf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s\n", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
 }
 
 // KLogLN : Log with CR
@@ -53,14 +48,11 @@ func KLogLNS(dep int, shortPath bool, color string, class string, formating stri
 		color = ""
 	}
 
-	filename, line, funcname := "???", 0, "???"
-	pc, filename, line, ok := runtime.Caller(dep)
+	pc, filename, line, _ := runtime.Caller(dep)
 
-	if ok {
-		funcname = runtime.FuncForPC(pc).Name()
-		funcname = filepath.Ext(funcname)
-		funcname = strings.TrimPrefix(funcname, ".")
-	}
+	funcname := runtime.FuncForPC(pc).Name()
+	funcname = filepath.Ext(funcname)
+	funcname = strings.TrimPrefix(funcname, ".")
 
 	if shortPath {
 		filename = filepath.Base(filename)
@@ -71,10 +63,8 @@ func KLogLNS(dep int, shortPath bool, color string, class string, formating stri
 		cEnd = ""
 	}
 
-	now := time.Now()
-	nowQ := now.Format("2006/01/02 15:04:05.")
-	nowH := now.Nanosecond() / 1000 / 1000 % 1000
-	return fmt.Sprintf("%s|%s|S:%s%03d|F:%s|H:%s|L:%d|%s %s\n", color, class, nowQ, nowH, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
+	now := time.Now().Format("2006/01/02 15:04:05.000")
+	return fmt.Sprintf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s\n", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
 }
 
 // KLogX : No '\s' appended.
