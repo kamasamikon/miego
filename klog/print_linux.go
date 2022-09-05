@@ -35,7 +35,7 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 		cEnd = ""
 	}
 
-	now := time.Now().Format("2006/01/02 15:04:05.000")
+	now := time.Now().Format("2006/01/02 15:04:05.000000")
 	fmt.Printf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s\n", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
 }
 
@@ -63,7 +63,7 @@ func KLogLNS(dep int, shortPath bool, color string, class string, formating stri
 		cEnd = ""
 	}
 
-	now := time.Now().Format("2006/01/02 15:04:05.000")
+	now := time.Now().Format("2006/01/02 15:04:05.000000")
 	return fmt.Sprintf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s\n", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
 }
 
