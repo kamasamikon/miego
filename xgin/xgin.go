@@ -51,26 +51,11 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 
 // Go :Default listening on localhost:8888
 func Go(Engine *gin.Engine, addr string) {
-	if addr == "" {
-		port := conf.Int(8888, "i:/ms/port")
-		addr = fmt.Sprintf(":%d", port)
-	}
 	if Engine == nil {
 		Engine = Default
 	}
-	gracefulRun(Engine, addr)
-}
 
-//
-// Init
-//
-
-func init() {
-	// gin.SetMode(gin.ReleaseMode)
-	// gin.SetMode(gin.ReleaseMode)
-	// Default = gin.New()
-	Default = gin.Default()
-	Default.SetFuncMap(template.FuncMap{
+	Engine.SetFuncMap(template.FuncMap{
 		"FormatAsDate":  FormatAsDate,
 		"ToHTML":        ToHTML,
 		"ToJS":          ToJS,
@@ -82,17 +67,13 @@ func init() {
 		"MapChoice":     MapChoice,
 		"SubStr":        SubStr,
 	})
-}
 
-func DebugSettings(Engine *gin.Engine, prefix string, xRouters int64, xConf int64) {
-	if Engine == nil {
-		Engine = Default
+	if conf.Int(1, "i:/gin/releaseMode") == 1 {
+		gin.SetMode(gin.ReleaseMode)
 	}
-	if xRouters == -1 {
-		xRouters = conf.Int(1, "i:/gin/debug/routers")
-	}
-	if xRouters == 1 {
-		Engine.GET(prefix+"/debug/routers", func(c *gin.Context) {
+
+	if conf.Int(1, "i:/xgin/debug/routers") == 1 {
+		Engine.GET("/xgin/debug/routers", func(c *gin.Context) {
 			if c.Query("html") == "1" {
 				var lines []string
 				lines = append(lines, "| Method | Path |")
@@ -116,12 +97,17 @@ func DebugSettings(Engine *gin.Engine, prefix string, xRouters int64, xConf int6
 		})
 	}
 
-	if xConf == -1 {
-		xConf = conf.Int(1, "i:/gin/debug/conf")
+	if addr == "" {
+		addr = fmt.Sprintf(":%d", conf.Int(8888, "i:/ms/port"))
 	}
-	if xConf == 1 {
-		Engine.GET(prefix+"/debug/conf", func(c *gin.Context) {
-			c.String(200, conf.DumpRaw(true))
-		})
-	}
+	gracefulRun(Engine, addr)
+}
+
+//
+// Init
+//
+
+func init() {
+	// Default = gin.New()
+	Default = gin.Default()
 }

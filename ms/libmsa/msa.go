@@ -2,6 +2,8 @@ package libmsa
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -28,12 +30,8 @@ func HostNameGet() string {
 	}
 }
 
-// GetOutboundIP : Get preferred outbound ip of this machine
-func GetOutboundIP() string {
-	if addr := conf.Str("", "s:/ms/addr"); addr != "" {
-		return addr
-	}
-
+// GetLocalAddr : Get preferred outbound ip of this machine
+func GetLocalAddr() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		return ""
@@ -42,6 +40,14 @@ func GetOutboundIP() string {
 
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 	return localAddr.IP.String()
+}
+
+// GetOutboundIP : Get preferred outbound ip of this machine
+func GetOutboundIP() string {
+	if addr := conf.Str("", "s:/ms/addr"); addr != "" {
+		return addr
+	}
+	return GetLocalAddr()
 }
 
 func RunService() {
@@ -102,43 +108,105 @@ func RunService() {
 	}
 }
 
+func doReg(msRegURL string, msDataReader io.Reader) bool {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Post(msRegURL, "application/json", msDataReader)
+	if err != nil {
+		klog.E("%s", err.Error())
+		return false
+	}
+	defer resp.Body.Close()
+	ok := resp != nil && resp.StatusCode == 200
+	if !ok {
+		klog.E("StatusCode: %d", resp.StatusCode)
+	} else {
+		klog.D("OK @%s", msRegURL)
+	}
+	return ok
+}
+
 func RegisterLoop() {
-	waitOK := time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
-	waitNG := time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
+	DockerGW := os.Getenv("DOCKER_GATEWAY")
+	MSBPort := os.Getenv("MSBPORT")
 
-	MSBAddr := conf.Str("172.17.0.1", "s:/msb/host")
-	if ip := os.Getenv("MSBHOST"); ip != "" {
-		MSBAddr = ip
-	}
-
-	s := mscommon.KService{
-		ServiceName: conf.Str("demo", "s:/ms/name"),
-		Version:     conf.Str("v1", "s:/ms/version"),
-		Desc:        conf.Str("", "s:/ms/desc"),
-		Upstream:    conf.Str("", "s:/ms/upstream"),
-		Kind:        conf.Str("http", "s:/ms/kind"),
-		IPAddr:      GetOutboundIP(),
-		Port:        int(conf.Int(8888, "i:/ms/port")),
-		HostName:    HostNameGet(),
-		ProjName:    conf.Str("FIXME", "s:/build/dirname"),
-		ProjVersion: conf.Str("FIXME", "s:/build/version"),
-		ProjTime:    conf.Str("FIXME", "s:/build/time"),
-		CreatedAt:   time.Now().UnixNano(),
-	}
-
-	j, _ := json.Marshal(&s)
-	klog.Dump(s, "MSA: ")
-
-	msRegURL := "http://" + MSBAddr + "/msb/service"
 	for {
-		r := strings.NewReader(string(j))
-		resp, err := http.Post(msRegURL, "application/json", r)
-		if err == nil {
-			resp.Body.Close()
-			time.Sleep(time.Second * waitOK)
-		} else {
-			klog.E("%s @%s", err.Error(), msRegURL)
-			time.Sleep(time.Second * waitNG)
+		// Loop
+		waitOK := time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
+		waitNG := time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
+
+		// Service
+		s := mscommon.KService{
+			ServiceName: conf.Str("demo", "s:/ms/name"),
+			Version:     conf.Str("v1", "s:/ms/version"),
+			Desc:        conf.Str("", "s:/ms/desc"),
+			Upstream:    conf.Str("", "s:/ms/upstream"),
+			Kind:        conf.Str("http", "s:/ms/kind"),
+			IPAddr:      GetOutboundIP(),
+			Port:        int(conf.Int(8888, "i:/ms/port")),
+			HostName:    HostNameGet(),
+			ProjName:    conf.Str("FIXME", "s:/build/dirname"),
+			ProjVersion: conf.Str("FIXME", "s:/build/version"),
+			ProjTime:    conf.Str("FIXME", "s:/build/time"),
+			CreatedAt:   time.Now().UnixNano(),
+		}
+		sJson, _ := json.Marshal(&s)
+		msDataReader := strings.NewReader(string(sJson))
+		klog.Dump(s, "MSA: ")
+
+		var MSBAddr string
+
+		//
+		// Via MSBHOST
+		//
+		{
+			MSBAddr = conf.Str("172.17.0.1", "s:/msb/host")
+			if ip := os.Getenv("MSBHOST"); ip != "" {
+				MSBAddr = ip
+			}
+			msRegURL := "http://" + MSBAddr + "/msb/service"
+			klog.F("MSBHOST: %s", msRegURL)
+			for {
+				msDataReader.Seek(io.SeekStart, 0)
+				if !doReg(msRegURL, msDataReader) {
+					time.Sleep(time.Second * waitNG)
+					break
+				}
+				time.Sleep(time.Second * waitOK)
+			}
+		}
+
+		//
+		// Via MSBPort
+		//
+		{
+			MSBAddr = ""
+			usbAddr := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
+			klog.D("%s", usbAddr)
+
+			client := http.Client{
+				Timeout: 5 * time.Second,
+			}
+			if resp, err := client.Get(usbAddr); err == nil {
+				if resp.StatusCode == 200 {
+					if addr, err := ioutil.ReadAll(resp.Body); err == nil {
+						MSBAddr = string(addr)
+					}
+				}
+				resp.Body.Close()
+			}
+
+			msRegURL := "http://" + MSBAddr + "/msb/service"
+			klog.W("MSBPORT: %s", msRegURL)
+			for {
+				msDataReader.Seek(io.SeekStart, 0)
+				if !doReg(msRegURL, msDataReader) {
+					time.Sleep(time.Second * waitNG)
+					break
+				}
+				time.Sleep(time.Second * waitOK)
+			}
 		}
 	}
 }

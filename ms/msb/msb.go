@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -343,8 +344,8 @@ func main() {
 	// s:/msb/nginx/conf=/etc/nginx/nginx.conf
 	// s:/msb/nginx/tmpl=/etc/nginx/nginx.conf
 	// s:/msb/nginx/exec=/usr/sbin/nginx
-	conf.Load("./etc/msb.cfg", true)
-	conf.Load("./msb.cfg", true)
+	conf.LoadFile("./etc/msb.cfg", true)
+	conf.LoadFile("./msb.cfg", true)
 
 	gin.SetMode(gin.ReleaseMode)
 	Gin := gin.New()
@@ -371,6 +372,18 @@ func main() {
 	Gin.GET("/conf", func(c *gin.Context) {
 		data := conf.DumpRaw(true)
 		c.String(200, data)
+	})
+
+	Gin.GET("/addr", func(c *gin.Context) {
+		conn, err := net.Dial("udp", "8.8.8.8:80")
+		if err != nil {
+			c.String(200, "")
+			return
+		}
+		defer conn.Close()
+
+		localAddr := conn.LocalAddr().(*net.UDPAddr)
+		c.String(200, localAddr.IP.String())
 	})
 
 	Gin.GET("/reload", func(c *gin.Context) {
