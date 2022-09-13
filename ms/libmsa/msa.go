@@ -114,15 +114,13 @@ func doReg(msRegURL string, msDataReader io.Reader) bool {
 	}
 	resp, err := client.Post(msRegURL, "application/json", msDataReader)
 	if err != nil {
-		klog.E("%s", err.Error())
+		klog.E("%s, %s", msRegURL, err.Error())
 		return false
 	}
 	defer resp.Body.Close()
 	ok := resp != nil && resp.StatusCode == 200
 	if !ok {
-		klog.E("StatusCode: %d", resp.StatusCode)
-	} else {
-		klog.D("OK @%s", msRegURL)
+		klog.E("%s, StatusCode: %d", msRegURL, resp.StatusCode)
 	}
 	return ok
 }
@@ -133,8 +131,8 @@ func RegisterLoop() {
 
 	for {
 		// Loop
-		waitOK := time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
-		waitNG := time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
+		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
+		waitNG := time.Second * time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
 
 		// Service
 		s := mscommon.KService{
@@ -155,25 +153,21 @@ func RegisterLoop() {
 		msDataReader := strings.NewReader(string(sJson))
 		klog.Dump(s, "MSA: ")
 
-		var MSBAddr string
-
 		//
 		// Via MSBHOST
 		//
 		{
-			MSBAddr = conf.Str("172.17.0.1", "s:/msb/host")
+			MSBAddr := conf.Str("172.17.0.1", "s:/msb/host")
 			if ip := os.Getenv("MSBHOST"); ip != "" {
 				MSBAddr = ip
 			}
 			msRegURL := "http://" + MSBAddr + "/msb/service"
-			klog.F("MSBHOST: %s", msRegURL)
 			for {
 				msDataReader.Seek(io.SeekStart, 0)
 				if !doReg(msRegURL, msDataReader) {
-					time.Sleep(time.Second * waitNG)
 					break
 				}
-				time.Sleep(time.Second * waitOK)
+				time.Sleep(waitOK)
 			}
 		}
 
@@ -181,14 +175,13 @@ func RegisterLoop() {
 		// Via MSBPort
 		//
 		{
-			MSBAddr = ""
-			usbAddr := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
-			klog.D("%s", usbAddr)
+			MSBAddr := ""
+			msbAddrURL := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
 
 			client := http.Client{
 				Timeout: 5 * time.Second,
 			}
-			if resp, err := client.Get(usbAddr); err == nil {
+			if resp, err := client.Get(msbAddrURL); err == nil {
 				if resp.StatusCode == 200 {
 					if addr, err := ioutil.ReadAll(resp.Body); err == nil {
 						MSBAddr = string(addr)
@@ -198,16 +191,16 @@ func RegisterLoop() {
 			}
 
 			msRegURL := "http://" + MSBAddr + "/msb/service"
-			klog.W("MSBPORT: %s", msRegURL)
 			for {
 				msDataReader.Seek(io.SeekStart, 0)
 				if !doReg(msRegURL, msDataReader) {
-					time.Sleep(time.Second * waitNG)
 					break
 				}
-				time.Sleep(time.Second * waitOK)
+				time.Sleep(waitOK)
 			}
 		}
+
+		time.Sleep(waitNG)
 	}
 }
 
