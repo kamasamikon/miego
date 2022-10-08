@@ -22,6 +22,14 @@ const (
 	msaChaged = "e:/msa/changed"
 )
 
+var (
+	currentMSB string // MSBAddr
+)
+
+func CurrentMSB() string {
+	return currentMSB
+}
+
 func HostNameGet() string {
 	if dat, err := ioutil.ReadFile("/etc/hostname"); err != nil {
 		return "N/A"
@@ -157,11 +165,13 @@ func RegisterLoop() {
 		// Via MSBHOST
 		//
 		{
+			currentMSB = ""
 			MSBAddr := conf.Str("172.17.0.1", "s:/msb/host")
 			if ip := os.Getenv("MSBHOST"); ip != "" {
 				MSBAddr = ip
 			}
-			msRegURL := "http://" + MSBAddr + "/msb/service"
+			currentMSB = "http://" + MSBAddr
+			msRegURL := currentMSB + "/msb/service"
 			for {
 				msDataReader.Seek(io.SeekStart, 0)
 				if !doReg(msRegURL, msDataReader) {
@@ -175,6 +185,7 @@ func RegisterLoop() {
 		// Via MSBPort
 		//
 		{
+			currentMSB = ""
 			MSBAddr := ""
 			msbAddrURL := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
 
@@ -190,7 +201,8 @@ func RegisterLoop() {
 				resp.Body.Close()
 			}
 
-			msRegURL := "http://" + MSBAddr + "/msb/service"
+			currentMSB = "http://" + MSBAddr
+			msRegURL := currentMSB + "/msb/service"
 			for {
 				msDataReader.Seek(io.SeekStart, 0)
 				if !doReg(msRegURL, msDataReader) {
@@ -200,6 +212,7 @@ func RegisterLoop() {
 			}
 		}
 
+		currentMSB = ""
 		time.Sleep(waitNG)
 	}
 }
