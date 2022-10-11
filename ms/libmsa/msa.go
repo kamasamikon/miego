@@ -170,14 +170,17 @@ func RegisterLoop() {
 			if ip := os.Getenv("MSBHOST"); ip != "" {
 				MSBAddr = ip
 			}
-			currentMSB = "http://" + MSBAddr
-			msRegURL := currentMSB + "/msb/service"
-			for {
-				msDataReader.Seek(io.SeekStart, 0)
-				if !doReg(msRegURL, msDataReader) {
-					break
+
+			if MSBAddr != "" {
+				currentMSB = "http://" + MSBAddr
+				msRegURL := currentMSB + "/msb/service"
+				for {
+					msDataReader.Seek(io.SeekStart, 0)
+					if !doReg(msRegURL, msDataReader) {
+						break
+					}
+					time.Sleep(waitOK)
 				}
-				time.Sleep(waitOK)
 			}
 		}
 
@@ -187,8 +190,8 @@ func RegisterLoop() {
 		{
 			currentMSB = ""
 			MSBAddr := ""
-			msbAddrURL := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
 
+			msbAddrURL := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
 			client := http.Client{
 				Timeout: 5 * time.Second,
 			}
@@ -201,14 +204,16 @@ func RegisterLoop() {
 				resp.Body.Close()
 			}
 
-			currentMSB = "http://" + MSBAddr
-			msRegURL := currentMSB + "/msb/service"
-			for {
-				msDataReader.Seek(io.SeekStart, 0)
-				if !doReg(msRegURL, msDataReader) {
-					break
+			if MSBAddr != "" {
+				currentMSB = "http://" + MSBAddr
+				msRegURL := currentMSB + "/msb/service"
+				for {
+					msDataReader.Seek(io.SeekStart, 0)
+					if !doReg(msRegURL, msDataReader) {
+						break
+					}
+					time.Sleep(waitOK)
 				}
-				time.Sleep(waitOK)
 			}
 		}
 
