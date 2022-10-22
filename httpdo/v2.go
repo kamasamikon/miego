@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/kamasamikon/miego/klog"
 )
@@ -18,12 +19,15 @@ type context struct {
 	header      map[string]string
 	cookie      map[string]string
 	noRedirect  bool
+	timeout     time.Duration
+	transport   *http.Transport
 }
 
 func New(url string) *context {
 	return &context{
 		url:         url,
 		contentType: "application/json;charset=utf-8",
+		timeout:     30 * time.Second,
 	}
 }
 
@@ -47,6 +51,17 @@ func (c *context) ContentType(contentType string) *context {
 	c.contentType = contentType
 	return c
 }
+
+func (c *context) Timeout(timeout time.Duration) *context {
+	c.timeout = timeout
+	return c
+}
+
+func (c *context) Transport(transport *http.Transport) *context {
+	c.transport = transport
+	return c
+}
+
 func (c *context) Redirect(Redirect bool) *context {
 	c.noRedirect = !Redirect
 	return c
@@ -63,7 +78,12 @@ func (c *context) Pong(pong interface{}) *context {
 }
 
 func (c *context) Post() (resp *http.Response, err error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: c.timeout,
+	}
+	if c.transport != nil {
+		client.Transport = c.transport
+	}
 
 	if c.noRedirect {
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
