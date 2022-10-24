@@ -7,14 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/page"
 )
 
 // Default :Only and default Engine
@@ -72,29 +70,12 @@ func Go(Engine *gin.Engine, addr string) {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	if conf.Int(1, "i:/xgin/debug/routers") == 1 {
-		Engine.GET("/xgin/debug/routers", func(c *gin.Context) {
-			if c.Query("html") == "1" {
-				var lines []string
-				lines = append(lines, "| Method | Path |")
-				lines = append(lines, "| ---- | ---- |")
-				for _, x := range Engine.Routes() {
-					lines = append(lines, fmt.Sprintf("| %s | %s |", x.Method, x.Path))
-				}
-				html := page.Markdown("", "", strings.Join(lines, "\\n"))
-				c.Data(200, "text/html", []byte(html))
-			} else {
-				var routers []gin.H
-				for _, x := range Engine.Routes() {
-					r := gin.H{
-						"Method": x.Method,
-						"Path":   x.Path,
-					}
-					routers = append(routers, r)
-				}
-				c.JSON(200, routers)
-			}
-		})
+	for i, x := range Engine.Routes() {
+		conf.Set(
+			fmt.Sprintf("s:/gin/routers/%02d", i),
+			fmt.Sprintf("%s -> '%s'", x.Method, x.Path),
+			true,
+		)
 	}
 
 	if addr == "" {
