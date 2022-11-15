@@ -94,8 +94,6 @@ func KLog(dep int, shortPath bool, color string, class string, formating string,
 		cEnd = ""
 	}
 
-	now := time.Now()
-	nowQ := now.Format("2006/01/02 15:04:05.")
-	nowH := now.Nanosecond() / 1000 / 1000 % 1000
-	fmt.Printf("%s|%s|S:%s%03d|F:%s|H:%s|L:%d|%s %s", color, class, nowQ, nowH, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
+	now := time.Now().Format("2006/01/02 15:04:05.000000")
+	fmt.Printf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
 }

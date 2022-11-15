@@ -54,9 +54,9 @@ func Open(db string, user string, pass string, host string, port string, verbose
 	x.LogMode(verbose)
 	x.SingularTable(true)
 
-	x.DB().SetMaxIdleConns(4)
-	x.DB().SetMaxOpenConns(10)
-	x.DB().SetConnMaxLifetime(time.Second * 60)
+	x.DB().SetMaxIdleConns(20)
+	x.DB().SetMaxOpenConns(50)
+	x.DB().SetConnMaxLifetime(time.Second * 300)
 
 	return x
 }

@@ -16,23 +16,24 @@ const (
 	RemWhy_Delete = 2
 )
 
+// NewAt, RemAt, CrtAt: NNNNYYRRSSFFMM
 type TableHeader struct {
 	// 记录的序列号而已
 	ID uint `gorm:"Column:ID;primary_key"`
 
 	// NewAt: 记录的添加时间
 	NewAt uint64 `gorm:"Column:NewAt"`
-	NewBy string `gorm:"Column:NewBy"`
+	NewBy string `gorm:"Column:NewBy;size:40"`
 
 	// See RemWhy_Delete etc.
 	RemAt  uint64 `gorm:"Column:RemAt"`
-	RemBy  string `gorm:"Column:RemBy"`
-	RemWhy int    `gorm:"Column:RemWhy"`
+	RemBy  string `gorm:"Column:RemBy;size:40"`
+	RemWhy uint8  `gorm:"Column:RemWhy"`
 
 	// CrtAt: UUID对应的项目的日期
 	// UUID: 真正的记录的ID
 	CrtAt uint64 `gorm:"Column:CrtAt"`
-	UUID  string `gorm:"Column:UUID"`
+	UUID  string `gorm:"Column:UUID;size:40"`
 }
 
 func Setup(h *TableHeader, NewBy string) {

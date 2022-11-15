@@ -53,6 +53,10 @@ func (cc VCodeChecker) Add(key string, code string, ttl int64) {
 	cc.Map[key] = &x
 }
 
+func (cc VCodeChecker) Rem(key string) {
+	delete(cc.Map, key)
+}
+
 func (cc VCodeChecker) Check(key string, code string) bool {
 	if cc.CheckHook != nil {
 		if passed, processed := cc.CheckHook(key, code); processed == true {
