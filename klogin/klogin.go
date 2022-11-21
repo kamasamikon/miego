@@ -8,12 +8,15 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/securecookie"
 
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/pong"
 	"github.com/kamasamikon/miego/xgin"
 	"github.com/kamasamikon/miego/xmap"
 )
+
+var redisStore redis.Store
 
 // HTTP Response header: yes, no, auto, ...
 const (
@@ -89,11 +92,6 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		if LoginType != "" {
 			Type := session.Get(LoginType)
 			if Type != nil {
-				// segs := strings.Split(Type.(string), ";")
-				// for _, s := range segs {
-				// v := session.Get(s)
-				// klog.E("%10s = %v", s, v)
-				// }
 				h(c)
 				return
 			}
@@ -159,8 +157,16 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 			session.Set(LoginType, strings.Join(Keys, ";"))
 			session.Save()
 
+			var cookie string
+			if _, rstore := redis.GetRedisStore(redisStore); rstore != nil {
+				if ses, _ := rstore.Get(c.Request, o.SessionName); ses != nil {
+					cookie, _ = securecookie.EncodeMulti(ses.Name(), ses.ID, rstore.Codecs...)
+					c.Header("Kooky", cookie)
+				}
+			}
+
 			if noPageMode {
-				pong.OK(c, "")
+				pong.OK(c, xmap.Make("CookieKey", o.SessionName, "CookieVal", cookie))
 			} else {
 				c.Redirect(302, OKRedirectURL)
 			}
@@ -211,6 +217,7 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr strin
 		klog.E(err.Error())
 		return
 	}
+	redisStore = store
 	o.Session = sessions.Sessions(o.SessionName, store)
 	Gin.Use(o.Session)
 
