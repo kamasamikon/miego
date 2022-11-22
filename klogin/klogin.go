@@ -218,6 +218,12 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr strin
 		return
 	}
 	redisStore = store
+
+	if _, rstore := redis.GetRedisStore(redisStore); rstore != nil {
+		// ten years
+		rstore.SetMaxAge(3600 * 24 * 365 * 10)
+	}
+
 	o.Session = sessions.Sessions(o.SessionName, store)
 	Gin.Use(o.Session)
 
