@@ -102,7 +102,8 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
 		}
 
-		klog.E(err.Error())
+		klog.E("%s", err.Error())
+		klog.E("%s", qStmt)
 		return nil, -1, err
 	}
 	defer rows.Close()

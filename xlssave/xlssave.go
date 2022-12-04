@@ -1,10 +1,16 @@
 package xlssave
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/tealeg/xlsx"
+
 	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xmap"
-
-	"github.com/tealeg/xlsx"
 )
 
 // Save *records to *path with *columns define
@@ -61,4 +67,38 @@ func Save(path string, records []xmap.Map, columns []string) error {
 	}
 
 	return file.Save(path)
+}
+
+// 查询并返回为Excel
+func Export(c *gin.Context, doQuery func(xmap.Map) []xmap.Map, columns []string) {
+	mp := xmap.MapQuery(c, true)
+
+	// 获取数据
+	records := doQuery(mp)
+
+	// 生成临时文件
+	temp, err := ioutil.TempFile("/tmp", "rbvision")
+	if err != nil {
+		klog.E(err.Error())
+		c.Redirect(200, "/")
+		return
+	}
+	tmpName := temp.Name()
+	defer os.Remove(tmpName)
+
+	// 把数据保存到临时文件
+	Save(tmpName, records, columns)
+	content, _ := ioutil.ReadFile(tmpName)
+
+	// 生成文件名
+	fileName := mp.Str("fileName", "导出结果")
+	fileName += ".xlsx"
+
+	// 写入Excel文件
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Accept-Length", fmt.Sprintf("%d", len(content)))
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Writer.Write([]byte(content))
 }

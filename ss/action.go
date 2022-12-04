@@ -18,6 +18,7 @@ func ActionNew() *Action {
 	return &Action{}
 }
 
+// Add: (Name, Act|URL, Hint)...
 // 2nd: @Xxx => Act=Xxx
 func (b *Action) Add(args ...string) *Action {
 	for i := 0; i < len(args)/3; i++ {
