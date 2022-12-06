@@ -36,6 +36,7 @@ type mapSA map[string][]string
 // Key: Name
 type QueryMap map[string]mapSA
 
+// *和.都转成MYSQL的对应通配符
 func likeParse(s string, fmtMode bool) (out string, isLike bool) {
 	var ss string
 
@@ -98,7 +99,7 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 		if len(segs) > 1 {
 			Kind = segs[1]
 		} else {
-			Kind = "GUESS"
+			Kind = "SGUESS" // 只要不带类似 __GE 这样的后缀，都按照SGUESS处理
 		}
 
 		// Save
@@ -267,8 +268,25 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 			}
 
 		case "LIKE":
+			// 按照字符串处理
 			for _, v := range arr {
-				qList = append(qList, p(`%s LIKE "%%%s%%"`, Name, v))
+				if v == "" {
+					continue
+				}
+				if v[0] == '!' {
+					v := v[1:]
+					if s, like := likeParse(v, false); like {
+						qList = append(qList, p(`%s NOT LIKE "%s"`, Name, s))
+					} else {
+						qList = append(qList, p(`%s NOT LIKE "%%%s%%"`, Name, v))
+					}
+				} else {
+					if s, like := likeParse(v, false); like {
+						qList = append(qList, p(`%s LIKE "%s"`, Name, s))
+					} else {
+						qList = append(qList, p(`%s LIKE "%%%s%%"`, Name, v))
+					}
+				}
 			}
 
 		case "NULL":
@@ -291,12 +309,43 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 				}
 			}
 
-		case "GUESS":
+		case "IGUESS":
+			// 按照数字方式猜测
 			for _, v := range arr {
-				if s, like := likeParse(v, false); like {
-					qList = append(qList, fmt.Sprintf(`%s LIKE "%s"`, Name, s))
+				if v == "" {
+					continue
+				}
+				// 处理大于、小于、等于
+				if v[0] == '>' {
+					v := v[1:]
+					qList = append(qList, p(`%s > %s`, Name, v))
+				} else if v[0] == '<' {
+					v := v[1:]
+					qList = append(qList, p(`%s < %s`, Name, v))
 				} else {
-					qList = append(qList, fmt.Sprintf(`%s = "%s"`, Name, s))
+					qList = append(qList, p(`%s = %s`, Name, v))
+				}
+			}
+
+		case "SGUESS":
+			// 按照字符串方式猜测
+			for _, v := range arr {
+				if v == "" {
+					continue
+				}
+				if v[0] == '!' {
+					v := v[1:]
+					if s, like := likeParse(v, false); like {
+						qList = append(qList, p(`%s NOT LIKE "%s"`, Name, s))
+					} else {
+						qList = append(qList, p(`%s != "%s"`, Name, s))
+					}
+				} else {
+					if s, like := likeParse(v, false); like {
+						qList = append(qList, p(`%s LIKE "%s"`, Name, s))
+					} else {
+						qList = append(qList, p(`%s = "%s"`, Name, s))
+					}
 				}
 			}
 		}
