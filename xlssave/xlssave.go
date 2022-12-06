@@ -73,6 +73,9 @@ func Save(path string, records []xmap.Map, columns []string) error {
 func Export(c *gin.Context, doQuery func(xmap.Map) []xmap.Map, columns []string) {
 	mp := xmap.MapQuery(c, true)
 
+	mp.Put("PageSize", "10000000")
+	mp.Put("PageNumber", "1")
+
 	// 获取数据
 	records := doQuery(mp)
 

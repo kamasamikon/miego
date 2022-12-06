@@ -219,3 +219,27 @@ func OffsetDate(sDate string) uint64 {
 	x, _ := strconv.ParseUint(sDate, 0, 64)
 	return x
 }
+
+// FormatDuration : 转成 X 天 x 小时 ...
+func FormatDuration(seconds uint64) string {
+	MM := seconds % 60
+	FF := (seconds / 60) % 60
+	SS := (seconds / 60 / 60) % 24
+	RR := (seconds / 60 / 60 * 24)
+
+	s := ""
+	if RR != 0 {
+		s += fmt.Sprintf("%d天", RR)
+	}
+	if SS != 0 {
+		s += fmt.Sprintf("%d小时", SS)
+	}
+	if FF != 0 {
+		s += fmt.Sprintf("%d分", FF)
+	}
+	if MM != 0 {
+		s += fmt.Sprintf("%d秒", MM)
+	}
+
+	return s
+}
