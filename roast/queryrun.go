@@ -94,7 +94,7 @@ func Raw(db *sql.DB, stmt string, verbose bool) ([]xmap.Map, error) {
 func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) ([]xmap.Map, int, error) {
 	callPreQ(mp)
 
-	qStmt, cStmt, cStmtHash := queryStmt.String2(mp, FoundRows)
+	qStmt, cStmt, cStmtHash := queryStmt.String(mp, FoundRows)
 
 	rows, err := db.Query(qStmt)
 	if err != nil {
@@ -184,7 +184,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 }
 
 func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int, rowScanner func(*sql.Rows) bool) (int, error) {
-	qStmt, cStmt, cStmtHash := queryStmt.String2(mp, FoundRows)
+	qStmt, cStmt, cStmtHash := queryStmt.String(mp, FoundRows)
 	rows, err := db.Query(qStmt)
 	if err != nil {
 		if Conf.NotifyQueryError {

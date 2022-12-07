@@ -3,6 +3,7 @@ package xtime
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -158,48 +159,122 @@ func StrToNum(s string, flag byte) (Num uint64) {
 	return
 }
 
+// 2016-01-02 15:03:05
+// 2016-01-02
+// 2016/01/02 15:03:05
+// 2016/01/02
+// 20060102150405
 func AnyToNum(g interface{}) uint64 {
-	stime := fmt.Sprintf("%v000000", g)
+	s := fmt.Sprintf("%v", g)
 
-	l := len(stime)
-	if l < 8 {
-		return 0
+	s = strings.Replace(s, ":", " ", -1) // 15:03:05
+	s = strings.Replace(s, "-", " ", -1) // 2016-01-02
+	s = strings.Replace(s, "/", " ", -1) // 2016/01/02
+	s = strings.Replace(s, "T", " ", -1) // 2017-03-04T01:23:43.000Z
+	s = strings.Replace(s, ".", " ", -1) // 2017-03-04T01:23:43.000Z
+
+	// s = "2017 03 04 01 23 43 000Z"
+	// s = "20170304012343
+	var segarr []string
+	for _, s := range strings.Split(s, " ") {
+		if s != "" {
+			segarr = append(segarr, s)
+		}
 	}
 
-	if stime[4] == '-' {
-		// 2016-01-02 15:03:05 or 2016-01-02
-		if l >= 19 {
-			if t, err := time.Parse("2006-01-02 15:04:05", stime[0:19]); err == nil {
-				return TimeToNum(t)
-			}
-		} else {
-			if t, err := time.Parse("2006-01-02", stime[0:10]); err == nil {
-				return TimeToNum(t)
-			}
+	segcnt := len(segarr)
+
+	timefmt := ""
+
+	// 2016 01
+	if segcnt >= 2 {
+		timefmt += "2006"
+		tmp := len(segarr[1]) // 月
+		if tmp == 1 {
+			timefmt += "1"
+		} else if tmp == 2 {
+			timefmt += "01"
 		}
-	} else if stime[4] == '/' {
-		// 2016/01/02 15:03:05 or 2016/01/02
-		if l >= 19 {
-			if t, err := time.Parse("2006/01/02 15:04:05", stime[0:19]); err == nil {
-				return TimeToNum(t)
-			}
-		} else {
-			if t, err := time.Parse("2006/01/02", stime[0:10]); err == nil {
-				return TimeToNum(t)
-			}
+	}
+
+	// 2016 01 02
+	if segcnt >= 3 {
+		tmp := len(segarr[2]) // 日
+		if tmp == 1 {
+			timefmt += "2"
+		} else if tmp == 2 {
+			timefmt += "02"
 		}
-	} else {
-		if l >= 18 {
-			// 20160102150305
-			if t, err := time.Parse("20060102150405", stime[0:14]); err == nil {
-				return TimeToNum(t)
-			}
-		} else {
-			// 20160102
-			if t, err := time.Parse("20060102", stime[0:8]); err == nil {
-				return TimeToNum(t)
-			}
+	}
+
+	// 2016 01 02 15
+	if segcnt >= 4 {
+		tmp := len(segarr[3]) // 时
+		if tmp == 1 {
+			timefmt += "3"
+		} else if tmp == 2 {
+			timefmt += "15"
 		}
+	}
+
+	// 2016 01 02 15 04
+	if segcnt >= 5 {
+		tmp := len(segarr[4]) // 分
+		if tmp == 1 {
+			timefmt += "4"
+		} else if tmp == 2 {
+			timefmt += "04"
+		}
+	}
+
+	// 2016 01 02 15 04 05
+	if segcnt >= 6 {
+		tmp := len(segarr[5]) // 秒
+		if tmp == 1 {
+			timefmt += "5"
+		} else if tmp == 2 {
+			timefmt += "05"
+		}
+	}
+
+	// 201601021503
+	// 2016010215
+	// 20160102
+	// 201601
+	// 2016
+	if segcnt == 1 {
+		tmp := len(segarr[0])
+
+		// 20160102150305
+		if tmp >= 14 {
+			timefmt = "20060102150405"
+		}
+
+		// 201601021503
+		if tmp == 12 {
+			timefmt = "200601021504"
+		}
+		// 2016010215
+		if tmp == 10 {
+			timefmt = "2006010215"
+		}
+		// 20160102
+		if tmp == 8 {
+			timefmt = "20060102"
+		}
+		// 201601
+		if tmp == 6 {
+			timefmt = "200601"
+		}
+		// 2016
+		if tmp == 4 {
+			timefmt = "2006"
+		}
+	}
+
+	stime := strings.Join(segarr, "")
+	if t, err := time.Parse(timefmt, stime[0:len(timefmt)]); err == nil {
+		return TimeToNum(t)
 	}
 
 	return 0

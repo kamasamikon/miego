@@ -243,7 +243,9 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 			flag := kind[len(kind)-1]
 
 			for _, v := range arr {
-				qList = append(qList, p(`%s %s %d`, Name, op, xtime.StrToNum(v, flag)))
+				utime := xtime.AnyToNum(v)
+				utime = xtime.StrToNum(fmt.Sprintf("%d", utime), flag)
+				qList = append(qList, p(`%s %s %d`, Name, op, utime))
 			}
 
 		case "IN":
@@ -315,14 +317,35 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 				if v == "" {
 					continue
 				}
-				// 处理大于、小于、等于
-				if v[0] == '>' {
+				// 大于，小于，等于，不等于，包括，不包括
+				// >     <     =     !       [     ]
+				switch v[0] {
+				case '>':
+					// >8 大于8
 					v := v[1:]
 					qList = append(qList, p(`%s > %s`, Name, v))
-				} else if v[0] == '<' {
+				case '<':
+					// <8 小于8
 					v := v[1:]
 					qList = append(qList, p(`%s < %s`, Name, v))
-				} else {
+				case '=':
+					// =8 等于8
+					v := v[1:]
+					qList = append(qList, p(`%s = %s`, Name, v))
+				case '!':
+					// !8 不等于8
+					v := v[1:]
+					qList = append(qList, p(`%s != %s`, Name, v))
+				case '[':
+					// [8,9,10 包括8,9,10
+					v := v[1:]
+					qList = append(qList, p(`%s IN (%s)`, Name, v))
+				case ']':
+					// [8,9,10 不包括8,9,10
+					v := v[1:]
+					qList = append(qList, p(`%s NOT IN (%s)`, Name, v))
+
+				default:
 					qList = append(qList, p(`%s = %s`, Name, v))
 				}
 			}
