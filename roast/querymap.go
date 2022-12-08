@@ -314,11 +314,14 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 		case "IGUESS":
 			// 按照数字方式猜测
 			for _, v := range arr {
+				v := strings.TrimSpace(v)
 				if v == "" {
 					continue
 				}
+
 				// 大于，小于，等于，不等于，包括，不包括
 				// >     <     =     !       [     ]
+
 				switch v[0] {
 				case '>':
 					// >8 大于8
@@ -344,6 +347,42 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 					// [8,9,10 不包括8,9,10
 					v := v[1:]
 					qList = append(qList, p(`%s NOT IN (%s)`, Name, v))
+				case '~':
+					// ~8,9  8 <= x <= 9
+					v := v[1:]
+					segarr := strings.Split(v, ",")
+
+					if len(segarr) != 2 || (segarr[0] == "" && segarr[1] == "") {
+						continue
+					}
+
+					if segarr[0] == "" {
+						qList = append(qList, p(`%s <= %s`, Name, segarr[1]))
+						continue
+					}
+					if segarr[1] == "" {
+						qList = append(qList, p(`%s >= %s`, Name, segarr[0]))
+						continue
+					}
+					qList = append(qList, p(`%s >= %s AND %s <= %s`, Name, segarr[0], Name, segarr[1]))
+				case '`':
+					// ~8,9  x <= 8 OR x >= 9
+					v := v[1:]
+					segarr := strings.Split(v, ",")
+
+					if len(segarr) != 2 || (segarr[0] == "" && segarr[1] == "") {
+						continue
+					}
+
+					if segarr[0] == "" {
+						qList = append(qList, p(`%s >= %s`, Name, segarr[1]))
+						continue
+					}
+					if segarr[1] == "" {
+						qList = append(qList, p(`%s <= %s`, Name, segarr[0]))
+						continue
+					}
+					qList = append(qList, p(`(%s <= %s OR %s >= %s)`, Name, segarr[0], Name, segarr[1]))
 
 				default:
 					qList = append(qList, p(`%s = %s`, Name, v))
