@@ -11,7 +11,7 @@ import (
 
 // Last : Get the latest row
 func Last(db *sql.DB, mp xmap.Map, Query func(db *sql.DB, mp xmap.Map) []xmap.Map) xmap.Map {
-	mp.Put(
+	mp.SafePut(
 		"PageSize", "1",
 		"OrderBy", "ID",
 		"OrderDir", "desc",
