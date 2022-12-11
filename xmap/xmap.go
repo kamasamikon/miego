@@ -337,6 +337,18 @@ func (xm Map) AsFloat(name string, defv float64) float64 {
 	}
 	return defv
 }
+
+func (xm Map) StrMust(name string, defv string) string {
+	if x, ok := xm[name]; ok {
+		if s, ok := x.(string); ok {
+			if s == "" {
+				return defv
+			}
+			return s
+		}
+	}
+	return defv
+}
 func (xm Map) Str(name string, defv string) string {
 	if x, ok := xm[name]; ok {
 		if s, ok := x.(string); ok {
@@ -346,7 +358,12 @@ func (xm Map) Str(name string, defv string) string {
 	return defv
 }
 func (xm Map) S(name string) string {
-	return xm.Str(name, "")
+	if x, ok := xm[name]; ok {
+		if s, ok := x.(string); ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func (xm Map) Int(name string, defv int) int {

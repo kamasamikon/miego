@@ -26,6 +26,16 @@ func NumToStr(o interface{}) string {
 		if t, err := time.Parse("20060102", timestr); err == nil {
 			return t.Format("2006-01-02")
 		}
+	} else if l == 6 {
+		// Month
+		if t, err := time.Parse("200601", timestr); err == nil {
+			return t.Format("2006-01")
+		}
+	} else if l == 4 {
+		// Year
+		if t, err := time.Parse("2006", timestr); err == nil {
+			return t.Format("2006")
+		}
 	}
 
 	return ""
@@ -245,29 +255,23 @@ func AnyToNum(g interface{}) uint64 {
 	if segcnt == 1 {
 		tmp := len(segarr[0])
 
-		// 20160102150305
 		if tmp >= 14 {
+			// 20160102150305
 			timefmt = "20060102150405"
-		}
-
-		// 201601021503
-		if tmp == 12 {
+		} else if tmp == 12 {
+			// 201601021504
 			timefmt = "200601021504"
-		}
-		// 2016010215
-		if tmp == 10 {
+		} else if tmp == 10 {
+			// 2016010215
 			timefmt = "2006010215"
-		}
-		// 20160102
-		if tmp == 8 {
+		} else if tmp == 8 {
+			// 20160102
 			timefmt = "20060102"
-		}
-		// 201601
-		if tmp == 6 {
+		} else if tmp == 6 {
+			// 201601
 			timefmt = "200601"
-		}
-		// 2016
-		if tmp == 4 {
+		} else if tmp == 4 {
+			// 2016
 			timefmt = "2006"
 		}
 	}
@@ -300,7 +304,7 @@ func FormatDuration(seconds uint64) string {
 	MM := seconds % 60
 	FF := (seconds / 60) % 60
 	SS := (seconds / 60 / 60) % 24
-	RR := (seconds / 60 / 60 * 24)
+	RR := (seconds / 60 / 60 / 24)
 
 	s := ""
 	if RR != 0 {

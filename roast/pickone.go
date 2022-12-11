@@ -26,7 +26,7 @@ func Last(db *sql.DB, mp xmap.Map, Query func(db *sql.DB, mp xmap.Map) []xmap.Ma
 
 // Last : Get the oldest row
 func First(db *sql.DB, mp xmap.Map, Query func(db *sql.DB, mp xmap.Map) []xmap.Map) xmap.Map {
-	mp.Put(
+	mp.SafePut(
 		"PageSize", "1",
 		"OrderBy", "ID",
 		"OrderDir", "asc",
