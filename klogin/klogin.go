@@ -85,6 +85,15 @@ func (o *LoginCenter) GetLoginType(c *gin.Context) string {
 
 func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		//
+		// Check Kooky first
+		//
+		r := c.Request
+		if Kooky := r.Header.Get("Kooky"); Kooky != "" {
+			r.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
+			klog.Dump(r.Header)
+		}
+
 		session := sessions.Default(c)
 
 		LoginType := o.GetLoginType(c)

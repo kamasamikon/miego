@@ -52,17 +52,17 @@ func StrToNum(s string, flag byte) (Num uint64) {
 	curStage := 0 // Stage of NNNN YY RR SS FF MM
 	maxStage := 0
 	switch flag {
-	case 'N':
+	case 'N', 'n':
 		maxStage = 0
-	case 'Y':
+	case 'Y', 'y':
 		maxStage = 1
-	case 'R':
+	case 'R', 'r':
 		maxStage = 2
-	case 'S':
+	case 'S', 's':
 		maxStage = 3
-	case 'F':
+	case 'F', 'f':
 		maxStage = 4
-	case 'M':
+	case 'M', 'm':
 		maxStage = 5
 	}
 
@@ -152,17 +152,17 @@ func StrToNum(s string, flag byte) (Num uint64) {
 		RR = 1
 	}
 	switch flag {
-	case 'N':
+	case 'N', 'n':
 		Num = NNNN
-	case 'Y':
+	case 'Y', 'y':
 		Num = NNNN*100 + YY
-	case 'R':
+	case 'R', 'r':
 		Num = NNNN*10000 + YY*100 + RR
-	case 'S':
+	case 'S', 's':
 		Num = NNNN*1000000 + YY*10000 + RR*100 + SS
-	case 'F':
+	case 'F', 'f':
 		Num = NNNN*100000000 + YY*1000000 + RR*10000 + SS*100 + FF
-	case 'M':
+	case 'M', 'm':
 		Num = NNNN*10000000000 + YY*100000000 + RR*1000000 + SS*10000 + FF*100 + MM
 	}
 

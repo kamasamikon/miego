@@ -5,6 +5,7 @@ import (
 	"github.com/kamasamikon/miego/xmap"
 )
 
+// 从请求中获取Login需要的字段
 func LoginData(c *gin.Context, keys ...string) []string {
 	var arr []string
 
