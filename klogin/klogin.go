@@ -88,10 +88,11 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		//
 		// Check Kooky first
 		//
-		r := c.Request
-		if Kooky := r.Header.Get("Kooky"); Kooky != "" {
-			r.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
-			klog.Dump(r.Header)
+		if Kooky := c.Query("Kooky"); Kooky != "" {
+			c.Header("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
+		}
+		if Kooky := c.GetHeader("Kooky"); Kooky != "" {
+			c.Header("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
 		}
 
 		session := sessions.Default(c)

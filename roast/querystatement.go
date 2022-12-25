@@ -61,6 +61,7 @@ func (s *QueryStatement) OrderLimitOffset2(m xmap.Map) (orderBy string, limit ui
 	offset = uint(m.Int("Offset", pageSize*(pageNumber-1)))
 
 	orderBy = ""
+	// OrderBy: CrtAt__Str or CrtAt or CrtAt_Xxx
 	orderByWhat := strings.Split(m.S("OrderBy"), "__")[0]
 	if orderByWhat != "" {
 		for _, c := range s.ColumnList {
@@ -70,16 +71,16 @@ func (s *QueryStatement) OrderLimitOffset2(m xmap.Map) (orderBy string, limit ui
 				} else {
 					orderBy = fmt.Sprintf("ORDER BY %s", orderByWhat)
 				}
+				cmdOrderDir := m.S("OrderDir")
+				if cmdOrderDir == "desc" {
+					orderBy += " DESC"
+				} else if cmdOrderDir == "asc" {
+					orderBy += " ASC"
+				}
 				break
 			}
 		}
 
-		cmdOrderDir := m.S("OrderDir")
-		if cmdOrderDir == "desc" {
-			orderBy += " DESC"
-		} else if cmdOrderDir == "asc" {
-			orderBy += " ASC"
-		}
 	}
 
 	return orderBy, limit, offset
