@@ -1,11 +1,14 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -36,6 +39,7 @@ type KService struct {
 
 // All the service queue here.
 var mapServices = make(map[string]*KService)
+var msSnapShotString string
 
 /////////////////////////////////////////////////////////////////////////
 // Services
@@ -64,6 +68,8 @@ func msSet(s *KService) bool {
 			a.RefreshTime = time.Now().UnixNano()
 			return false
 		}
+	} else {
+		msSnapShotString = ""
 	}
 
 	s.RefreshTime = time.Now().UnixNano()
@@ -84,6 +90,7 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 	key := hashKey(serviceName, version, ipAddr, port)
 	if _, ok := mapServices[key]; ok {
 		delete(mapServices, key)
+		msSnapShotString = ""
 		return true
 	}
 	klog.E("%s not found.", key)
@@ -207,6 +214,22 @@ func nginxReload() {
 	}
 }
 
+// 如果发生变化，说明有ms实例的变化
+func msSnapShot() string {
+	if msSnapShotString == "" {
+		var keyList []string
+		for _, v := range mapServices {
+			keyList = append(keyList, hashKey(v.ServiceName, v.Version, v.IPAddr, v.Port))
+		}
+		sort.Strings(keyList)
+		ctx := md5.New()
+		ctx.Write([]byte(strings.Join(keyList, ";")))
+		msSnapShotString = hex.EncodeToString(ctx.Sum(nil))
+	}
+
+	return msSnapShotString
+}
+
 func serverSet(c *gin.Context) {
 	var s KService
 	c.BindJSON(&s)
@@ -216,7 +239,9 @@ func serverSet(c *gin.Context) {
 		nginxReload()
 	}
 
-	pong := gin.H{}
+	pong := gin.H{
+		"msSnapShot": msSnapShot(),
+	}
 	c.JSON(200, &pong)
 }
 

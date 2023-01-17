@@ -84,9 +84,22 @@ func (ft *FlowTable) Last() *TD {
 func (ft *FlowTable) AddHeader(title string) {
 	colspan := ft.Column
 
-	ft.AddRaw(`<label class="label otot-header" style="font-weight: unset; font-size: larger">`+title+`</label>`, 1, 1).SetColSpan(colspan)
+	ft.AddRaw(`<label class="label otot-header" style="font-weight: unset; font-size: larger">`+title+`</label>`, colspan, 1)
 
-	ft.AddRaw(`<hr class="otot-header-line" style="margin: unset">`, 1, 1).SetColSpan(colspan).SetStyle("padding", "4px 16px")
+	ft.AddRaw(`<hr class="otot-header-line" style="margin: unset">`, colspan, 1).SetStyle("padding", "4px 16px")
+}
+
+func (ft *FlowTable) AddFoot(HTML string) {
+	colspan := ft.Column
+
+	ft.AddRaw(`<hr class="otot-foot-line" style="margin: unset">`, colspan, 1).SetStyle("padding", "4px 16px")
+
+	item := TD{
+		HTML:    HTML,
+		colspan: colspan,
+		rowspan: 1,
+	}
+	ft.Items = append(ft.Items, &item)
 }
 
 func (ft *FlowTable) AddRaw(HTML string, colspan int, rowspan int) *TD {

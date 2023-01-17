@@ -40,6 +40,28 @@ func GET(LoginType string, relativePath string, handler gin.HandlerFunc) {
 		},
 	)
 }
+func HEAD(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	RouterParamList = append(
+		RouterParamList,
+		&RouterParam{
+			LoginType:    LoginType,
+			Method:       "HEAD",
+			RelativePath: relativePath,
+			Handler:      handler,
+		},
+	)
+}
+func OPTIONS(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	RouterParamList = append(
+		RouterParamList,
+		&RouterParam{
+			LoginType:    LoginType,
+			Method:       "OPTIONS",
+			RelativePath: relativePath,
+			Handler:      handler,
+		},
+	)
+}
 func PUT(LoginType string, relativePath string, handler gin.HandlerFunc) {
 	RouterParamList = append(
 		RouterParamList,
@@ -111,6 +133,10 @@ func Go(initEnable bool, routerfilters ...interface{}) {
 				Default.POST(rp.LoginType, rp.RelativePath, rp.Handler)
 			case "GET":
 				Default.GET(rp.LoginType, rp.RelativePath, rp.Handler)
+			case "HEAD":
+				Default.HEAD(rp.LoginType, rp.RelativePath, rp.Handler)
+			case "OPTIONS":
+				Default.OPTIONS(rp.LoginType, rp.RelativePath, rp.Handler)
 			case "PUT":
 				Default.PUT(rp.LoginType, rp.RelativePath, rp.Handler)
 			case "DELETE":

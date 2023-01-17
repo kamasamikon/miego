@@ -292,8 +292,40 @@ func (o *LoginCenter) GET(LoginType string, relativePath string, handler gin.Han
 	}
 
 	o.Gin.GET(relativePath, xgin.Decorator(handler, decors...))
-
 }
+func (o *LoginCenter) HEAD(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
+
+	if LoginType != "" {
+		o.SetLoginType(LoginType, "HEAD", relativePath)
+
+		if o.BCheckerList != nil {
+			decors = append(decors, o.BCheckerList...)
+		}
+		decors = append(decors, o.isLoggin)
+		if o.ACheckerList != nil {
+			decors = append(decors, o.ACheckerList...)
+		}
+	}
+	o.Gin.HEAD(relativePath, xgin.Decorator(handler, decors...))
+}
+func (o *LoginCenter) OPTIONS(LoginType string, relativePath string, handler gin.HandlerFunc) {
+	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
+
+	if LoginType != "" {
+		o.SetLoginType(LoginType, "OPTIONS", relativePath)
+
+		if o.BCheckerList != nil {
+			decors = append(decors, o.BCheckerList...)
+		}
+		decors = append(decors, o.isLoggin)
+		if o.ACheckerList != nil {
+			decors = append(decors, o.ACheckerList...)
+		}
+	}
+	o.Gin.OPTIONS(relativePath, xgin.Decorator(handler, decors...))
+}
+
 func (o *LoginCenter) PUT(LoginType string, relativePath string, handler gin.HandlerFunc) {
 	var decors []func(h gin.HandlerFunc) gin.HandlerFunc
 
