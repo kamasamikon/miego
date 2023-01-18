@@ -89,10 +89,10 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 		// Check Kooky first
 		//
 		if Kooky := c.Query("Kooky"); Kooky != "" {
-			c.Header("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
+			c.Request.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
 		}
 		if Kooky := c.GetHeader("Kooky"); Kooky != "" {
-			c.Header("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
+			c.Request.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
 		}
 
 		session := sessions.Default(c)
@@ -138,6 +138,21 @@ func (o *LoginCenter) Set(c *gin.Context, key string, val interface{}) {
 	if s, ok := c.Get(sessions.DefaultKey); ok {
 		if session := s.(sessions.Session); session != nil {
 			session.Set(key, val)
+		}
+	}
+}
+
+func (o *LoginCenter) Rem(c *gin.Context, key string) {
+	if s, ok := c.Get(sessions.DefaultKey); ok {
+		if session := s.(sessions.Session); session != nil {
+			session.Delete(key)
+		}
+	}
+}
+func (o *LoginCenter) Clr(c *gin.Context) {
+	if s, ok := c.Get(sessions.DefaultKey); ok {
+		if session := s.(sessions.Session); session != nil {
+			session.Clear()
 		}
 	}
 }
@@ -204,7 +219,13 @@ func (o *LoginCenter) doLogout(c *gin.Context) {
 		session.Delete(LoginType)
 		session.Save()
 
-		c.Redirect(302, LogoutRedirectURL)
+		if LogoutRedirectURL != "" {
+			c.Redirect(302, LogoutRedirectURL)
+		} else {
+			pong.OK(c, "OK")
+		}
+	} else {
+		pong.NG(c, 404, -1, "Not Login")
 	}
 }
 

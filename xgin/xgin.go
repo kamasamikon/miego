@@ -91,4 +91,5 @@ func Go(Engine *gin.Engine, addr string) {
 func init() {
 	// Default = gin.New()
 	Default = gin.Default()
+	// Default.Use(cors.Default())
 }
