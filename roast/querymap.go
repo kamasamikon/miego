@@ -87,8 +87,8 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 			}
 		}
 
-		var Name string
-		var Kind string
+		var Name string // e.g. "Status"
+		var Kind string // e.g. "IN"
 
 		// Get :Name and :Kind
 		segs := strings.Split(k, "__")
@@ -108,14 +108,38 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 			sa = make(map[string][]string)
 		}
 
-		// if Kind == "IN", Status__IN__Open=true => Status: {"IN", "Open"}
+		// Status__IN__Open=true => Status IN ["Open"]
+		// Status__IN__Halt=true => Status IN ["Open", "Halt"]
+		// Status__IN__Close=false => Status NOT IN ["Close"]
 		if Kind == "IN" {
 			if in.C(s[0], 'T', 't', 'Y', 'y', '1') {
 				Kind = "IN"
 				s = segs[2]
 			} else {
-				continue
+				Kind = "NI"
+				s = segs[2]
 			}
+		}
+
+		//
+		// Select List
+		//
+		// "Kind__SIN__;" = "a;bb;ccc" => Kind IN ("a", "bb", "ccc")
+		// "Kind__SNI__;" = "a;bb;ccc" => Kind NOT IN ("a", "bb", "ccc")
+		if Kind == "SIN" {
+			Kind = "IN"
+			sep := segs[2]
+
+			ar, _ := sa[Kind]
+
+			inList := strings.Split(s, sep)
+			for _, in := range inList {
+				ar = append(ar, in)
+			}
+			sa[Kind] = ar
+			m[Name] = sa
+
+			continue
 		}
 
 		ar, _ := sa[Kind]
