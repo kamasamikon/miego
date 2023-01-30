@@ -32,12 +32,16 @@ const (
 )
 
 type Login interface {
-	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
 	BeforeLogin(c *gin.Context) (StatusCode int, PageName string, PageParam xmap.Map)
+	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
+
 	LoginDataChecker(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, noPageMode bool, err error)
 
 	LoginRouter() []string
 	LogoutRouter() []string
+
+	AfterLogin(c *gin.Context, cookie string) // 登录动作成功了
+	AfterLogout(c *gin.Context)               // 退出动作成功了
 }
 
 type LoginCenter struct {
@@ -63,6 +67,8 @@ type LoginCenter struct {
 	//
 	MapRouterVsLogin map[string]string // Method@Path => LoginType
 	MapLogin         map[string]Login  // LoginType => LoginConfigure
+
+	LoginCheckerHooker func(o *LoginCenter, c *gin.Context)
 }
 
 func (o *LoginCenter) Register(Type string, login Login) {
@@ -83,11 +89,20 @@ func (o *LoginCenter) GetLoginType(c *gin.Context) string {
 	return LoginType
 }
 
-func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
+// 检查每一个调用，看看是否已经登录了，如果没有登录，就跳转到登录接口
+func (o *LoginCenter) loginChecker(h gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if o.LoginCheckerHooker != nil {
+			o.LoginCheckerHooker(o, c)
+		}
+
 		//
 		// Check Kooky first
 		//
+		if v, _ := c.Get("Kooky"); v != nil { // 来自 LoginCheckerHooker
+			Kooky := v.(string)
+			c.Request.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
+		}
 		if Kooky := c.Query("Kooky"); Kooky != "" {
 			c.Request.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
 		}
@@ -95,11 +110,10 @@ func (o *LoginCenter) isLoggin(h gin.HandlerFunc) gin.HandlerFunc {
 			c.Request.Header.Set("Cookie", fmt.Sprintf("%s=%s", o.SessionName, Kooky))
 		}
 
-		session := sessions.Default(c)
-
 		LoginType := o.GetLoginType(c)
 		c.Set("LoginType", LoginType)
 		if LoginType != "" {
+			session := sessions.Default(c)
 			Type := session.Get(LoginType)
 			if Type != nil {
 				h(c)
@@ -167,9 +181,7 @@ func (o *LoginCenter) Save(c *gin.Context) {
 
 func (o *LoginCenter) doLogin(c *gin.Context) {
 	session := sessions.Default(c)
-
 	LoginType := o.GetLoginType(c)
-
 	l := o.MapLogin[LoginType]
 	if l != nil {
 		sessionItems, OKRedirectURL, NGPageName, NGPageParam, noPageMode, err := l.LoginDataChecker(c)
@@ -179,7 +191,7 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 				session.Set(k, v)
 				Keys = append(Keys, k)
 			}
-			session.Set(LoginType, strings.Join(Keys, ";"))
+			session.Set(LoginType, strings.Join(Keys, ";")) // 没有什么意义，就是能看到保存了哪些字段
 			session.Save()
 
 			var cookie string
@@ -189,6 +201,9 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 					c.Header("Kooky", cookie)
 				}
 			}
+
+			// 看看有什么要补充的
+			l.AfterLogin(c, cookie)
 
 			if noPageMode {
 				pong.OK(c, xmap.Make("CookieKey", o.SessionName, "CookieVal", cookie))
@@ -200,7 +215,9 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 			session.Save()
 
 			if noPageMode {
-				pong.NG(c, 200, -1, NGPageParam)
+				Error := int(NGPageParam.AsInt("Error", -1))
+				Message := NGPageParam.S("Message")
+				pong.NG(c, 200, Error, Message)
 			} else {
 				c.HTML(200, NGPageName, NGPageParam)
 			}
@@ -218,6 +235,9 @@ func (o *LoginCenter) doLogout(c *gin.Context) {
 
 		session.Delete(LoginType)
 		session.Save()
+
+		// 看看有什么要补充的
+		l.AfterLogout(c)
 
 		if LogoutRedirectURL != "" {
 			c.Redirect(302, LogoutRedirectURL)
@@ -290,7 +310,7 @@ func (o *LoginCenter) POST(LoginType string, relativePath string, handler gin.Ha
 		if o.BCheckerList != nil {
 			decors = append(decors, o.BCheckerList...)
 		}
-		decors = append(decors, o.isLoggin)
+		decors = append(decors, o.loginChecker)
 		if o.ACheckerList != nil {
 			decors = append(decors, o.ACheckerList...)
 		}
@@ -306,7 +326,7 @@ func (o *LoginCenter) GET(LoginType string, relativePath string, handler gin.Han
 		if o.BCheckerList != nil {
 			decors = append(decors, o.BCheckerList...)
 		}
-		decors = append(decors, o.isLoggin)
+		decors = append(decors, o.loginChecker)
 		if o.ACheckerList != nil {
 			decors = append(decors, o.ACheckerList...)
 		}
@@ -323,7 +343,7 @@ func (o *LoginCenter) HEAD(LoginType string, relativePath string, handler gin.Ha
 		if o.BCheckerList != nil {
 			decors = append(decors, o.BCheckerList...)
 		}
-		decors = append(decors, o.isLoggin)
+		decors = append(decors, o.loginChecker)
 		if o.ACheckerList != nil {
 			decors = append(decors, o.ACheckerList...)
 		}
@@ -339,7 +359,7 @@ func (o *LoginCenter) OPTIONS(LoginType string, relativePath string, handler gin
 		if o.BCheckerList != nil {
 			decors = append(decors, o.BCheckerList...)
 		}
-		decors = append(decors, o.isLoggin)
+		decors = append(decors, o.loginChecker)
 		if o.ACheckerList != nil {
 			decors = append(decors, o.ACheckerList...)
 		}
@@ -356,7 +376,7 @@ func (o *LoginCenter) PUT(LoginType string, relativePath string, handler gin.Han
 		if o.BCheckerList != nil {
 			decors = append(decors, o.BCheckerList...)
 		}
-		decors = append(decors, o.isLoggin)
+		decors = append(decors, o.loginChecker)
 		if o.ACheckerList != nil {
 			decors = append(decors, o.ACheckerList...)
 		}
@@ -374,7 +394,7 @@ func (o *LoginCenter) DELETE(LoginType string, relativePath string, handler gin.
 		if o.BCheckerList != nil {
 			decors = append(decors, o.BCheckerList...)
 		}
-		decors = append(decors, o.isLoggin)
+		decors = append(decors, o.loginChecker)
 		if o.ACheckerList != nil {
 			decors = append(decors, o.ACheckerList...)
 		}

@@ -8,16 +8,16 @@ import (
 )
 
 func Client() *redis.Client {
-	Addr := conf.Str("127.0.0.1:6379", "s:/db/redis/addr")
+	Addr := conf.Str("172.17.0.1:6379", "s:/db/redis/addr")
 	Pass := conf.Str("", "s:/db/redis/pass")
-	DB := conf.Str(0, "i:/db/redis/db")
-	redisdb := redis.NewClient(&Options{
+	DB := conf.Int(0, "i:/db/redis/db")
+	redisdb := redis.NewClient(&redis.Options{
 		Addr:     Addr,
 		Password: Pass,
-		DB:       Db,
+		DB:       int(DB),
 	})
 
-	pong, err := redisdb.Ping().Result()
+	_, err := redisdb.Ping().Result()
 	if err != nil {
 		klog.E("%s", err.Error())
 		return nil
