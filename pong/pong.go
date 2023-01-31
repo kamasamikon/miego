@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/gin-gonic/gin"
+	des "github.com/kamasamikon/miego/crypto/tripledesecb"
 )
 
 // JPong : JSON Pong
@@ -15,14 +16,6 @@ type Body struct {
 }
 
 func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interface{}) {
-	if Error != 0 && Data == nil {
-		if _, filename, line, ok := runtime.Caller(2); ok {
-			Data = fmt.Sprintf("%s:%d", filename, line)
-		} else {
-			Data = &gin.H{}
-		}
-	}
-
 	var Text string
 	if s, ok := Message.(error); ok {
 		Text = s.Error()
@@ -30,6 +23,15 @@ func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interfa
 		Text = s
 	} else {
 		Text = ""
+	}
+
+	if Error != 0 && Data == nil {
+		if _, filename, line, ok := runtime.Caller(2); ok {
+			Data = fmt.Sprintf("%s:%d", filename, line)
+			Data = des.Jia(Data.(string), "HILDA")
+		} else {
+			Data = &gin.H{}
+		}
 	}
 
 	c.JSON(Code, &Body{
