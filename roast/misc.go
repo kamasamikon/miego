@@ -23,9 +23,6 @@ func Str__Nvn(mp xmap.Map, field string, nvnClass string) {
 func PresetQuery(mp xmap.Map, Prefix string) string {
 	var preset string
 
-	// Default to 50 lines
-	// mp.SafePut("PageSize", "50")
-
 	// If set ID,
 	if mp.Has("ID") {
 		preset = ""

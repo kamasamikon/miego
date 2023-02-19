@@ -1,7 +1,9 @@
 package wxcorp
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 
 	"github.com/kamasamikon/miego/conf"
 	"github.com/kamasamikon/miego/httpdo"
@@ -47,6 +49,12 @@ type WxToken struct {
 
 var wxToken *WxToken = nil
 
+var HTTPTransport = http.Transport{
+	TLSClientConfig: &tls.Config{
+		InsecureSkipVerify: true,
+	},
+}
+
 func token() *WxToken {
 	if wxToken == nil {
 		wxToken = &WxToken{}
@@ -65,7 +73,7 @@ func (t *WxToken) Get(corpId string, corpSecret string) string {
 	url := fmt.Sprintf("%sgettoken?corpid=%s&corpsecret=%s", URLBASE, corpId, corpSecret)
 	klog.D("%s", url)
 	pong := KPong_GetToken{}
-	if _, err := httpdo.New(url).Pong(&pong).Get(); err != nil {
+	if _, err := httpdo.New(url).Transport(&HTTPTransport).Pong(&pong).Get(); err != nil {
 		klog.E("%s", err.Error())
 		return ""
 	}

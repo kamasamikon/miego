@@ -15,6 +15,38 @@ type Body struct {
 	Data    interface{} `json:"Data"`
 }
 
+const (
+	E_OK = 0
+
+	// 格式错误：比如手机号，Param里是参数的名字或者索引
+	E_Para_BadFormat = -1000
+
+	// 没有找到：参数里有，但系统里没有找到
+	E_Para_NotFound = -1001
+
+	// 不能为空：参数里有，但是空的
+	E_Para_Empty = -1002
+
+	// 没有设置：参数里要求有，但没有
+	E_Para_NotExists = -1003
+
+	// 匹配错误：一个参数和另外一个参数有匹配的规则
+	E_Para_BadMatch = -1004
+
+	// 参数错误：有，但是是错的，这个错都不确定了
+	E_Para_Error = -1005
+
+	//
+	// 权限相关
+	//
+
+	// 未登录：请重新登录
+	E_Perm_NotLogin = -2
+
+	// 未授权：比如所在的组不对等。Role = 组，Orgn = 所在机构，Oper = 后台账户
+	E_Perm_NotAllow = -3
+)
+
 func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interface{}) {
 	var Text string
 	if s, ok := Message.(error); ok {
@@ -42,7 +74,7 @@ func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interfa
 }
 
 func OK(c *gin.Context, Data interface{}) {
-	Full(c, 200, 0, "", Data)
+	Full(c, 200, E_OK, "", Data)
 }
 
 func NG(c *gin.Context, Code int, Error int, Message interface{}) {
@@ -55,32 +87,32 @@ func NG(c *gin.Context, Code int, Error int, Message interface{}) {
 
 // 格式错误：比如手机号，Param里是参数的名字或者索引
 func NG_Para_BadFormat(c *gin.Context, Param string) {
-	Full(c, 200, -1000, Param, nil)
+	Full(c, 200, E_Para_BadFormat, Param, nil)
 }
 
 // 没有找到：参数里有，但系统里没有找到
 func NG_Para_NotFound(c *gin.Context, Param string) {
-	Full(c, 200, -1001, Param, nil)
+	Full(c, 200, E_Para_NotFound, Param, nil)
 }
 
 // 不能为空：参数里有，但是空的
 func NG_Para_Empty(c *gin.Context, Param string) {
-	Full(c, 200, -1002, Param, nil)
+	Full(c, 200, E_Para_Empty, Param, nil)
 }
 
 // 没有设置：参数里要求有，但没有
 func NG_Para_NotExists(c *gin.Context, Param string) {
-	Full(c, 200, -1003, Param, nil)
+	Full(c, 200, E_Para_NotExists, Param, nil)
 }
 
 // 匹配错误：一个参数和另外一个参数有匹配的规则
 func NG_Para_BadMatch(c *gin.Context, Param string) {
-	Full(c, 200, -1004, Param, nil)
+	Full(c, 200, E_Para_BadMatch, Param, nil)
 }
 
 // 参数错误：有，但是是错的，这个错都不确定了
 func NG_Para_Error(c *gin.Context, Param string) {
-	Full(c, 200, -1005, Param, nil)
+	Full(c, 200, E_Para_Error, Param, nil)
 }
 
 //
@@ -89,10 +121,10 @@ func NG_Para_Error(c *gin.Context, Param string) {
 
 // 未登录：请重新登录
 func NG_Perm_NotLogin(c *gin.Context) {
-	Full(c, 200, -2, "", nil)
+	Full(c, 200, E_Perm_NotLogin, "", nil)
 }
 
 // 未授权：比如所在的组不对等。Role = 组，Orgn = 所在机构，Oper = 后台账户
 func NG_Perm_NotAllow(c *gin.Context, Role string) {
-	Full(c, 200, -3, Role, nil)
+	Full(c, 200, E_Perm_NotAllow, Role, nil)
 }
