@@ -39,12 +39,8 @@ type TableHeader struct {
 func Setup(h *TableHeader, NewBy string) {
 	now, _ := strconv.ParseUint(time.Now().Format("20060102150405"), 0, 64)
 
-	h.ID = 0
 	h.NewAt = now
 	h.NewBy = NewBy
-	h.RemAt = 0
-	h.RemBy = ""
-	h.RemWhy = 0
 	if h.CrtAt == 0 {
 		h.CrtAt = now
 	}
