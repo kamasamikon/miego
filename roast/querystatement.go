@@ -67,7 +67,7 @@ func (s *QueryStatement) OrderLimitOffset2(m xmap.Map) (orderBy string, limit ui
 		for _, c := range s.ColumnList {
 			if c.OutputName == orderByWhat {
 				if c.Cast != "" {
-					orderBy = fmt.Sprintf("ORDER BY CAST(%s.%s AS %s)", c.TableAlias, orderByWhat, c.Cast)
+					orderBy = fmt.Sprintf("ORDER BY CAST(%s.%s AS '%s')", c.TableAlias, orderByWhat, c.Cast)
 				} else {
 					orderBy = fmt.Sprintf("ORDER BY %s", orderByWhat)
 				}
@@ -153,9 +153,9 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows int) (string, string, str
 		if c.Field[0] == '@' {
 			field := c.Field[1:len(c.Field)]
 			if c.TableAlias == "" {
-				sss = fmt.Sprintf(`%s AS %s`, field, c.OutputName)
+				sss = fmt.Sprintf(`%s AS '%s'`, field, c.OutputName)
 			} else {
-				sss = fmt.Sprintf(`%s.%s AS %s`, c.TableAlias, field, c.OutputName)
+				sss = fmt.Sprintf(`%s.%s AS '%s'`, c.TableAlias, field, c.OutputName)
 			}
 			DistinctItems = append(DistinctItems, sss)
 		}
@@ -171,9 +171,9 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows int) (string, string, str
 		var sss string
 		if c.Field[0] != '@' {
 			if c.TableAlias == "" {
-				sss = fmt.Sprintf(`    IFNULL(%s, "%s") AS %s`, c.Field, c.Default, c.OutputName)
+				sss = fmt.Sprintf(`    IFNULL(%s, "%s") AS '%s'`, c.Field, c.Default, c.OutputName)
 			} else {
-				sss = fmt.Sprintf(`    IFNULL(%s.%s, "%s") AS %s`, c.TableAlias, c.Field, c.Default, c.OutputName)
+				sss = fmt.Sprintf(`    IFNULL(%s.%s, "%s") AS '%s'`, c.TableAlias, c.Field, c.Default, c.OutputName)
 			}
 			ColumnLines = append(ColumnLines, sss)
 		}
