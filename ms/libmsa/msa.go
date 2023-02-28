@@ -147,7 +147,13 @@ func doReg(msRegURL string, msDataReader io.Reader) bool {
 
 func RegisterLoop() {
 	DockerGW := os.Getenv("DOCKER_GATEWAY")
+	if DockerGW == "" {
+		DockerGW = conf.Str("", "s:/msa/docker/gw")
+	}
 	MSBPort := os.Getenv("MSBPORT")
+	if MSBPort == "" {
+		MSBPort = conf.Str("", "s:/msa/msb/port")
+	}
 
 	for {
 		// Loop
@@ -171,7 +177,8 @@ func RegisterLoop() {
 		}
 		sJson, _ := json.Marshal(&s)
 		msDataReader := strings.NewReader(string(sJson))
-		klog.Dump(s, "MSA: ")
+		klog.Dump(os.Environ(), "MSA.Env: ")
+		klog.Dump(s, "MSA.Srv: ")
 
 		//
 		// Via MSBHOST

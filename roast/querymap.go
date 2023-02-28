@@ -7,6 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kamasamikon/miego/in"
+	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xmap"
 	"github.com/kamasamikon/miego/xtime"
 )
@@ -125,7 +126,7 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 		// Select List
 		//
 		// "Kind__SIN__;" = "a;bb;ccc" => Kind IN ("a", "bb", "ccc")
-		// "Kind__SNI__;" = "a;bb;ccc" => Kind NOT IN ("a", "bb", "ccc")
+		// "Kind__SNI__:" = "a:bb:ccc" => Kind NOT IN ("a", "bb", "ccc")
 		if Kind == "SIN" {
 			Kind = "IN"
 			sep := segs[2]
