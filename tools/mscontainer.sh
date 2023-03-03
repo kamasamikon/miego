@@ -7,7 +7,6 @@ import shlex
 
 MSB_NAME = "msb"
 MS_SUFFIX = ""
-MSB_ADDR = ""
 
 f = open("/tmp/mscontainer.log", "w+")
 
@@ -26,8 +25,12 @@ def saferun(cmd, debug=True):
 def currentDir():
     return os.path.realpath(os.getcwd())
 
-def msbIPAddress():
-    return saferun(("sudo", "docker", "inspect", "--format", "{{ .NetworkSettings.IPAddress }}", MSB_NAME))
+def getContainerIp(containerName):
+    return saferun(("sudo", "docker", "inspect", "--format", "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}", containerName))
+
+def getContainerPort(containerName, innerPort=None):
+    innerPort = innerPort or "80/tcp"
+    return saferun(("sudo", "docker", "inspect", "--format", "{{(index (index .NetworkSettings.Ports '%s') 0).HostPort}}" % innerPort, containerName))
 
 def volumeGet(imageName):
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", imageName))
@@ -36,7 +39,7 @@ def dockerGateway():
     cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
 
-def dockerRun(imageName, msbIP, backrun, append):
+def dockerRun(imageName, MSBHost, MSBPort, backrun, append):
     container = imageName + MS_SUFFIX
     if append:
         index = 0
@@ -70,9 +73,8 @@ def dockerRun(imageName, msbIP, backrun, append):
 
     if backrun:
         cmd.extend(["-d"])
-    # cmd.extend(["-v", "/tmp/.conf.%s:/tmp/conf" % container])
-    # cmd.extend(["-v", "%s:/tmp/host" % currentDir()])
-    cmd.extend(["-e", "MSBHOST=%s" % msbIP])
+    cmd.extend(["-e", "MSBHOST=%s" % MSBHost])
+    cmd.extend(["-e", "MSBPORT=%s" % MSBPort])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
     volumeMap = volumeGet(imageName)
@@ -100,23 +102,19 @@ def killContainer(imageName, killFirst, killLast):
 def main():
     global MSB_NAME
     global MS_SUFFIX
-    global MSB_ADDR
 
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
         print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=MSBName] [--msbAddr=MSBAddr] imageNames ...")
+        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=MSBName] imageNames ...")
         return
 
-    x = os.environ.get("MSB_NAME")
+    x = os.environ.get("MSB_NAME") # MSB的名字
     if x:
         MSB_NAME = x
     x = os.environ.get("MS_SUFFIX")
     if x:
         MS_SUFFIX = x
-    x = os.environ.get("MSB_ADDR")
-    if x:
-        MSB_ADDR = x
 
     #
     # Another MSB?
@@ -130,27 +128,22 @@ def main():
             MS_SUFFIX = name[9:]
             continue
 
-        if name.startswith("--msbAddr="):
-            MSB_ADDR = name[10:]
-
-    if MSB_ADDR:
-        msbIP = MSB_ADDR
-    else:
-        msbIP = msbIPAddress()
+    MSBHost = getContainerIp(MSB_NAME)
+    MSBPort = getContainerPort(MSB_NAME)
 
     backrun = "-b" in sys.argv
     append  = "-a" in sys.argv
 
-    msNames = []
+    imageNames = []
     for name in sys.argv[1:]:
         if name[0] == "-":
             continue
-        msNames.append(name)
+        imageNames.append(name)
 
-    if not msNames:
+    if not imageNames:
         x = os.environ.get("MS_NAME")
         if x:
-            msNames.append(x)
+            imageNames.append(x)
 
     #
     # Kill OLD?
@@ -168,14 +161,14 @@ def main():
             if len(segs) > 0:
                 killFirst = segs[0]
 
-            for xname in msNames:
+            for xname in imageNames:
                 if xname[0] == "-":
                     continue
                 killContainer(xname, killFirst, killLast)
             break
 
-    for name in msNames:
-        dockerRun(name, msbIP, backrun, append)
+    for imageName in imageNames:
+        dockerRun(imageName, MSBHost, MSBPort, backrun, append)
 
 if __name__ == "__main__":
     main()

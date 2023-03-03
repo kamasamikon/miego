@@ -7,7 +7,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kamasamikon/miego/in"
-	"github.com/kamasamikon/miego/klog"
 	"github.com/kamasamikon/miego/xmap"
 	"github.com/kamasamikon/miego/xtime"
 )
@@ -268,9 +267,13 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 			flag := kind[len(kind)-1]
 
 			for _, v := range arr {
-				utime := xtime.AnyToNum(v)
-				utime = xtime.StrToNum(fmt.Sprintf("%d", utime), flag)
-				qList = append(qList, p(`%s %s %d`, Name, op, utime))
+				if v == "" {
+					continue
+				}
+				if utime := xtime.AnyToNum(v); utime != 0 {
+					utime = xtime.StrToNum(fmt.Sprintf("%d", utime), flag)
+					qList = append(qList, p(`%s %s %d`, Name, op, utime))
+				}
 			}
 
 		case "IN":
