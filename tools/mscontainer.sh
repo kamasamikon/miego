@@ -15,7 +15,7 @@ def saferun(cmd, debug=True):
         print(cmd, file=f)
         if debug:
             color = 3
-            cmdline = " ".join(cmd)
+            cmdline = "'" + "' '".join(cmd) + "'"
             print('\033[1;3{}m{}\033[0m'.format(color, cmdline))
 
         return subprocess.check_output(cmd).strip().decode("utf-8")

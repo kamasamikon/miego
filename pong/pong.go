@@ -5,7 +5,6 @@ import (
 	"runtime"
 
 	"github.com/gin-gonic/gin"
-	des "github.com/kamasamikon/miego/crypto/tripledesecb"
 )
 
 // JPong : JSON Pong
@@ -60,7 +59,7 @@ func Full(c *gin.Context, Code int, Error int, Message interface{}, Data interfa
 	if Error != 0 && Data == nil {
 		if _, filename, line, ok := runtime.Caller(2); ok {
 			Data = fmt.Sprintf("%s:%d", filename, line)
-			Data = des.Jia(Data.(string), "HILDA")
+			// Data = des.Jia(Data.(string), "HILDA")
 		} else {
 			Data = &gin.H{}
 		}
