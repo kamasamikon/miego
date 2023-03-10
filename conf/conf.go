@@ -406,7 +406,6 @@ func init() {
 	// Some builtin entries
 	//
 	EntryAdd(PathReady, false)
-
 }
 
 func LoadFromEnv() {

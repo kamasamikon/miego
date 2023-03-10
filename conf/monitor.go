@@ -2,8 +2,11 @@ package conf
 
 import (
 	"fmt"
+	"runtime"
 	"sort"
 	"strings"
+
+	"github.com/kamasamikon/miego/klog"
 )
 
 // ////////////////////////////////////////////////////////////////////////
@@ -14,14 +17,16 @@ import (
 type KConfMonitor func(path string, oVal interface{}, nVal interface{})
 
 // map[s:Path]map[KConfMonitor]int
-var mapPathMonitorCallback = make(map[string]map[*KConfMonitor]int)
+var mapPathMonitorCallback = make(map[string]map[*KConfMonitor]string)
 
 func MonitorAdd(Path string, Callback KConfMonitor) {
 	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
 	if !ok {
-		mapMonitorCallback = make(map[*KConfMonitor]int)
+		mapMonitorCallback = make(map[*KConfMonitor]string)
 	}
-	mapMonitorCallback[&Callback] = 1
+
+	_, filename, line, _ := runtime.Caller(2)
+	mapMonitorCallback[&Callback] = fmt.Sprintf("%s:%d", filename, line)
 	mapPathMonitorCallback[Path] = mapMonitorCallback
 }
 
@@ -46,20 +51,21 @@ func MonitorDump() string {
 	}
 
 	fmtstr := fmt.Sprintf(
-		"%s%%-%ds%s : %%v",
+		"%s%%-%ds%s : %%v : %%s",
 		ColorType_I,
 		pathMaxLength,
 		ColorType_Reset,
 	)
 
 	for _, Path := range pList {
-		for Monitor, _ := range mapPathMonitorCallback[Path] {
+		for Monitor, pos := range mapPathMonitorCallback[Path] {
 			lines = append(
 				lines,
 				fmt.Sprintf(
 					fmtstr,
 					Path,
 					Monitor,
+					pos,
 				),
 			)
 		}
@@ -74,9 +80,11 @@ func MonitorDump() string {
 
 func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
-		for Callback, _ := range mapMonitorCallback {
+		for Callback, pos := range mapMonitorCallback {
 			if Callback != nil {
+				klog.F(">>> %s", pos)
 				(*Callback)(e.path, oVal, nVal)
+				klog.W("<<< %s", pos)
 			}
 		}
 	}
