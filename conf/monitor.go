@@ -5,8 +5,6 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-
-	"github.com/kamasamikon/miego/klog"
 )
 
 // ////////////////////////////////////////////////////////////////////////
@@ -80,11 +78,9 @@ func MonitorDump() string {
 
 func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
-		for Callback, pos := range mapMonitorCallback {
+		for Callback, _ := range mapMonitorCallback {
 			if Callback != nil {
-				klog.F(">>> %s", pos)
 				(*Callback)(e.path, oVal, nVal)
-				klog.W("<<< %s", pos)
 			}
 		}
 	}

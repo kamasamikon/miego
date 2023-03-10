@@ -35,7 +35,19 @@ type Login interface {
 	BeforeLogin(c *gin.Context) (StatusCode int, PageName string, PageParam xmap.Map)
 	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
 
-	LoginDataChecker(c *gin.Context) (sessionItems xmap.Map, OKRedirectURL string, NGPageName string, NGPageParam xmap.Map, noPageMode bool, err error)
+	// ok: 成功还是失败
+	// noPageMode: 返回页面还是返回JSON
+	//
+	// okData["noPageData"]: Map: Pong中返回 pong.OK(c, noPageData)
+	// okData["redirectURL"]: Str: 跳转页面
+	// okData["sessionItems"]: Map: 保存到会话
+	//
+	// ngData["noPageData"]: Map: Pong中返回  pong.NG(c, Error, Data)
+	// ngData["noPageData"][Error"]: Int:
+	// ngData["noPageData"][Data"]: Obj: 一般就是Str
+	// ngData["templateName"]: Str: c.HTML 需要的模板
+	// ngData["templateData"]: Map: c.HTML 需要的数据
+	LoginDataChecker(c *gin.Context) (ok bool, noPageMode bool, okData xmap.Map, ngData xmap.Map)
 
 	LoginRouter() []string
 	LogoutRouter() []string
@@ -184,10 +196,10 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 	LoginType := o.GetLoginType(c)
 	l := o.MapLogin[LoginType]
 	if l != nil {
-		sessionItems, OKRedirectURL, NGPageName, NGPageParam, noPageMode, err := l.LoginDataChecker(c)
-		if err == nil {
+		ok, noPageMode, okData, ngData := l.LoginDataChecker(c)
+		if ok {
 			var Keys []string
-			for k, v := range sessionItems {
+			for k, v := range okData["sessionItems"].(xmap.Map) {
 				session.Set(k, v)
 				Keys = append(Keys, k)
 			}
@@ -206,20 +218,21 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 			l.AfterLogin(c, cookie)
 
 			if noPageMode {
-				pong.OK(c, xmap.Make("CookieKey", o.SessionName, "CookieVal", cookie))
+				noPageData := okData["noPageData"].(xmap.Map)
+				noPageData.SafePut("CookieKey", o.SessionName, "CookieVal", cookie)
+				pong.OK(c, noPageData)
 			} else {
-				c.Redirect(302, OKRedirectURL)
+				c.Redirect(302, okData["redirectURL"].(string))
 			}
 		} else {
 			session.Delete(LoginType)
 			session.Save()
 
 			if noPageMode {
-				Error := int(NGPageParam.AsInt("Error", -1))
-				Message := NGPageParam.S("Message")
-				pong.NG(c, 200, Error, Message)
+				noPageData := ngData["noPageData"].(xmap.Map)
+				pong.NG(c, 200, noPageData["Error"].(int), noPageData["Data"])
 			} else {
-				c.HTML(200, NGPageName, NGPageParam)
+				c.HTML(200, ngData["templateName"].(string), ngData["templateData"].(string))
 			}
 		}
 	}
