@@ -80,7 +80,7 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
 		for Callback, _ := range mapMonitorCallback {
 			if Callback != nil {
-				(*Callback)(e.path, oVal, nVal)
+				go (*Callback)(e.path, oVal, nVal)
 			}
 		}
 	}

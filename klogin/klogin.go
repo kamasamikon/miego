@@ -32,7 +32,9 @@ const (
 )
 
 type Login interface {
+	// 返回登录页面前调用，如果LoginPageName存在，就返回HTML，否则返回JSON
 	BeforeLogin(c *gin.Context) (StatusCode int, PageName string, PageParam xmap.Map)
+	// 退出（删除Session）前调用，返回跳转的URL
 	BeforeLogout(c *gin.Context) (LogoutRedirectURL string)
 
 	// ok: 成功还是失败
