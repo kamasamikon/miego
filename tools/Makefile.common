@@ -117,6 +117,7 @@ clean:
 
 
 userScriptFirst:
+	@echo "TODO: Load settings from $$C"
 	@echo "==> Writing userScript..."
 	@echo > .userScript -n
 

@@ -203,6 +203,39 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	klog.KLog(2, false, klog.ColorType_W, "X", strings.Join(lines, ""))
 }
 
+// Duplicate on to another
+// names = [fromName, toName, fromName, toName, ...]
+func (xm Map) Dup(names ...string) {
+	for i := 0; i < len(names)/2; i++ {
+		frName := names[2*i]
+		if frValue, ok := xm[frName]; ok {
+			toName := names[2*i+1]
+			if toName != "" {
+				xm[toName] = frValue
+			}
+		}
+	}
+}
+
+// names = [fromName, toName, fromName, toName, ...]
+func (xm Map) DupSafe(names ...string) {
+	for i := 0; i < len(names)/2; i++ {
+		frName := names[2*i]
+		if frValue, ok := xm[frName]; ok {
+			toName := names[2*i+1]
+			if _, ok := xm[toName]; !ok {
+				xm[toName] = frValue
+			}
+		}
+	}
+}
+
+func (xm Map) Del(names ...string) {
+	for _, name := range names {
+		delete(xm, name)
+	}
+}
+
 func (xm Map) Merge(other Map) {
 	for k, v := range other {
 		xm[k] = v
@@ -223,7 +256,8 @@ func (xm Map) SafeMerge(other Map) int {
 func (xm Map) MergeSome(other Map, names ...string) int {
 	cnt := 0
 	for _, name := range names {
-		if other.Has(name) {
+		if _, ok := other[name]; ok {
+			klog.W("%s", name)
 			xm[name] = other[name]
 			cnt += 1
 		}
@@ -267,8 +301,9 @@ func (xm Map) ReplaceKeys(keys ...string) Map {
 	for i := 0; i < len(keys)/2; i++ {
 		oldKey := keys[2*i]
 		if v, ok := xm[oldKey]; ok {
-			newKey := keys[2*i+1]
-			xm[newKey] = v
+			if newKey := keys[2*i+1]; newKey != "" {
+				xm[newKey] = v
+			}
 			delete(xm, oldKey)
 		}
 	}
