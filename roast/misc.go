@@ -68,7 +68,7 @@ func NumParse(numBase int64, vStr string) int64 {
 }
 
 // 获取某个表最后更新（包括添加记录和删除记录）的时间
-func LastTouchTime(dbSQL *sql.DB, TableName string) uint64 {
+func LastModifyTime(dbSQL *sql.DB, TableName string) uint64 {
 	stmtLastOp := fmt.Sprintf("SELECT GREATEST(NewAt, RemAt) AS Last FROM `%s` LIMIT 1", TableName)
 	mpList, _ := Raw(dbSQL, stmtLastOp, false)
 	if len(mpList) > 0 {
