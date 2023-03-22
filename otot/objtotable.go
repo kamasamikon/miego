@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
+	"github.com/kamasamikon/miego/atox"
 )
 
 func Convert(key string, val string, obj interface{}) string {
@@ -27,9 +28,10 @@ func ViaKV(class string, id string, column int, v ...string) string {
 	table := fmt.Sprintf(`<table id="%s" class="table is-fullwidth %s">`, id, class)
 	lines = append(lines, table)
 	lines = append(lines, "<tbody>")
-	for i := 0; i < len(v)/2; i++ {
-		if i%column == 0 {
-			if i != 0 {
+
+	for colidx, i := 0, 0; i < len(v)/2; i++ {
+		if colidx%column == 0 {
+			if colidx != 0 {
 				lines = append(lines, "</tr>")
 			}
 			lines = append(lines, "<tr>")
@@ -55,6 +57,7 @@ func ViaKV(class string, id string, column int, v ...string) string {
 			k, v,
 		)
 		lines = append(lines, td)
+		colidx += atox.Int(colspan, 1)
 	}
 
 	lines = append(lines, "</tr>")
