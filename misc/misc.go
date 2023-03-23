@@ -1,7 +1,9 @@
 package misc
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"runtime"
@@ -47,6 +49,17 @@ func MD5file(path string) string {
 	}
 
 	return hex.EncodeToString(ctx.Sum(nil))
+}
+
+func MD5Reader(src io.Reader) string {
+	r := bufio.NewReader(src)
+	h := md5.New()
+
+	_, err := io.Copy(h, r)
+	if err == nil {
+		return hex.EncodeToString(h.Sum(nil))
+	}
+	return ""
 }
 
 func ReverseString(s string) string {
