@@ -125,6 +125,7 @@ func (o *LoginCenter) loginChecker(h gin.HandlerFunc) gin.HandlerFunc {
 		}
 
 		LoginType := o.GetLoginType(c)
+		klog.D("%v", LoginType)
 		c.Set("LoginType", LoginType)
 		if LoginType != "" {
 			session := sessions.Default(c)
@@ -314,6 +315,49 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr strin
 
 			POST("", URL, o.doLogout)
 			GET("", URL, o.doLogout)
+		}
+	}
+}
+
+func (o *LoginCenter) Route(Methods string, LoginTypes string, relativePath string, handler gin.HandlerFunc) {
+	LoginTypeList := strings.Split(LoginTypes, ",")
+
+	MethodList := strings.Split(Methods, ",")
+	for _, Method := range MethodList {
+		Method = strings.TrimSpace(Method)
+		switch Method {
+		case "POST":
+			for _, LoginType := range LoginTypeList {
+				LoginType = strings.TrimSpace(LoginType)
+				klog.D("Method:%v, LoginType:%v", Method, LoginType)
+				o.POST(LoginType, relativePath, handler)
+			}
+		case "GET":
+			for _, LoginType := range LoginTypeList {
+				LoginType = strings.TrimSpace(LoginType)
+				klog.D("Method:%v, LoginType:%v", Method, LoginType)
+				o.GET(LoginType, relativePath, handler)
+			}
+		case "HEAD":
+			for _, LoginType := range LoginTypeList {
+				LoginType = strings.TrimSpace(LoginType)
+				o.HEAD(LoginType, relativePath, handler)
+			}
+		case "OPTIONS":
+			for _, LoginType := range LoginTypeList {
+				LoginType = strings.TrimSpace(LoginType)
+				o.OPTIONS(LoginType, relativePath, handler)
+			}
+		case "PUT":
+			for _, LoginType := range LoginTypeList {
+				LoginType = strings.TrimSpace(LoginType)
+				o.PUT(LoginType, relativePath, handler)
+			}
+		case "DELETE":
+			for _, LoginType := range LoginTypeList {
+				LoginType = strings.TrimSpace(LoginType)
+				o.DELETE(LoginType, relativePath, handler)
+			}
 		}
 	}
 }

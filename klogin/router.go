@@ -2,6 +2,7 @@ package klogin
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,27 @@ type RouterParam struct {
 }
 
 var RouterParamList []*RouterParam
+
+func Route(Methods string, LoginTypes string, relativePath string, handler gin.HandlerFunc) {
+	MethodList := strings.Split(Methods, ",")
+	for _, Method := range MethodList {
+		Method = strings.TrimSpace(Method)
+		switch Method {
+		case "POST":
+			POST(LoginTypes, relativePath, handler)
+		case "GET":
+			GET(LoginTypes, relativePath, handler)
+		case "HEAD":
+			HEAD(LoginTypes, relativePath, handler)
+		case "OPTIONS":
+			OPTIONS(LoginTypes, relativePath, handler)
+		case "PUT":
+			PUT(LoginTypes, relativePath, handler)
+		case "DELETE":
+			DELETE(LoginTypes, relativePath, handler)
+		}
+	}
+}
 
 func POST(LoginType string, relativePath string, handler gin.HandlerFunc) {
 	RouterParamList = append(
