@@ -190,7 +190,7 @@ func (ft *FlowTable) AddTitle(Label string) *TD {
 func (ft *FlowTable) AddInput(Model string, colspan int, others ...string) *TD {
 	xxx := strings.Join(others, " ")
 	item := TD{
-		HTML:    fmt.Sprintf(`<input id="%s" v-model="%s" class="input is-fullwidth otot-input" %s>`, ElementID(), Model, xxx),
+		HTML:    fmt.Sprintf(`<input id="%s" name="%s" v-model="%s" class="input is-fullwidth otot-input" %s>`, ElementID(), Model, Model, xxx),
 		colspan: colspan,
 		rowspan: 1,
 		styleMap: map[string]string{
@@ -250,8 +250,9 @@ func (ft *FlowTable) AddSelect(Model string, kv ...string) *TD {
 func (ft *FlowTable) AddDate(Model string, minDate string, maxDate string) *TD {
 	item := TD{
 		HTML: fmt.Sprintf(
-			`<input id="%s" v-model="%s" data-allow-input="true" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active otot-date">`,
+			`<input id="%s" name="%s" v-model="%s" data-allow-input="true" data-min-date="%s" data-max-date="%s" data-default-date="" class="flatpickr input flatpickr-input active otot-date">`,
 			ElementID(),
+			Model,
 			Model,
 			minDate,
 			maxDate,
@@ -297,7 +298,7 @@ func (ft *FlowTable) AddAddress(mProvince string, mCity string, mDistrict string
 	}
 
 	if Address != "" {
-		Lines = append(Lines, sp(`<input v-model="%s" class="input">`, Address))
+		Lines = append(Lines, sp(`<input name="%s" v-model="%s" class="input">`, Address, Address))
 		ft.VueVars = append(ft.VueVars, Address)
 	}
 

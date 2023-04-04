@@ -237,7 +237,7 @@ func (o *LoginCenter) doLogin(c *gin.Context) {
 				noPageData := ngData["noPageData"].(xmap.Map)
 				pong.NG(c, 200, noPageData["Error"].(int), noPageData["Data"])
 			} else {
-				c.HTML(200, ngData["templateName"].(string), ngData["templateData"].(string))
+				c.HTML(200, ngData["templateName"].(string), ngData["templateData"].(xmap.Map))
 			}
 		}
 	}

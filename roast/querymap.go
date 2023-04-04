@@ -419,16 +419,39 @@ func (m QueryMap) Use(qList []string, Name string, Table string, NewName string)
 
 		case "SGUESS":
 			// 按照字符串方式猜测
+			// LIKE(a), NULL(b), IS(c), IN(d)
+			// `a `b `c `d
 			for _, v := range arr {
 				if v == "" {
 					continue
 				}
-				if v[0] == '!' {
-					v := v[1:]
-					if s, like := likeParse(v, false); like {
-						qList = append(qList, p(`%s NOT LIKE "%s"`, Name, s))
-					} else {
-						qList = append(qList, p(`%s != "%s"`, Name, s))
+				if v[0] == '`' {
+					kind := v[1]
+					value := v[2:]
+					switch kind {
+					// LIKE
+					case 'a':
+						qList = append(qList, p(`%s LIKE "%s"`, Name, value))
+					case 'A':
+						qList = append(qList, p(`%s NOT LIKE "%s"`, Name, value))
+
+						// NULL
+					case 'b':
+						qList = append(qList, p(`%s IS NULL`, Name))
+					case 'B':
+						qList = append(qList, p(`%s IS NOT NULL`, Name))
+
+						// IS
+					case 'c':
+						qList = append(qList, p(`%s = "%s"`, Name, value))
+					case 'C':
+						qList = append(qList, p(`%s != "%s"`, Name, value))
+
+						// IN
+					case 'd':
+						qList = append(qList, p(`%s IN "%s"`, Name, value))
+					case 'D':
+						qList = append(qList, p(`%s NOT IN "%s"`, Name, value))
 					}
 				} else {
 					if s, like := likeParse(v, false); like {

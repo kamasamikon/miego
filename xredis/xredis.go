@@ -7,10 +7,16 @@ import (
 	"github.com/kamasamikon/miego/klog"
 )
 
-func Client() *redis.Client {
-	Addr := conf.Str("172.17.0.1:6379", "s:/db/redis/addr")
-	Pass := conf.Str("", "s:/db/redis/pass")
-	DB := conf.Int(0, "i:/db/redis/db")
+func Client(Addr string, Pass string, DB int) *redis.Client {
+	if Addr == "" {
+		Addr = conf.Str("172.17.0.1:6379", "s:/db/redis/addr")
+	}
+	if Pass == "" {
+		Pass = conf.Str("", "s:/db/redis/pass")
+	}
+	if DB < 0 {
+		DB = int(conf.Int(0, "i:/db/redis/db"))
+	}
 	redisdb := redis.NewClient(&redis.Options{
 		Addr:     Addr,
 		Password: Pass,
