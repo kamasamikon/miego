@@ -17,6 +17,31 @@ type Body struct {
 const (
 	E_OK = 0
 
+	//
+	// 环境变量或者别的变量的错误
+	//
+	// 格式错误：比如手机号，Param里是参数的名字或者索引
+	E_BadFormat = -100
+
+	// 没有找到：参数里有，但系统里没有找到
+	E_NotFound = -101
+
+	// 不能为空：参数里有，但是空的
+	E_Empty = -102
+
+	// 没有设置：参数里要求有，但没有
+	E_NotExists = -103
+
+	// 匹配错误：一个参数和另外一个参数有匹配的规则
+	E_BadMatch = -104
+
+	// 参数错误：有，但是是错的，这个错都不确定了
+	E_Error = -105
+
+	//
+	// 输入的参数的错误
+	//
+
 	// 格式错误：比如手机号，Param里是参数的名字或者索引
 	E_Para_BadFormat = -1000
 
@@ -83,13 +108,15 @@ func NG(c *gin.Context, Code int, Error int, Message interface{}) {
 //
 // Parameters error
 //
+// Param: Param里是参数的名字或者索引
+//
 
-// 格式错误：比如手机号，Param里是参数的名字或者索引
+// 格式错误：带了这个参数，但格式是错的，比如手机号，写成了12345
 func NG_Para_BadFormat(c *gin.Context, Param string) {
 	Full(c, 200, E_Para_BadFormat, Param, nil)
 }
 
-// 没有找到：参数里有，但系统里没有找到
+// 没有找到：参数里有，但系统里没有找到，这个和参数错误区分不开，因为参数错误也导致目标对象找不到
 func NG_Para_NotFound(c *gin.Context, Param string) {
 	Full(c, 200, E_Para_NotFound, Param, nil)
 }
@@ -112,6 +139,41 @@ func NG_Para_BadMatch(c *gin.Context, Param string) {
 // 参数错误：有，但是是错的，这个错都不确定了
 func NG_Para_Error(c *gin.Context, Param string) {
 	Full(c, 200, E_Para_Error, Param, nil)
+}
+
+//
+// Environment/Context 上下文的错误，比如环境变量，比如会话
+//
+// Param: Param里是参数的名字或者索引
+//
+// 格式错误：带了这个参数，但格式是错的，比如手机号，写成了12345
+func NG_BadFormat(c *gin.Context, Param string) {
+	Full(c, 200, E_BadFormat, "E_BadFormat", Param)
+}
+
+// 没有找到：参数里有，但系统里没有找到，这个和参数错误区分不开，因为参数错误也导致目标资源找不到
+func NG_NotFound(c *gin.Context, Param string) {
+	Full(c, 200, E_NotFound, "E_NotFound", Param)
+}
+
+// 不能为空：参数里有，但是空的
+func NG_Empty(c *gin.Context, Param string) {
+	Full(c, 200, E_Empty, "E_Empty", Param)
+}
+
+// 没有设置：参数里要求有，但没有
+func NG_NotExists(c *gin.Context, Param string) {
+	Full(c, 200, E_NotExists, "E_NotExists", Param)
+}
+
+// 匹配错误：一个参数和另外一个参数有匹配的规则
+func NG_BadMatch(c *gin.Context, Param string) {
+	Full(c, 200, E_BadMatch, "E_BadMatch", Param)
+}
+
+// 参数错误：有，但是是错的，这个错都不确定了
+func NG_Error(c *gin.Context, Param string) {
+	Full(c, 200, E_Error, "E_Error", Param)
 }
 
 //
