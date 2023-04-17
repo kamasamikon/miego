@@ -3,7 +3,6 @@ package xgin
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"os/signal"
@@ -53,19 +52,6 @@ func Go(Engine *gin.Engine, addr string) {
 		Engine = Default
 	}
 
-	Engine.SetFuncMap(template.FuncMap{
-		"FormatAsDate":  FormatAsDate,
-		"ToHTML":        ToHTML,
-		"ToJS":          ToJS,
-		"ToCSS":         ToCSS,
-		"Choice":        Choice,
-		"ToAttr":        ToAttr,
-		"NtimeToString": NtimeToString,
-		"MapGet":        MapGet,
-		"MapChoice":     MapChoice,
-		"SubStr":        SubStr,
-	})
-
 	if conf.Int(1, "i:/gin/releaseMode") == 1 {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -87,9 +73,6 @@ func Go(Engine *gin.Engine, addr string) {
 //
 // Init
 //
-
 func init() {
-	// Default = gin.New()
 	Default = gin.Default()
-	// Default.Use(cors.Default())
 }

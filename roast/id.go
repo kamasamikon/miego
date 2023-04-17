@@ -14,7 +14,6 @@ func IDNew() string {
 }
 
 func IDNxt(db *sql.DB, TableName string) uint64 {
-	// stmtfmt := "SELECT UUID FROM `%s` ORDER BY convert(`UUID`, unsigned) DESC LIMIT 1"
 	stmtfmt := "SELECT MAX(id) AS UUID FROM `%s`"
 	stmt := fmt.Sprintf(stmtfmt, TableName)
 	rows, err := db.Query(stmt)

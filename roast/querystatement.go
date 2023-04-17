@@ -69,7 +69,7 @@ func (s *QueryStatement) OrderLimitOffset2(m xmap.Map) (orderBy string, limit ui
 				if c.Cast != "" {
 					orderBy = fmt.Sprintf("ORDER BY CAST(%s.%s AS '%s')", c.TableAlias, orderByWhat, c.Cast)
 				} else {
-					orderBy = fmt.Sprintf("ORDER BY %s", orderByWhat)
+					orderBy = fmt.Sprintf("ORDER BY '%s'", orderByWhat)
 				}
 				cmdOrderDir := m.S("OrderDir")
 				if cmdOrderDir == "desc" {
