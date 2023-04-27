@@ -214,5 +214,7 @@ func SafeAdd(db *gorm.DB, Object interface{}, RemBy string, where xmap.Map) erro
 		return err
 	}
 
+	// rds.Publish("RPS.A."+tableName,  "CrtAt")
+
 	return nil
 }

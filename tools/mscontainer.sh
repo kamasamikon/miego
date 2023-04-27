@@ -5,9 +5,6 @@ import os
 import sys
 import shlex
 
-MSB_NAME = "msb"
-MS_SUFFIX = ""
-
 f = open("/tmp/mscontainer.log", "w+")
 
 def saferun(cmd, debug=True):
@@ -22,16 +19,6 @@ def saferun(cmd, debug=True):
     except:
         return None
 
-def currentDir():
-    return os.path.realpath(os.getcwd())
-
-def getContainerIp(containerName):
-    return saferun(("sudo", "docker", "inspect", "--format", "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}", containerName))
-
-def getContainerPort(containerName, innerPort=None):
-    innerPort = innerPort or "80/tcp"
-    return saferun(("sudo", "docker", "inspect", "--format", "{{(index (index .NetworkSettings.Ports '%s') 0).HostPort}}" % innerPort, containerName))
-
 def volumeGet(imageName):
     return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", imageName))
 
@@ -39,8 +26,8 @@ def dockerGateway():
     cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
 
-def dockerRun(imageName, MSBHost, MSBPort, backrun, append):
-    container = imageName + MS_SUFFIX
+def dockerRun(imageName, suffix, msbPort, backrun, append):
+    container = imageName + suffix
     if append:
         index = 0
         tmpName = container
@@ -73,8 +60,7 @@ def dockerRun(imageName, MSBHost, MSBPort, backrun, append):
 
     if backrun:
         cmd.extend(["-d"])
-    cmd.extend(["-e", "MSBHOST=%s" % MSBHost])
-    cmd.extend(["-e", "MSBPORT=%s" % MSBPort])
+    cmd.extend(["-e", "MSBPORT=%s" % msbPort])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
     volumeMap = volumeGet(imageName)
@@ -84,8 +70,8 @@ def dockerRun(imageName, MSBHost, MSBPort, backrun, append):
     cmd.extend([imageName])
     return saferun(cmd)
 
-def killContainer(imageName, killFirst, killLast):
-    container = imageName + MS_SUFFIX
+def killContainer(imageName, suffix, killFirst, killLast):
+    container = imageName + suffix
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 
@@ -100,36 +86,23 @@ def killContainer(imageName, killFirst, killLast):
         saferun(cmd)
 
 def main():
-    global MSB_NAME
-    global MS_SUFFIX
-
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
         print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=MSBName] imageNames ...")
+        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--suffix=suffix] [--msbPort=msbPort] imageNames ...")
         return
-
-    x = os.environ.get("MSB_NAME") # MSB的名字
-    if x:
-        MSB_NAME = x
-    x = os.environ.get("MS_SUFFIX")
-    if x:
-        MS_SUFFIX = x
 
     #
     # Another MSB?
     #
     for name in sys.argv[1:]:
-        if name.startswith("--msbName="):
-            MSB_NAME = name[10:]
+        if name.startswith("--msbPort="):
+            msbPort = name[10:]
             continue
 
         if name.startswith("--suffix="):
-            MS_SUFFIX = name[9:]
+            suffix = name[9:]
             continue
-
-    MSBHost = getContainerIp(MSB_NAME)
-    MSBPort = getContainerPort(MSB_NAME)
 
     backrun = "-b" in sys.argv
     append  = "-a" in sys.argv
@@ -139,11 +112,6 @@ def main():
         if name[0] == "-":
             continue
         imageNames.append(name)
-
-    if not imageNames:
-        x = os.environ.get("MS_NAME")
-        if x:
-            imageNames.append(x)
 
     #
     # Kill OLD?
@@ -164,12 +132,13 @@ def main():
             for xname in imageNames:
                 if xname[0] == "-":
                     continue
-                killContainer(xname, killFirst, killLast)
+                killContainer(xname, suffix, killFirst, killLast)
             break
 
     for imageName in imageNames:
-        dockerRun(imageName, MSBHost, MSBPort, backrun, append)
+        dockerRun(imageName, suffix, msbPort, backrun, append)
 
 if __name__ == "__main__":
+    print(sys.argv, file=f)
     main()
 

@@ -1,0 +1,135 @@
+.PHONY: userDockerCommand userScript build deploy clean
+
+#
+# HELP
+#
+# dpc = deploy configuration
+# svc = service configuration
+#
+
+#
+# Environment for DePloy Configuration
+#
+-include ${dpc}
+
+fake:
+	@echo "Interesting..."
+
+
+#
+# color print
+#
+define crp
+	@echo "\e[1;31m$(1)\e[0m"
+endef
+
+# color print: start and end
+define cps
+	$(call crp,"\\n\>\>\> $(1)...")
+endef
+define cpe
+	$(call crp,"\<\<\< $(1)... DONE!")
+endef
+
+
+#
+# Environment for Build info
+#
+export bPWD = $(notdir $(shell pwd))
+export bVER = $(shell git log -n 1 | head -1 | awk '{ print $$2 }')
+export bNOW = $(shell date)
+export bCLR = $(shell git status -uno -s | wc -l)
+
+
+# Error Environment
+enve.%:
+	@if [ x"${${*}}" = "x" ]; then \
+		echo "\e[5;31m错误：环境变量 '$*' 为空或者未设置。\e[0m"; exit 1; \
+	fi
+
+# Warning Environment
+envw.%:
+	@if [ x"${${*}}" = "x" ]; then \
+		echo "\e[93m警告：环境变量 '$*' 为空或者未设置，将使用空值。\e[0m"; \
+	fi
+
+#
+# 准备配置文件，并写入main.cfg
+#
+buildPrepare: enve.svc
+	$(call cps, "build prepare")
+	@rm -f main.cfg
+	@echo "###" >> main.cfg
+	@echo "### MSA ###" >> main.cfg
+	@echo "###" >> main.cfg
+	@echo "s:/ms/name=${msName}" >> main.cfg
+	@echo "" >> main.cfg
+	@echo "###" >> main.cfg
+	@echo "### BUILD ###" >> main.cfg
+	@echo "###" >> main.cfg
+	@echo "s:/build/dirname=${bPWD}" >> main.cfg
+	@echo "s:/build/time=${bNOW}" >> main.cfg
+	@echo "s:/build/version=${bVER}" >> main.cfg
+	@echo "s:/build/updated=${bCLR}" >> main.cfg
+	@echo "" >> main.cfg
+	@echo "###" >> main.cfg
+	@echo "### ${svc} ###" >> main.cfg
+	@echo "###" >> main.cfg
+	@cat ${svc} >> main.cfg
+	$(call cpe, "build prepare")
+
+
+#
+# 调用工程自己的编译目标
+#
+build: buildPrepare 
+	$(call cps, "build")
+	@$(MAKE) userBuild
+	$(call cpe, "build")
+
+
+#
+# 使用用户自己的Dockerfile制作容器的镜像
+#
+pack: build
+	$(call cps, "docker build")
+	sudo docker build --no-cache -f Dockerfile -t ${msName} .
+	$(call cpe, "docker build")
+
+
+#
+# 把生成的容器导出为本地的压缩文件
+#
+save: pack
+	$(call cps, "docker save")
+	sudo docker save -o one.tar ${msName}
+	sudo tar czvf one.tar.gz one.tar
+	sudo chmod a+rwx one.tar.gz
+	$(call cpe, "docker save")
+
+
+#
+# 把生成的容器导出为本地的压缩文件
+#
+deploy: enve.dpc envw.dockerRunPara enve.msName enve.msSuffix envw.msbPort enve.rmtAddr enve.rmtPort enve.rmtUser pack
+	$(call cps, "deploy to ${rmtAddr}")
+	scp -P${rmtPort} one.tar.gz ${rmtUser}@${rmtAddr}:/tmp; 
+	ssh ${rmtUser}@${rmtAddr} -p${rmtPort} \
+		"\
+		tar xvf /tmp/one.tar.gz -C /tmp; \
+		docker load -i /tmp/one.tar; \
+		fwrun.sh -b -k --runopt=\"${dockerRunPara}\" --msbPort=${msbPort} --suffix=${msSuffix} ${msName} \
+		"; 
+	$(call cpe, "deploy to ${rmtAddr}")
+
+
+vet:
+	@go vet
+
+
+clean:
+	$(call cps, "Cleanup")
+	@rm -fr *.tar *.tar.gz
+	@rm -fr main
+	@rm -fr ms
+	$(call cpe, "Cleanup")
