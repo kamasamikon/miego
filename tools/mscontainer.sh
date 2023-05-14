@@ -26,8 +26,8 @@ def dockerGateway():
     cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
 
-def dockerRun(imageName, suffix, msbPort, backrun, append):
-    container = imageName + suffix
+def dockerRun(imageName, msbName, msbPort, msbAddr, backrun, append):
+    container = imageName + "." + msbName
     if append:
         index = 0
         tmpName = container
@@ -61,6 +61,8 @@ def dockerRun(imageName, suffix, msbPort, backrun, append):
     if backrun:
         cmd.extend(["-d"])
     cmd.extend(["-e", "MSBPORT=%s" % msbPort])
+    cmd.extend(["-e", "MSBNAME=%s" % msbName])
+    cmd.extend(["-e", "MSBADDR=%s" % msbAddr])
     cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
 
     volumeMap = volumeGet(imageName)
@@ -70,8 +72,8 @@ def dockerRun(imageName, suffix, msbPort, backrun, append):
     cmd.extend([imageName])
     return saferun(cmd)
 
-def killContainer(imageName, suffix, killFirst, killLast):
-    container = imageName + suffix
+def killContainer(imageName, msbName, killFirst, killLast):
+    container = imageName + "." + msbName
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 
@@ -89,19 +91,25 @@ def main():
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Directly run msa services from the image.")
         print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--suffix=suffix] [--msbPort=msbPort] imageNames ...")
+        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=msbName] imageNames ...")
         return
 
     #
     # Another MSB?
     #
     for name in sys.argv[1:]:
+        if name.startswith("--msbName="):
+            msbName = name[10:]
+            continue
         if name.startswith("--msbPort="):
             msbPort = name[10:]
             continue
+        if name.startswith("--msbAddr="):
+            msbAddr = name[10:]
+            continue
 
-        if name.startswith("--suffix="):
-            suffix = name[9:]
+        if name.startswith("--msbPort="):
+            msbPort = name[10:]
             continue
 
     backrun = "-b" in sys.argv
@@ -132,11 +140,11 @@ def main():
             for xname in imageNames:
                 if xname[0] == "-":
                     continue
-                killContainer(xname, suffix, killFirst, killLast)
+                killContainer(xname, msbName, killFirst, killLast)
             break
 
     for imageName in imageNames:
-        dockerRun(imageName, suffix, msbPort, backrun, append)
+        dockerRun(imageName, msbName, msbPort, msbAddr, backrun, append)
 
 if __name__ == "__main__":
     print(sys.argv, file=f)

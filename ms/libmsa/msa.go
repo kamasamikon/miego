@@ -2,7 +2,6 @@ package libmsa
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -22,10 +21,6 @@ const (
 	msaChaged = "e:/msa/changed"
 )
 
-var (
-	currentMSB string // MSBAddr
-)
-
 var HTTPTransport = &http.Transport{
 	DialContext: (&net.Dialer{
 		Timeout:   30 * time.Second, // 连接超时时间
@@ -35,10 +30,6 @@ var HTTPTransport = &http.Transport{
 	IdleConnTimeout:       60 * time.Second, // 空闲连接的超时时间
 	ExpectContinueTimeout: 30 * time.Second, // 等待服务第一个响应的超时时间
 	MaxIdleConnsPerHost:   100,              // 每个host保持的空闲连接数
-}
-
-func CurrentMSB() string {
-	return currentMSB
 }
 
 func HostNameGet() string {
@@ -145,17 +136,42 @@ func doReg(msRegURL string, msDataReader io.Reader) bool {
 	return ok
 }
 
-func RegisterLoop() {
-	DockerGW := os.Getenv("DOCKER_GATEWAY")
-	if DockerGW == "" {
-		DockerGW = conf.Str("", "s:/msa/docker/gw")
+func GetParam(argPrefix string, envName string, cfgName string) string {
+	klog.D("argPrefix:'%s' envName:'%s' cfgName:'%s'", argPrefix, envName, cfgName)
+	if argPrefix != "" {
+		for _, argv := range os.Args {
+			if strings.HasPrefix(argv, argPrefix) {
+				x := argv[len(argPrefix):]
+				klog.D("arg: %s", x)
+				return x
+			}
+		}
 	}
-	MSBPort := os.Getenv("MSBPORT")
-	if MSBPort == "" {
-		MSBPort = conf.Str("", "s:/msa/msb/port")
+	if envName != "" {
+		if x := os.Getenv(envName); x != "" {
+			klog.D("env: %s", x)
+			return x
+		}
 	}
+	if cfgName != "" {
+		x := conf.Str("", cfgName)
+		klog.D("cfg: %s", x)
+		return x
+	}
+	return ""
+}
 
+// commandLine > env > configure
+//
+func RegisterLoop() {
 	for {
+		DockerGW := GetParam("--dockerGW=", "DOCKER_GATEWAY", "s:/msb/dockerGW")
+		MSBName := GetParam("--msbName=", "MSBNAME", "s:/msb/name")
+		MSBPort := GetParam("--msbPort=", "MSBPORT", "s:/msb/port")
+		MSBAddr := GetParam("--msbAddr=", "MSBADDR", "s:/msb/addr")
+
+		DockerHelperPort := GetParam("--dockerHelperPort=", "DOCKERHELPERPORT", "s:/dockerhelper/port")
+
 		// Loop
 		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
 		waitNG := time.Second * time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
@@ -181,51 +197,66 @@ func RegisterLoop() {
 		klog.Dump(s, "MSA.Srv: ")
 
 		//
-		// Via MSBHOST
+		// MSBADDR: 直接告诉了MSB的地址，比如:
+		// 172.17.0.1:33434 : DockerGW + MSBPort
+		// 172.17.0.16 : MSB IP Address
 		//
-		{
-			currentMSB = ""
-			MSBAddr := conf.Str("172.17.0.1", "s:/msb/host")
-			if ip := os.Getenv("MSBHOST"); ip != "" {
-				MSBAddr = ip
-			}
-
-			if MSBAddr != "" {
-				currentMSB = "http://" + MSBAddr
-				msRegURL := currentMSB + "/msb/service"
-				for {
-					msDataReader.Seek(io.SeekStart, 0)
-					if !doReg(msRegURL, msDataReader) {
-						break
-					}
-					time.Sleep(waitOK)
+		if MSBAddr != "" {
+			msRegURL := "http://" + MSBAddr + "/msb/service"
+			klog.D("msRegURL: %s", msRegURL)
+			for {
+				msDataReader.Seek(io.SeekStart, 0)
+				if !doReg(msRegURL, msDataReader) {
+					break
 				}
+				time.Sleep(waitOK)
 			}
 		}
 
 		//
-		// Via MSBPort
+		// MSBPort: MSBADDR的方式失败，DockerGW+MSBPort
 		//
-		{
-			currentMSB = ""
-			MSBAddr := ""
+		if DockerGW != "" && MSBPort != "" {
+			msRegURL := "http://" + DockerGW + ":" + MSBPort + "/msb/service"
+			klog.D("msRegURL: %s", msRegURL)
+			for {
+				msDataReader.Seek(io.SeekStart, 0)
+				if !doReg(msRegURL, msDataReader) {
+					break
+				}
+				time.Sleep(waitOK)
+			}
+		}
 
-			msbAddrURL := fmt.Sprintf("http://%s:%s/msb/addr", DockerGW, MSBPort)
+		//
+		// MSBName: 通过dockerhelper
+		//
+		if DockerGW != "" && MSBName != "" {
+			var msRegURL string
+
+			if DockerHelperPort == "" {
+				DockerHelperPort = "11111"
+			}
+
+			dockerHelperURL := "http://" + DockerGW + ":" + DockerHelperPort + "/info?byName=" + MSBName
 			client := http.Client{
 				Timeout: 5 * time.Second,
 			}
-			if resp, err := client.Get(msbAddrURL); err == nil {
+			if resp, err := client.Get(dockerHelperURL); err == nil {
 				if resp.StatusCode == 200 {
-					if addr, err := ioutil.ReadAll(resp.Body); err == nil {
-						MSBAddr = string(addr)
+					if payload, err := ioutil.ReadAll(resp.Body); err == nil {
+						var dict map[string]interface{}
+						if err := json.Unmarshal(payload, &dict); err == nil {
+							IPAddress := dict["Data"].(map[string]interface{})["IPAddress"].(string)
+							msRegURL = "http://" + IPAddress + "/msb/service"
+						}
 					}
 				}
 				resp.Body.Close()
 			}
 
-			if MSBAddr != "" {
-				currentMSB = "http://" + MSBAddr
-				msRegURL := currentMSB + "/msb/service"
+			if msRegURL != "" {
+				klog.D("msRegURL: %s", msRegURL)
 				for {
 					msDataReader.Seek(io.SeekStart, 0)
 					if !doReg(msRegURL, msDataReader) {
@@ -236,7 +267,6 @@ func RegisterLoop() {
 			}
 		}
 
-		currentMSB = ""
 		time.Sleep(waitNG)
 	}
 }

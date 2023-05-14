@@ -48,7 +48,7 @@ xremotereloadms:
 		export mkREMOTE="`cat /tmp/.mkREMOTE`"; \
 		export msbName="`cat /tmp/.msbName`"; \
 		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
-		ssh $${mkREMOTE} -p50000 "mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
+		ssh $${mkREMOTE} -p50000 "mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} ${msName}"; \
 	)
 	@echo "<<<<<<<<<<<<< xremoteloadms >>>>>>>>>>>>>"
 	@echo
@@ -73,7 +73,7 @@ xremoteloadms:
 		export msbName="`cat /tmp/.msbName`"; \
 		export msSUFFIX="`cat /tmp/.msSUFFIX`"; \
 		scp -P50000 one.tar.gz $${mkREMOTE}:/tmp ; \
-		ssh $${mkREMOTE} -p50000 "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} --suffix=$${msSUFFIX} ${msName}"; \
+		ssh $${mkREMOTE} -p50000 "cd /tmp; tar xvf /tmp/one.tar.gz; docker load -i /tmp/one.tar; mscontainer.sh -b -k --runopt=\"$${dockerRunPara}\" --msbName=$${msbName} ${msName}"; \
 	)
 	@echo "<<<<<<<<<<<<< xremoteloadms >>>>>>>>>>>>>"
 	@echo
