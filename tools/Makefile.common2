@@ -50,6 +50,12 @@ enve.%:
 # Warning Environment
 envw.%:
 	@if [ x"${${*}}" = "x" ]; then \
+		echo "\e[93m警告：环境变量 '$*' 为空或者未设置，将使用空值。"; \
+	fi
+
+# Warning Environment
+envww.%:
+	@if [ x"${${*}}" = "x" ]; then \
 		echo "\e[93m警告：环境变量 '$*' 为空或者未设置，将使用空值。\e[1;5;35m按回车键继续...\e[0m"; \
 		read aaa; \
 	fi
@@ -112,14 +118,14 @@ save: pack
 #
 # 把生成的容器导出为本地的压缩文件
 #
-deploy: enve.dpc envw.dockerRunPara enve.msName envw.msbPort enve.rmtAddr enve.rmtPort enve.rmtUser save
+deploy: enve.dpc envw.dockerRunPara enve.msName envw.msbPort envw.msbName enve.rmtAddr enve.rmtPort enve.rmtUser save
 	$(call cps, "deploy to ${rmtAddr}")
 	scp -P${rmtPort} one.tar.gz ${rmtUser}@${rmtAddr}:/tmp; 
 	ssh ${rmtUser}@${rmtAddr} -p${rmtPort} \
 		" \
 		tar xvf /tmp/one.tar.gz -C /tmp; \
 		docker load -i /tmp/one.tar; \
-		fwrun.sh -b -k --runopt=\"${dockerRunPara}\" --msbAddr=\"${msbAddr}\" --msbPort=\"${msbPort}\" --msbName=${msbName} ${msName}; \
+		fwr.py -b -k --runopt=\"${dockerRunPara}\" --msbPort=\"${msbPort}\" --msbName=${msbName} ${msName}; \
 		"
 	$(call cpe, "deploy to ${rmtAddr}")
 

@@ -168,7 +168,6 @@ func RegisterLoop() {
 		DockerGW := GetParam("--dockerGW=", "DOCKER_GATEWAY", "s:/msb/dockerGW")
 		MSBName := GetParam("--msbName=", "MSBNAME", "s:/msb/name")
 		MSBPort := GetParam("--msbPort=", "MSBPORT", "s:/msb/port")
-		MSBAddr := GetParam("--msbAddr=", "MSBADDR", "s:/msb/addr")
 
 		DockerHelperPort := GetParam("--dockerHelperPort=", "DOCKERHELPERPORT", "s:/dockerhelper/port")
 
@@ -197,24 +196,7 @@ func RegisterLoop() {
 		klog.Dump(s, "MSA.Srv: ")
 
 		//
-		// MSBADDR: 直接告诉了MSB的地址，比如:
-		// 172.17.0.1:33434 : DockerGW + MSBPort
-		// 172.17.0.16 : MSB IP Address
-		//
-		if MSBAddr != "" {
-			msRegURL := "http://" + MSBAddr + "/msb/service"
-			klog.D("msRegURL: %s", msRegURL)
-			for {
-				msDataReader.Seek(io.SeekStart, 0)
-				if !doReg(msRegURL, msDataReader) {
-					break
-				}
-				time.Sleep(waitOK)
-			}
-		}
-
-		//
-		// MSBPort: MSBADDR的方式失败，DockerGW+MSBPort
+		// MSBPort: DockerGW+MSBPort
 		//
 		if DockerGW != "" && MSBPort != "" {
 			msRegURL := "http://" + DockerGW + ":" + MSBPort + "/msb/service"

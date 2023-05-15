@@ -27,8 +27,61 @@ def dockerGateway():
     cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
 
-def dockerRun(imageName, msbName, msbPort, msbAddr, backrun, append):
-    container = imageName + "." + msbName
+def findMSB(*args):
+    cmd = ["sudo", "docker", "ps", "-aq", "--filter", "ancestor=msb"]
+    for i in range(int(len(args)/2)):
+        cmd.append("--filter")
+        cmd.append("%s=%s" % (args[2*i], args[2*i+1]))
+    x = saferun(cmd)
+    print(x)
+    return x
+
+def dockerRun(imageName, msbName, msbPort, backrun, append):
+    if not imageName:
+        return
+    if not msbName and not msbPort:
+        return
+
+    gw = dockerGateway()
+
+    #
+    # 检查MSB是否存在，如果不存在，就启动一个
+    #
+    msbRun = ["sudo", "docker", "run", "--restart=always", "-it", "-d"]
+
+    if msbName and msbPort:
+        # msbName = "msb.auv", msbPort = "7788"
+        x = findMSB("name", msbName, "publish", msbPort)
+        if not x:
+            msbRun.extend(["--name", msbName, "-p", "%s:80" % msbPort])
+            msbRun.append("msb")
+
+    if not msbName and msbPort:
+        # msbName = "", msbPort = "7788" => msbName = "msb.7788"
+        x = findMSB("publish", msbPort)
+        if not x:
+            msbRun.extend(["-p", "%s:80" % msbPort])
+            msbRun.append("msb")
+
+    if msbName and not msbPort:
+        # msbName = "msb.auv", msbPort = "" => msbName = "msb.auv"
+        x = findMSB("name", msbName)
+        if not x:
+            msbRun.extend(["--name", msbName, "-p", ":80"])
+            msbRun.append("msb")
+
+    if len(msbRun) > 6:
+        saferun(msbRun)
+
+    #
+    # 开始启动服务
+    #
+
+    if msbName:
+        container = imageName + "." + msbName
+    else:
+        container = imageName + ".msb." + msbPort
+
     if append:
         index = 0
         tmpName = container
@@ -63,8 +116,7 @@ def dockerRun(imageName, msbName, msbPort, msbAddr, backrun, append):
         cmd.extend(["-d"])
     cmd.extend(["-e", "MSBPORT=%s" % msbPort])
     cmd.extend(["-e", "MSBNAME=%s" % msbName])
-    cmd.extend(["-e", "MSBADDR=%s" % msbAddr])
-    cmd.extend(["-e", "DOCKER_GATEWAY=%s" % dockerGateway()])
+    cmd.extend(["-e", "DOCKER_GATEWAY=%s" % gw])
 
     volumeMap = volumeGet(imageName)
     if volumeMap and volumeMap[0] != "<":
@@ -90,7 +142,7 @@ def killContainer(imageName, msbName, killFirst, killLast):
 
 def main():
     if len(sys.argv) == 1 or "--help" in sys.argv:
-        print("fwr.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=] [--msbPort=] [--msbAddr=] imageNames ...")
+        print("fwr.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=] [--msbPort=] imageNames ...")
         return
 
     #
@@ -102,9 +154,6 @@ def main():
             continue
         if name.startswith("--msbPort="):
             msbPort = name[10:]
-            continue
-        if name.startswith("--msbAddr="):
-            msbAddr = name[10:]
             continue
 
     backrun = "-b" in sys.argv
@@ -139,7 +188,7 @@ def main():
             break
 
     for imageName in imageNames:
-        dockerRun(imageName, msbName, msbPort, msbAddr, backrun, append)
+        dockerRun(imageName, msbName, msbPort, backrun, append)
 
 if __name__ == "__main__":
     print("--- %s ---" % time.asctime(), file=f)
