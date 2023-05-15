@@ -4,8 +4,9 @@ import subprocess
 import os
 import sys
 import shlex
+import time
 
-f = open("/tmp/mscontainer.log", "w+")
+f = open("/tmp/fwr.log", "a+")
 
 def saferun(cmd, debug=True):
     try:
@@ -89,9 +90,7 @@ def killContainer(imageName, msbName, killFirst, killLast):
 
 def main():
     if len(sys.argv) == 1 or "--help" in sys.argv:
-        print("Directly run msa services from the image.")
-        print("It fetch the MSB's IPAddress and set to the container")
-        print("Usage: mscontainer.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=msbName] imageNames ...")
+        print("fwr.py [-k:s:e=kill] [-b=backrun] [-a=append] [--msbName=] [--msbPort=] [--msbAddr=] imageNames ...")
         return
 
     #
@@ -106,10 +105,6 @@ def main():
             continue
         if name.startswith("--msbAddr="):
             msbAddr = name[10:]
-            continue
-
-        if name.startswith("--msbPort="):
-            msbPort = name[10:]
             continue
 
     backrun = "-b" in sys.argv
@@ -147,6 +142,7 @@ def main():
         dockerRun(imageName, msbName, msbPort, msbAddr, backrun, append)
 
 if __name__ == "__main__":
+    print("--- %s ---" % time.asctime(), file=f)
     print(sys.argv, file=f)
     main()
 
