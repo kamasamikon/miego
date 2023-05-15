@@ -15,7 +15,7 @@ import (
 )
 
 // Default :Only and default Engine
-var Default *gin.Engine
+var _Default *gin.Engine
 
 // XXX: Copied from gin/examples/graceful-shutdown/...
 func gracefulRun(Engine *gin.Engine, addr string) {
@@ -46,14 +46,13 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 	fmt.Println("Server exiting")
 }
 
-// Go :Default listening on localhost:8888
 func Go(Engine *gin.Engine, addr string) {
-	if Engine == nil {
-		Engine = Default
-	}
-
 	if conf.Int(1, "i:/gin/releaseMode") == 1 {
 		gin.SetMode(gin.ReleaseMode)
+	}
+
+	if Engine == nil {
+		Engine = gin.Default()
 	}
 
 	for i, x := range Engine.Routes() {
@@ -70,9 +69,9 @@ func Go(Engine *gin.Engine, addr string) {
 	gracefulRun(Engine, addr)
 }
 
-//
-// Init
-//
-func init() {
-	Default = gin.Default()
+func Default() *gin.Engine {
+	if _Default == nil {
+		_Default = gin.Default()
+	}
+	return _Default
 }
