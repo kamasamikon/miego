@@ -52,7 +52,7 @@ func Go(Engine *gin.Engine, addr string) {
 	}
 
 	if Engine == nil {
-		Engine = gin.Default()
+		Engine = Default()
 	}
 
 	for i, x := range Engine.Routes() {

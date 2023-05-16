@@ -137,25 +137,25 @@ func doReg(msRegURL string, msDataReader io.Reader) bool {
 }
 
 func GetParam(argPrefix string, envName string, cfgName string) string {
-	klog.D("argPrefix:'%s' envName:'%s' cfgName:'%s'", argPrefix, envName, cfgName)
+	// klog.D("argPrefix:'%s' envName:'%s' cfgName:'%s'", argPrefix, envName, cfgName)
 	if argPrefix != "" {
 		for _, argv := range os.Args {
 			if strings.HasPrefix(argv, argPrefix) {
 				x := argv[len(argPrefix):]
-				klog.D("arg: %s", x)
+				// klog.D("arg: %s", x)
 				return x
 			}
 		}
 	}
 	if envName != "" {
 		if x := os.Getenv(envName); x != "" {
-			klog.D("env: %s", x)
+			// klog.D("env: %s", x)
 			return x
 		}
 	}
 	if cfgName != "" {
 		x := conf.Str("", cfgName)
-		klog.D("cfg: %s", x)
+		// klog.D("cfg: %s", x)
 		return x
 	}
 	return ""

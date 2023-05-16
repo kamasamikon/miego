@@ -33,7 +33,6 @@ def findMSB(*args):
         cmd.append("--filter")
         cmd.append("%s=%s" % (args[2*i], args[2*i+1]))
     x = saferun(cmd)
-    print(x)
     return x
 
 def dockerRun(imageName, msbName, msbPort, backrun, append):
