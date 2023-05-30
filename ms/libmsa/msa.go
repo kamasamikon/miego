@@ -136,40 +136,35 @@ func doReg(msRegURL string, msDataReader io.Reader) bool {
 	return ok
 }
 
-func GetParam(argPrefix string, envName string, cfgName string) string {
-	// klog.D("argPrefix:'%s' envName:'%s' cfgName:'%s'", argPrefix, envName, cfgName)
+func getParam(argPrefix string, envName string, cfgName string) string {
 	if argPrefix != "" {
 		for _, argv := range os.Args {
 			if strings.HasPrefix(argv, argPrefix) {
 				x := argv[len(argPrefix):]
-				// klog.D("arg: %s", x)
 				return x
 			}
 		}
 	}
 	if envName != "" {
 		if x := os.Getenv(envName); x != "" {
-			// klog.D("env: %s", x)
 			return x
 		}
 	}
 	if cfgName != "" {
 		x := conf.Str("", cfgName)
-		// klog.D("cfg: %s", x)
 		return x
 	}
 	return ""
 }
 
 // commandLine > env > configure
-//
 func RegisterLoop() {
 	for {
-		DockerGW := GetParam("--dockerGW=", "DOCKER_GATEWAY", "s:/msb/dockerGW")
-		MSBName := GetParam("--msbName=", "MSBNAME", "s:/msb/name")
-		MSBPort := GetParam("--msbPort=", "MSBPORT", "s:/msb/port")
+		DockerGW := getParam("--dockerGW=", "DOCKER_GATEWAY", "s:/msb/dockerGW")
+		MSBName := getParam("--msbName=", "MSBNAME", "s:/msb/name")
+		MSBPort := getParam("--msbPort=", "MSBPORT", "s:/msb/port")
 
-		DockerHelperPort := GetParam("--dockerHelperPort=", "DOCKERHELPERPORT", "s:/dockerhelper/port")
+		DockerHelperPort := getParam("--dockerHelperPort=", "DOCKERHELPERPORT", "s:/dockerhelper/port")
 
 		// Loop
 		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
@@ -229,6 +224,7 @@ func RegisterLoop() {
 					if payload, err := ioutil.ReadAll(resp.Body); err == nil {
 						var dict map[string]interface{}
 						if err := json.Unmarshal(payload, &dict); err == nil {
+							klog.Dump(dict)
 							IPAddress := dict["Data"].(map[string]interface{})["IPAddress"].(string)
 							msRegURL = "http://" + IPAddress + "/msb/service"
 						}

@@ -77,7 +77,8 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
     #
 
     if msbName:
-        container = imageName + "." + msbName
+        postfix = (msbName + ".msb").split(".")[-2]
+        container = imageName + "." + postfix
     else:
         container = imageName + ".msb." + msbPort
 
@@ -125,7 +126,8 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
     return saferun(cmd)
 
 def killContainer(imageName, msbName, killFirst, killLast):
-    container = imageName + "." + msbName
+    postfix = (msbName + ".msb").split(".")[-2]
+    container = imageName + "." + postfix
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 

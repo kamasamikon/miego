@@ -80,7 +80,7 @@ func Export(c *gin.Context, doQuery func(xmap.Map) []xmap.Map, columns []string)
 	records := doQuery(mp)
 
 	// 生成临时文件
-	temp, err := ioutil.TempFile("/tmp", "rbvision")
+	temp, err := os.CreateTemp(".", "rbvision")
 	if err != nil {
 		klog.E(err.Error())
 		c.Redirect(200, "/")
