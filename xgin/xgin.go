@@ -71,7 +71,9 @@ func Go(Engine *gin.Engine, addr string) {
 
 func Default() *gin.Engine {
 	if _Default == nil {
-		_Default = gin.Default()
+		_Default = gin.New()
+		_Default.Use(gin.Logger())
+		_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
 	}
 	return _Default
 }

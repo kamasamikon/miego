@@ -214,7 +214,8 @@ func nginxReload() {
 	}
 }
 
-// 如果发生变化，说明有ms实例的变化
+// 如果发生变化，说明有ms实例的变化，就是这个期间，有别的服务发生了增减变化
+// 这个变化包括，服务A从一个实例变成两个实例。
 func msSnapShot() string {
 	if msSnapShotString == "" {
 		var keyList []string
