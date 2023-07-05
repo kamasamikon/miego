@@ -113,35 +113,34 @@ func NG(c *gin.Context, Code int, Error int, Message interface{}) {
 
 // 格式错误：带了这个参数，但格式是错的，比如手机号，写成了12345
 func NG_Para_BadFormat(c *gin.Context, Param string) {
-	Full(c, 200, E_Para_BadFormat, Param, nil)
+	Full(c, 200, E_Para_BadFormat, "E_Para_BadFormat", Param)
 }
 
 // 没有找到：参数里有，但系统里没有找到，这个和参数错误区分不开，因为参数错误也导致目标对象找不到
 func NG_Para_NotFound(c *gin.Context, Param string) {
-	Full(c, 200, E_Para_NotFound, Param, nil)
+	Full(c, 200, E_Para_NotFound, "E_Para_NotFound", Param)
 }
 
 // 不能为空：参数里有，但是空的
 func NG_Para_Empty(c *gin.Context, Param string) {
-	Full(c, 200, E_Para_Empty, Param, nil)
+	Full(c, 200, E_Para_Empty, "E_Para_Empty", Param)
 }
 
 // 没有设置：参数里要求有，但没有
 func NG_Para_NotExists(c *gin.Context, Param string) {
-	Full(c, 200, E_Para_NotExists, Param, nil)
+	Full(c, 200, E_Para_NotExists, "E_Para_NotExists", Param)
 }
 
 // 匹配错误：一个参数和另外一个参数有匹配的规则
 func NG_Para_BadMatch(c *gin.Context, Param string) {
-	Full(c, 200, E_Para_BadMatch, Param, nil)
+	Full(c, 200, E_Para_BadMatch, "E_Para_BadMatch", Param)
 }
 
 // 参数错误：有，但是是错的，这个错都不确定了
 func NG_Para_Error(c *gin.Context, Param string) {
-	Full(c, 200, E_Para_Error, Param, nil)
+	Full(c, 200, E_Para_Error, "E_Para_Error", Param)
 }
 
-//
 // Environment/Context 上下文的错误，比如环境变量，比如会话
 //
 // Param: Param里是参数的名字或者索引
@@ -182,10 +181,10 @@ func NG_Error(c *gin.Context, Param string) {
 
 // 未登录：请重新登录
 func NG_Perm_NotLogin(c *gin.Context) {
-	Full(c, 200, E_Perm_NotLogin, "", nil)
+	Full(c, 200, E_Perm_NotLogin, "E_Perm_NotLogin", "")
 }
 
 // 未授权：比如所在的组不对等。Role = 组，Orgn = 所在机构，Oper = 后台账户
 func NG_Perm_NotAllow(c *gin.Context, Role string) {
-	Full(c, 200, E_Perm_NotAllow, Role, nil)
+	Full(c, 200, E_Perm_NotAllow, "E_Perm_NotAllow", Role)
 }
