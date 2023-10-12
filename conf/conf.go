@@ -1,6 +1,7 @@
 package conf
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -401,11 +402,18 @@ func Ready() {
 	Set(PathReady, "", true)
 }
 
+//go:embed main.cfg
+var main_cfg string
+
 func init() {
 	//
 	// Some builtin entries
 	//
 	EntryAdd(PathReady, false)
+	LoadString(main_cfg, false)
+
+	LoadFromEnv()
+	LoadFromArg() // 命令行优先级比环境变量更高
 }
 
 func LoadFromEnv() {
@@ -463,8 +471,5 @@ func LoadFromArg() {
 
 // Last to call
 func Go() {
-	LoadFromEnv()
-	LoadFromArg() // 命令行优先级比环境变量更高
-
 	Ready()
 }

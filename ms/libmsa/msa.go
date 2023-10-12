@@ -32,6 +32,12 @@ var HTTPTransport = &http.Transport{
 	MaxIdleConnsPerHost:   100,              // 每个host保持的空闲连接数
 }
 
+var msRegURL string
+
+func GetRegURL() string {
+	return msRegURL
+}
+
 func HostNameGet() string {
 	if dat, err := ioutil.ReadFile("/etc/hostname"); err != nil {
 		return "N/A"
@@ -193,8 +199,9 @@ func RegisterLoop() {
 		//
 		// MSBPort: DockerGW+MSBPort
 		//
+		msRegURL = ""
 		if DockerGW != "" && MSBPort != "" {
-			msRegURL := "http://" + DockerGW + ":" + MSBPort + "/msb/service"
+			msRegURL = "http://" + DockerGW + ":" + MSBPort + "/msb/service"
 			klog.D("msRegURL: %s", msRegURL)
 			for {
 				msDataReader.Seek(io.SeekStart, 0)
@@ -208,9 +215,8 @@ func RegisterLoop() {
 		//
 		// MSBName: 通过dockerhelper
 		//
+		msRegURL = ""
 		if DockerGW != "" && MSBName != "" {
-			var msRegURL string
-
 			if DockerHelperPort == "" {
 				DockerHelperPort = "11111"
 			}
