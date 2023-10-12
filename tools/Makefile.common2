@@ -37,7 +37,7 @@ endef
 #
 export bPWD = $(notdir $(shell pwd))
 export bVER = $(shell git log -n 1 | head -1 | awk '{ print $$2 }')
-export bNOW = $(shell date)
+export bNOW = $(shell date '+%Y/%m/%d %H:%M:%S')
 export bCLR = $(shell git status -uno -s | wc -l)
 
 
