@@ -4,7 +4,7 @@
 # HELP
 #
 # dpc = deploy configuration
-# svc = service configuration
+# cfg = service configuration
 #
 
 #
@@ -13,8 +13,9 @@
 -include ${dpc}
 
 fake:
-	@echo "Interesting..."
-
+	@echo "make dpc=xxx.dpc cfg=xxx.cfg build|pack|save|deploy"
+	@echo "dpc = deploy configuration"
+	@echo "cfg = service configuration"
 
 #
 # color print
@@ -31,7 +32,6 @@ define cpe
 	$(call crp,"\<\<\< $(1)... DONE!")
 endef
 
-
 #
 # Environment for Build info
 #
@@ -39,7 +39,6 @@ export bPWD = $(notdir $(shell pwd))
 export bVER = $(shell git log -n 1 | head -1 | awk '{ print $$2 }')
 export bNOW = $(shell date '+%Y/%m/%d %H:%M:%S')
 export bCLR = $(shell git status -uno -s | wc -l)
-
 
 # Error Environment
 enve.%:
@@ -63,7 +62,7 @@ envww.%:
 #
 # 准备配置文件，并写入main.cfg
 #
-buildPrepare: enve.svc
+buildPrepare: enve.cfg
 	$(call cps, "build prepare")
 	@rm -f main.cfg
 	@echo "###" >> main.cfg
@@ -80,20 +79,18 @@ buildPrepare: enve.svc
 	@echo "s:/build/updated=${bCLR}" >> main.cfg
 	@echo "" >> main.cfg
 	@echo "###" >> main.cfg
-	@echo "### ${svc} ###" >> main.cfg
+	@echo "### ${cfg} ###" >> main.cfg
 	@echo "###" >> main.cfg
-	@cat ${svc} >> main.cfg
+	@cat ${cfg} >> main.cfg
 	$(call cpe, "build prepare")
-
 
 #
 # 调用工程自己的编译目标
 #
-build: buildPrepare 
+build: buildPrepare
 	$(call cps, "build")
 	@$(MAKE) userBuild
 	$(call cpe, "build")
-
 
 #
 # 使用用户自己的Dockerfile制作容器的镜像
@@ -102,7 +99,6 @@ pack: build
 	$(call cps, "docker build")
 	sudo docker build --no-cache -f Dockerfile -t ${msName} .
 	$(call cpe, "docker build")
-
 
 #
 # 把生成的容器导出为本地的压缩文件
@@ -114,13 +110,12 @@ save: pack
 	sudo chmod a+rwx one.tar.gz
 	$(call cpe, "docker save")
 
-
 #
 # 把生成的容器导出为本地的压缩文件
 #
 deploy: enve.dpc envw.dockerRunPara enve.msName envw.msbPort envw.msbName enve.rmtAddr enve.rmtPort enve.rmtUser save
 	$(call cps, "deploy to ${rmtAddr}")
-	scp -P${rmtPort} one.tar.gz ${rmtUser}@${rmtAddr}:/tmp; 
+	scp -P${rmtPort} one.tar.gz ${rmtUser}@${rmtAddr}:/tmp;
 	ssh ${rmtUser}@${rmtAddr} -p${rmtPort} \
 		" \
 		tar xvf /tmp/one.tar.gz -C /tmp; \
@@ -129,10 +124,8 @@ deploy: enve.dpc envw.dockerRunPara enve.msName envw.msbPort envw.msbName enve.r
 		"
 	$(call cpe, "deploy to ${rmtAddr}")
 
-
 vet:
 	@go vet
-
 
 clean:
 	$(call cps, "Cleanup")
