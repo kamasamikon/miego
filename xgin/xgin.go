@@ -36,18 +36,17 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT)
 	<-quit
-	fmt.Println("Shutdown Server ...")
+	fmt.Println("Server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		fmt.Println("Server Shutdown:", err)
+		fmt.Println("Server Shutdown Error: ", err)
 	}
-	fmt.Println("Server exiting")
 }
 
 func Go(Engine *gin.Engine, addr string) {
-	if conf.Int(1, "i:/gin/releaseMode") == 1 {
+	if conf.Bool(true, "b:/gin/releaseMode") == true {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -71,9 +70,18 @@ func Go(Engine *gin.Engine, addr string) {
 
 func Default() *gin.Engine {
 	if _Default == nil {
+		if conf.Bool(true, "b:/gin/releaseMode") == true {
+			gin.SetMode(gin.ReleaseMode)
+		}
+
 		_Default = gin.New()
-		_Default.Use(gin.Logger())
-		_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
+
+		if conf.Bool(true, "b:/gin/Logger/enable") == true {
+			_Default.Use(gin.Logger())
+		}
+		if conf.Bool(true, "b:/gin/Recovery/enable") == true {
+			_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
+		}
 	}
 	return _Default
 }
