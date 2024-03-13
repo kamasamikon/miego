@@ -1,8 +1,9 @@
 package klogin
 
 import (
+	"miego/xmap"
+
 	"github.com/gin-gonic/gin"
-	"github.com/kamasamikon/miego/xmap"
 )
 
 // 从请求中获取Login需要的字段

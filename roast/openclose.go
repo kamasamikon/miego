@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/klog"
+	"miego/conf"
+	"miego/klog"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"

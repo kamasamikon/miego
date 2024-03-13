@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kamasamikon/miego/xmap"
+	"miego/xmap"
 
 	"github.com/jinzhu/gorm"
 )

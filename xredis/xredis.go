@@ -3,8 +3,8 @@ package xredis
 import (
 	"github.com/go-redis/redis"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/klog"
+	"miego/conf"
+	"miego/klog"
 )
 
 func Client(Addr string, Pass string, DB int) *redis.Client {

@@ -3,7 +3,7 @@ package sd
 import (
 	"fmt"
 
-	"github.com/kamasamikon/miego/otot"
+	"miego/otot"
 )
 
 //
@@ -23,9 +23,11 @@ type SD struct {
 // b64 - Gen()生成的HTML编码成Base64，否则直接输出HTML。
 //
 // ss = sd.New(true, 1)
-// for _, s := range arr {
-// 		ss.Add(OrgnName, "HospitalName", OrgnName, "HospitalID", OrgnID)
-// }
+//
+//	for _, s := range arr {
+//			ss.Add(OrgnName, "HospitalName", OrgnName, "HospitalID", OrgnID)
+//	}
+//
 // bt = fmt.Sprintf(`<div onclick="sdPopupLocal(this)" data-sd="%s">{{ HospitalName }}</div>`, ss.Gen())
 // ft.AddOne(bt)
 func New(col int, id string, class string) *SD {

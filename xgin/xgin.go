@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/kamasamikon/miego/conf"
+	"miego/conf"
 )
 
 // Default :Only and default Engine

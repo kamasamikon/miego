@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"miego/atox"
+
 	"github.com/fatih/structs"
-	"github.com/kamasamikon/miego/atox"
 )
 
 func Convert(key string, val string, obj interface{}) string {

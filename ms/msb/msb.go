@@ -13,11 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/klog"
+	"miego/conf"
+	"miego/klog"
 
-	mscommon "github.com/kamasamikon/miego/ms/common"
+	"github.com/gin-gonic/gin"
+
+	mscommon "miego/ms/common"
 )
 
 // KService : Micro Service definition
@@ -97,7 +98,7 @@ func msRem(serviceName string, version string, ipAddr string, port int) bool {
 	return false
 }
 
-/////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////
 // Refresh
 func RefreshLoop() {
 	for {

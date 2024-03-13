@@ -3,8 +3,9 @@ package wc
 import (
 	"os"
 
+	"miego/klog"
+
 	"github.com/fsnotify/fsnotify"
-	"github.com/kamasamikon/miego/klog"
 )
 
 type HandlerFunc func(path string, event string)

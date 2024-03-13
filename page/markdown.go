@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kamasamikon/miego/conf"
+	"miego/conf"
 )
 
 var mdTempl = `

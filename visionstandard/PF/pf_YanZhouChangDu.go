@@ -3,10 +3,9 @@ package pf
 import (
 	"fmt"
 
-	"github.com/kamasamikon/miego/atox"
+	"miego/atox"
 )
 
-//
 // YanZhouChangDu
 //
 // K: "%s_%01f" % (Gender, fAge)

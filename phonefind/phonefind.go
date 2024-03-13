@@ -7,7 +7,7 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/kamasamikon/miego/conf"
+	"miego/conf"
 )
 
 const (

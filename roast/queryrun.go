@@ -1,11 +1,11 @@
 package roast
 
 import (
-	"github.com/kamasamikon/miego/atox"
-	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/mc"
-	"github.com/kamasamikon/miego/wxcard"
-	"github.com/kamasamikon/miego/xmap"
+	"miego/atox"
+	"miego/klog"
+	"miego/mc"
+	"miego/wxcard"
+	"miego/xmap"
 
 	"database/sql"
 

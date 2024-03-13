@@ -3,10 +3,10 @@ package wxcard
 import (
 	"encoding/json"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/httpdo"
-	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/wxcorp"
+	"miego/conf"
+	"miego/httpdo"
+	"miego/klog"
+	"miego/wxcorp"
 )
 
 type WXCard struct {

@@ -1,7 +1,7 @@
 package roast
 
 import (
-	"github.com/kamasamikon/miego/conf"
+	"miego/conf"
 )
 
 var Conf struct {

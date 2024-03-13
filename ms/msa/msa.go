@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	libmsa "github.com/kamasamikon/miego/ms/libmsa"
+	libmsa "miego/ms/libmsa"
 )
 
 func main() {

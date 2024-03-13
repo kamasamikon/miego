@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kamasamikon/miego/klog"
+	"miego/klog"
 )
 
 type context struct {

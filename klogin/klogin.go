@@ -10,10 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/securecookie"
 
-	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/pong"
-	"github.com/kamasamikon/miego/xgin"
-	"github.com/kamasamikon/miego/xmap"
+	"miego/klog"
+	"miego/pong"
+	"miego/xgin"
+	"miego/xmap"
 )
 
 var redisStore redis.Store

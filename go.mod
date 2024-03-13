@@ -1,4 +1,4 @@
-module github.com/kamasamikon/miego
+module miego
 
 go 1.17
 

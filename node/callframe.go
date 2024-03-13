@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"github.com/kamasamikon/miego/klog"
+	"miego/klog"
 	"time"
 )
 

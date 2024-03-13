@@ -3,8 +3,8 @@ package vuepage
 import (
 	"fmt"
 
-	"github.com/kamasamikon/miego/otot"
-	"github.com/kamasamikon/miego/sd"
+	"miego/otot"
+	"miego/sd"
 )
 
 //

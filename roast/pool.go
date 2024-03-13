@@ -1,7 +1,7 @@
 package roast
 
 import (
-	"github.com/kamasamikon/miego/klog"
+	"miego/klog"
 
 	"database/sql"
 

@@ -8,8 +8,9 @@ import (
 	"runtime"
 	"strings"
 
+	"miego/klog"
+
 	"github.com/gin-gonic/gin"
-	"github.com/kamasamikon/miego/klog"
 )
 
 var (

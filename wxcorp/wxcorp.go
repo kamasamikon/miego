@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/httpdo"
-	"github.com/kamasamikon/miego/klog"
+	"miego/conf"
+	"miego/httpdo"
+	"miego/klog"
 )
 
 type KPong_GetToken struct {

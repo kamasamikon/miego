@@ -5,10 +5,11 @@ import (
 	"sort"
 	"strings"
 
+	"miego/in"
+	"miego/xmap"
+	"miego/xtime"
+
 	"github.com/davecgh/go-spew/spew"
-	"github.com/kamasamikon/miego/in"
-	"github.com/kamasamikon/miego/xmap"
-	"github.com/kamasamikon/miego/xtime"
 )
 
 // GE, GT, LE, LT, EQ, NE,

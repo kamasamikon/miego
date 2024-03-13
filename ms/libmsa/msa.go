@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/klog"
-	mscommon "github.com/kamasamikon/miego/ms/common"
+	"miego/conf"
+	"miego/klog"
+	mscommon "miego/ms/common"
 )
 
 const (

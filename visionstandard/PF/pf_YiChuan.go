@@ -1,10 +1,9 @@
 package pf
 
 import (
-	"github.com/kamasamikon/miego/atox"
+	"miego/atox"
 )
 
-//
 // YiChuan
 //
 // < 10 = 偏低

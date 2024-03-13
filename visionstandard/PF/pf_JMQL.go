@@ -1,10 +1,9 @@
 package pf
 
 import (
-	"github.com/kamasamikon/miego/atox"
+	"miego/atox"
 )
 
-//
 // JMQL
 //
 // 理想 = 100

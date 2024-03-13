@@ -5,8 +5,9 @@ package bf
 import (
 	"fmt"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/klog"
+	"miego/conf"
+	"miego/klog"
+
 	"gopkg.in/mgo.v2"
 )
 

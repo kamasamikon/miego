@@ -3,9 +3,9 @@ package msgcard
 import (
 	"encoding/json"
 
-	"github.com/kamasamikon/miego/conf"
-	"github.com/kamasamikon/miego/httpdo"
-	"github.com/kamasamikon/miego/klog"
+	"miego/conf"
+	"miego/httpdo"
+	"miego/klog"
 )
 
 type MsgCard struct {

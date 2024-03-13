@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/kamasamikon/miego/xmap"
+	"miego/xmap"
 )
 
 type KNode struct {

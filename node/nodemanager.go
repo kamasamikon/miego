@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kamasamikon/miego/klog"
+	"miego/klog"
 )
 
 type KNodeManager struct {

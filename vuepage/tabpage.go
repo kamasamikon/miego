@@ -1,7 +1,7 @@
 package vuepage
 
 import (
-	"github.com/kamasamikon/miego/xmap"
+	"miego/xmap"
 )
 
 type TabPage struct {

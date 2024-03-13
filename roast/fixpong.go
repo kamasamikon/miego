@@ -1,7 +1,7 @@
 package roast
 
 import (
-	"github.com/kamasamikon/miego/xmap"
+	"miego/xmap"
 )
 
 func FixPongs(pongs []xmap.Map, offset uint, allCount int) {

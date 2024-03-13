@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tealeg/xlsx"
 
-	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/xmap"
+	"miego/klog"
+	"miego/xmap"
 )
 
 // Save *records to *path with *columns define

@@ -3,8 +3,8 @@ package pf
 import (
 	"fmt"
 
-	"github.com/kamasamikon/miego/atox"
-	"github.com/kamasamikon/miego/klog"
+	"miego/atox"
+	"miego/klog"
 )
 
 func To5X(i string) string {
@@ -754,9 +754,7 @@ func YanZhouChangDu(Gender string, fAge float32, vStr string) int {
 	*/
 }
 
-//
 // 评分折线，由多个分数的点串起来的折线。（最好是曲线，但不知道怎么实现好）
-//
 type ScoreItem struct {
 	Start float64
 	Score float64

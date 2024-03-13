@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kamasamikon/miego/xmap"
-	"github.com/kamasamikon/miego/xtime"
-	"github.com/kamasamikon/miego/xvx/nvn"
+	"miego/xmap"
+	"miego/xtime"
+	"miego/xvx/nvn"
 )
 
 func Str__Time(mp xmap.Map, field string) {
@@ -17,7 +17,7 @@ func Str__Nvn(mp xmap.Map, field string, nvnClass string) {
 	mp.Put(field+"__Str", nvn.S(mp.S(field), nvnClass))
 }
 
-/////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////
 // For Query:
 // 1. PageSize: default to 10
 // 2. ID: clear RemAt

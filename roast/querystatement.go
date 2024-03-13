@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/xmap"
+	"miego/klog"
+	"miego/xmap"
 )
 
 const (

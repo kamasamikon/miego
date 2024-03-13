@@ -3,13 +3,11 @@ package verifycode
 import (
 	"time"
 
-	"github.com/kamasamikon/miego/klog"
-	"github.com/kamasamikon/miego/xrand"
+	"miego/klog"
+	"miego/xrand"
 )
 
-//
 // Verification Code
-//
 type VCodeItem struct {
 	Code    string
 	DueTime int64

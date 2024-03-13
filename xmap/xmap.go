@@ -8,19 +8,13 @@ import (
 	"strconv"
 	"strings"
 
+	"miego/klog"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
-	"github.com/kamasamikon/miego/klog"
 )
 
 type Map map[string]interface{}
-
-func First(mpArr []Map) Map {
-	if mpArr == nil {
-		return nil
-	}
-	return mpArr[0]
-}
 
 func Nth(mpArr []Map, n int) Map {
 	size := len(mpArr)
@@ -218,7 +212,7 @@ func (xm Map) Dup(names ...string) {
 }
 
 // names = [fromName, toName, fromName, toName, ...]
-func (xm Map) DupSafe(names ...string) {
+func (xm Map) SafeDup(names ...string) {
 	for i := 0; i < len(names)/2; i++ {
 		frName := names[2*i]
 		if frValue, ok := xm[frName]; ok {
@@ -230,7 +224,7 @@ func (xm Map) DupSafe(names ...string) {
 	}
 }
 
-func (xm Map) Del(names ...string) {
+func (xm Map) Rem(names ...string) {
 	for _, name := range names {
 		delete(xm, name)
 	}

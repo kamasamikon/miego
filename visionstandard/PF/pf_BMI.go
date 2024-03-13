@@ -3,11 +3,10 @@ package pf
 import (
 	"fmt"
 
-	"github.com/kamasamikon/miego/atox"
-	"github.com/kamasamikon/miego/klog"
+	"miego/atox"
+	"miego/klog"
 )
 
-//
 // BMI
 //
 // K: "%s_%01f" % (Gender, fAge)

@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/kamasamikon/miego/xmap"
+	"miego/xmap"
 )
 
 // Last : Get the latest row
