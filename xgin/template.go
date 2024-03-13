@@ -15,6 +15,17 @@ func ToJS(x string) interface{} {
 func ToCSS(x string) interface{} {
 	return template.CSS(x)
 }
+func ToAttr(s string) template.HTMLAttr {
+	return template.HTMLAttr(s)
+}
+
+// Add to number
+func NumAdd(a int, others ...int) int {
+	for _, x := range others {
+		a += x
+	}
+	return a
+}
 
 func SubStr(s string, beg int, end int) string {
 	slen := len(s) + 1
@@ -34,9 +45,6 @@ func Choice(a string, b string, eqstr string, nestr string) string {
 		return eqstr
 	}
 	return nestr
-}
-func ToAttr(s string) template.HTMLAttr {
-	return template.HTMLAttr(s)
 }
 
 // 返回obj[name]，如果不存在，返回defval
