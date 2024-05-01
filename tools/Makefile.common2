@@ -3,8 +3,8 @@
 #
 # HELP
 #
-# dpc = deploy configuration
-# cfg = service configuration
+# dpc = deploy configuration, for deploy exe to target host
+# mgc = run time configuration, used by miego/conf module
 #
 
 #
@@ -12,10 +12,26 @@
 #
 -include ${dpc}
 
+
 fake:
-	@echo "make dpc=xxx.dpc cfg=xxx.cfg build|pack|save|deploy"
-	@echo "dpc = deploy configuration"
-	@echo "cfg = service configuration"
+	@echo "make dpc=<target>.<profile>.dpc mgc=<target>.<profile>.mgc build|pack|save|deploy"
+	@echo "dpc = deploy"
+	@echo "mgc = miego/conf"
+	@echo "e.g: dpc=localhost.debug.dpc"
+	@echo "e.g: mgc=2_37_129_56.issue037.mgc"
+
+init:
+	@echo "init local.demo.dpc"
+	@echo "rmtAddr=127.0.0.1" > local.demo.dpc
+	@echo "rmtPort=22" >> local.demo.dpc
+	@echo "rmtUser=auv" >> local.demo.dpc
+	@echo "msbPort=22222" >> local.demo.dpc
+	@echo "dockerRunPara=" >> local.demo.dpc
+	@echo
+	@echo "init local.demo.dpc"
+	@echo "b:/gin/Logger/enable=true" >> local.demo.mgc
+	@echo "b:/gin/Recovery/enable=true" >> local.demo.mgc
+	@echo "b:/gin/releaseMode=false" >> local.demo.mgc
 
 #
 # color print
@@ -60,28 +76,28 @@ envww.%:
 	fi
 
 #
-# 准备配置文件，并写入main.cfg
+# 准备配置文件，并写入main.mgc
 #
-buildPrepare: enve.cfg
+buildPrepare: enve.mgc
 	$(call cps, "build prepare")
-	@rm -f main.cfg
-	@echo "###" >> main.cfg
-	@echo "### MSA ###" >> main.cfg
-	@echo "###" >> main.cfg
-	@echo "s:/ms/name=${msName}" >> main.cfg
-	@echo "" >> main.cfg
-	@echo "###" >> main.cfg
-	@echo "### BUILD ###" >> main.cfg
-	@echo "###" >> main.cfg
-	@echo "s:/build/dirname=${bPWD}" >> main.cfg
-	@echo "s:/build/time=${bNOW}" >> main.cfg
-	@echo "s:/build/version=${bVER}" >> main.cfg
-	@echo "s:/build/updated=${bCLR}" >> main.cfg
-	@echo "" >> main.cfg
-	@echo "###" >> main.cfg
-	@echo "### ${cfg} ###" >> main.cfg
-	@echo "###" >> main.cfg
-	@cat ${cfg} >> main.cfg
+	@rm -f main.mgc
+	@echo "###" >> main.mgc
+	@echo "### MSA ###" >> main.mgc
+	@echo "###" >> main.mgc
+	@echo "s:/ms/name=${msName}" >> main.mgc
+	@echo "" >> main.mgc
+	@echo "###" >> main.mgc
+	@echo "### BUILD ###" >> main.mgc
+	@echo "###" >> main.mgc
+	@echo "s:/build/dirname=${bPWD}" >> main.mgc
+	@echo "s:/build/time=${bNOW}" >> main.mgc
+	@echo "s:/build/version=${bVER}" >> main.mgc
+	@echo "s:/build/updated=${bCLR}" >> main.mgc
+	@echo "" >> main.mgc
+	@echo "###" >> main.mgc
+	@echo "### ${mgc} ###" >> main.mgc
+	@echo "###" >> main.mgc
+	@cat ${mgc} >> main.mgc
 	$(call cpe, "build prepare")
 
 #

@@ -1,0 +1,13 @@
+msName=demo
+msVern=v1
+msPort=8888
+msDesc="例子"
+
+-include /usr/local/bin/Makefile.common2
+
+userBuild: 
+	rsync -av --delete ../templates/common templates
+	rsync -av --delete ../templates/edvue templates
+	rsync -av --delete ../templates/ssvue templates
+	GO111MODULE=off CGO_ENABLED=0 go build -o main -tags "nomsgpack" -ldflags "-w -s"
+	upx main
