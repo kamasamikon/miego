@@ -35,7 +35,12 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 	}
 
 	now := time.Now().Format("2006/01/02 15:04:05.000000")
-	fmt.Printf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s\n", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
+	s := []byte(fmt.Sprintf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s\n", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...)))
+
+	Writers := Conf.Writers
+	for _, w := range Writers {
+		w.Write(s)
+	}
 }
 
 // KLogLN : Log with CR
@@ -94,5 +99,10 @@ func KLog(dep int, shortPath bool, color string, class string, formating string,
 	}
 
 	now := time.Now().Format("2006/01/02 15:04:05.000000")
-	fmt.Printf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...))
+	s := []byte(fmt.Sprintf("%s|%s|S:%s|F:%s|H:%s|L:%d|%s %s", color, class, now, filename, funcname, line, cEnd, fmt.Sprintf(formating, args...)))
+
+	Writers := Conf.Writers
+	for _, w := range Writers {
+		w.Write(s)
+	}
 }

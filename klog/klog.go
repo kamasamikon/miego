@@ -2,6 +2,8 @@ package klog
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -22,6 +24,27 @@ var Conf struct {
 	ShortPath bool
 	NoColor   bool
 	Mute      bool
+	Writers   []io.Writer
+}
+
+// XXX 没有加保护
+func WriterAdd(args ...interface{}) {
+	for _, arg := range args {
+		if w, ok := arg.(string); ok {
+			switch w {
+			case "stdout":
+				Conf.Writers = append(Conf.Writers, os.Stdout)
+			case "stderr":
+				Conf.Writers = append(Conf.Writers, os.Stderr)
+			}
+			continue
+		}
+
+		if w, ok := arg.(io.Writer); ok {
+			Conf.Writers = append(Conf.Writers, w)
+			continue
+		}
+	}
 }
 
 // F :Fatal
@@ -78,6 +101,10 @@ func DD(depth int, formating string, args ...interface{}) {
 	KLogLN(depth, Conf.ShortPath, color, "D", formating, args...)
 }
 
+func Color(color string, formating string, args ...interface{}) string {
+	return "\033[0;" + color + "m" + fmt.Sprintf(formating, args...) + "\033[0m"
+}
+
 func Dump(obj interface{}, strPart ...interface{}) {
 	color := ColorType_D
 
@@ -105,4 +132,6 @@ func Dump(obj interface{}, strPart ...interface{}) {
 func init() {
 	spew.Config.Indent = "    "
 	Conf.Mute = false
+
+	WriterAdd("stdout")
 }
