@@ -76,7 +76,6 @@ func (wc *WatchChanges) Run() error {
 				}
 
 				if wc.onEverything != nil {
-					klog.Dump(event)
 					wc.onEverything(event.Name, "ALL")
 				}
 

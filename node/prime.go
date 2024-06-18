@@ -295,7 +295,6 @@ var nextNumberIndex uint
 // NamePrimeAdd
 func NpAdd(name string) uint {
 	if number, ok := mapNamePrime[name]; ok {
-		klog.D("NpAdd: %05d == '%s'\n", number, name)
 		return number
 	}
 	nextNumber := numbers[nextNumberIndex]
@@ -304,7 +303,6 @@ func NpAdd(name string) uint {
 	mapNamePrime[name] = nextNumber
 	mapPrimeName[nextNumber] = name
 
-	klog.D("NpAdd: %05d == '%s'", nextNumber, name)
 	return nextNumber
 }
 
@@ -312,7 +310,7 @@ func NpNum(name string) uint {
 	if number, ok := mapNamePrime[name]; ok {
 		return number
 	}
-	return 0
+	return NpAdd(name)
 }
 
 func NpStr(number uint) string {
@@ -323,7 +321,6 @@ func NpStr(number uint) string {
 }
 
 func NpDump() {
-	klog.D(">>> Prime Map >>>>>>>>>>>>>>")
 	var nlist []int
 	for number, _ := range mapPrimeName {
 		nlist = append(nlist, int(number))
@@ -333,7 +330,6 @@ func NpDump() {
 		name := mapPrimeName[uint(n)]
 		klog.D("%4d : %s", n, name)
 	}
-	klog.D("<<< Prime Map <<<<<<<<<<<<<<")
 }
 
 func init() {
