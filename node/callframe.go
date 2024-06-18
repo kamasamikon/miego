@@ -7,27 +7,21 @@ import (
 )
 
 type KCallFrame struct {
-	// caller: upper layer frame
-	// node: who process the data
-	// data: data returned by upstreamNode.Processor()
-	// dataFormat: uint
-	// DataID: GUID of the data if the data been saved to database.
-	// NewAt: Timestamp this frame created.
-	Caller     *KCallFrame
-	Node       *KNode
-	Data       []byte
-	DataFormat uint
-	Hint       uint
-	DataID     string
-	NewAt      int64
+	Caller     *KCallFrame // caller: upper layer frame
+	Node       *KNode      // node: who process the data
+	Data       []byte      // data: data returned by upstreamNode.Processor()
+	DataFormat uint        // datafmt: uint
+	Hint       uint        // XXX
+	DataID     string      // DataID: GUID of the data if the data been saved to database.
+	NewAt      int64       // NewAt: Timestamp this frame created.
 }
 
-func NewCallFrame(caller *KCallFrame, thisNode *KNode, data []byte, dataFormat uint, hint uint) *KCallFrame {
+func NewCallFrame(caller *KCallFrame, this *KNode, data []byte, datafmt uint, hint uint) *KCallFrame {
 	f := &KCallFrame{
 		Caller:     caller,
-		Node:       thisNode,
+		Node:       this,
 		Data:       data,
-		DataFormat: dataFormat,
+		DataFormat: datafmt,
 		Hint:       hint,
 		DataID:     "TODO: Id of DB?",
 		NewAt:      time.Now().UnixNano(),

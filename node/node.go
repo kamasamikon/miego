@@ -23,12 +23,12 @@ type KNode struct {
 
 	// Processor will process the given data, and return the result
 	// If no data generated, set output to nil.
-	// Processor func(f *KCallFrame) (output []byte, dataFormat uint, dataType uint)
+	// Processor func(f *KCallFrame) (output []byte, datafmt uint, dataType uint)
 
 	// result: output of this function, please convert according to format
 	// format: the format of the result
 	// hint: Why return this data?
-	Processor func(f *KCallFrame) (result []byte, dataFormat uint, hint uint)
+	Processor func(f *KCallFrame) (result []byte, datafmt uint, hint uint)
 
 	//
 	// OnXXX
@@ -43,6 +43,6 @@ type KNode struct {
 	UserData xmap.Map
 }
 
-func (n *KNode) SendToSubs(data []byte, dataFormat uint, hint uint) {
-	n.nm.sendtoSubs(nil, n, data, dataFormat, hint)
+func (n *KNode) SendToSubs(data []byte, datafmt uint, hint uint) {
+	n.nm.sendtoSubs(nil, n, data, datafmt, hint)
 }
