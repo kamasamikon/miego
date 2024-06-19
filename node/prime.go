@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-var numbers []uint = []uint{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+var numbers []uint64 = []uint64{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
 	47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131,
 	137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223,
 	227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311,
@@ -287,13 +287,13 @@ var numbers []uint = []uint{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
 */
 
 // Map the Prime and Name
-var mapNamePrime = make(map[string]uint)
-var mapPrimeName = make(map[uint]string)
+var mapNamePrime = make(map[string]uint64)
+var mapPrimeName = make(map[uint64]string)
 
-var nextNumberIndex uint
+var nextNumberIndex uint64
 
 // NamePrimeAdd
-func NpAdd(name string) uint {
+func NpAdd(name string) uint64 {
 	if number, ok := mapNamePrime[name]; ok {
 		return number
 	}
@@ -306,14 +306,14 @@ func NpAdd(name string) uint {
 	return nextNumber
 }
 
-func NpNum(name string) uint {
+func NpNum(name string) uint64 {
 	if number, ok := mapNamePrime[name]; ok {
 		return number
 	}
 	return NpAdd(name)
 }
 
-func NpStr(number uint) string {
+func NpStr(number uint64) string {
 	if name, ok := mapPrimeName[number]; ok {
 		return name
 	}
@@ -327,10 +327,7 @@ func NpDump() {
 	}
 	sort.Sort(sort.IntSlice(nlist))
 	for _, n := range nlist {
-		name := mapPrimeName[uint(n)]
+		name := mapPrimeName[uint64(n)]
 		klog.D("%4d : %s", n, name)
 	}
-}
-
-func init() {
 }

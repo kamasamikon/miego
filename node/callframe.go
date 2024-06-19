@@ -10,13 +10,13 @@ type KCallFrame struct {
 	Caller     *KCallFrame // caller: upper layer frame
 	Node       *KNode      // node: who process the data
 	Data       []byte      // data: data returned by upstreamNode.Processor()
-	DataFormat uint        // datafmt: uint
-	Hint       uint        // XXX
+	DataFormat uint64      // datafmt: uint
+	Hint       uint64      // XXX
 	DataID     string      // DataID: GUID of the data if the data been saved to database.
 	NewAt      int64       // NewAt: Timestamp this frame created.
 }
 
-func NewCallFrame(caller *KCallFrame, this *KNode, data []byte, datafmt uint, hint uint) *KCallFrame {
+func NewCallFrame(caller *KCallFrame, this *KNode, data []byte, datafmt uint64, hint uint64) *KCallFrame {
 	f := &KCallFrame{
 		Caller:     caller,
 		Node:       this,

@@ -12,7 +12,7 @@ type KNode struct {
 	// User defined
 	//
 	Type   string // "NT_XXX"
-	TypeId uint   // NpAdd("NT_XXX")
+	TypeId uint64 // NpAdd("NT_XXX")
 
 	Name string
 	Desc string
@@ -28,7 +28,7 @@ type KNode struct {
 	// result: output of this function, please convert according to format
 	// format: the format of the result
 	// hint: Why return this data?
-	Processor func(f *KCallFrame) (result []byte, datafmt uint, hint uint)
+	Processor func(f *KCallFrame) (result []byte, datafmt uint64, hint uint64)
 
 	//
 	// OnXXX
@@ -43,6 +43,6 @@ type KNode struct {
 	UserData xmap.Map
 }
 
-func (n *KNode) SendToSubs(data []byte, datafmt uint, hint uint) {
+func (n *KNode) SendToSubs(data []byte, datafmt uint64, hint uint64) {
 	n.nm.sendtoSubs(nil, n, data, datafmt, hint)
 }
