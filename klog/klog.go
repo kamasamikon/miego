@@ -108,29 +108,30 @@ func Color(color string, formating string, args ...interface{}) string {
 func Dump(obj interface{}, strPart ...interface{}) {
 	color := ColorType_D
 
+	cfg := spew.ConfigState{SortKeys: true, Indent: "    "}
+
 	var s string
 	strPartLen := len(strPart)
 
 	switch strPartLen {
 	case 0:
-		s = spew.Sdump(obj)
+		s = cfg.Sdump(obj)
 
 	case 1:
 		s = strPart[0].(string)
-		s += spew.Sdump(obj)
+		s += cfg.Sdump(obj)
 
 	default:
 		fmtPart := strPart[0].(string)
 		argPart := strPart[1:len(strPart)]
 		s = fmt.Sprintf(fmtPart, argPart...)
-		s += spew.Sdump(obj)
+		s += cfg.Sdump(obj)
 	}
 
 	KLog(2, Conf.ShortPath, color, "D", "%s", s)
 }
 
 func init() {
-	spew.Config.Indent = "    "
 	Conf.Mute = false
 
 	WriterAdd("stdout")
