@@ -4,33 +4,30 @@ import (
 	"fmt"
 	"miego/klog"
 	"time"
+
+	"github.com/twinj/uuid"
 )
 
 type KCallFrame struct {
 	Caller     *KCallFrame // caller: upper layer frame
 	Node       *KNode      // node: who process the data
-	Data       []byte      // data: data returned by upstreamNode.Processor()
+	Data       interface{} // data: data returned by upstreamNode.Processor()
 	DataFormat uint64      // datafmt: uint
 	Hint       uint64      // XXX
 	DataID     string      // DataID: GUID of the data if the data been saved to database.
 	NewAt      int64       // NewAt: Timestamp this frame created.
 }
 
-func NewCallFrame(caller *KCallFrame, this *KNode, data []byte, datafmt uint64, hint uint64) *KCallFrame {
-	f := &KCallFrame{
+func NewCallFrame(caller *KCallFrame, this *KNode, data interface{}, datafmt uint64, hint uint64) *KCallFrame {
+	return &KCallFrame{
 		Caller:     caller,
 		Node:       this,
 		Data:       data,
 		DataFormat: datafmt,
 		Hint:       hint,
-		DataID:     "TODO: Id of DB?",
+		DataID:     uuid.NewV4().String(),
 		NewAt:      time.Now().UnixNano(),
 	}
-
-	// TODO: Save the data to database;
-	// TODO: Create DataID
-
-	return f
 }
 
 func (f *KCallFrame) Dump() {

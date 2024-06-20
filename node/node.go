@@ -17,7 +17,7 @@ type KNode struct {
 	Name string
 	Desc string
 
-	// item: "hint@node;hint@node"
+	// item: "hint/datafmt/node;hint/datafmt/node"
 	// if match any, use * instead.
 	Follows string
 
@@ -28,7 +28,7 @@ type KNode struct {
 	// result: output of this function, please convert according to format
 	// format: the format of the result
 	// hint: Why return this data?
-	Processor func(f *KCallFrame) (result []byte, datafmt uint64, hint uint64)
+	Processor func(f *KCallFrame) (output interface{}, datafmt uint64, hint uint64)
 
 	//
 	// OnXXX

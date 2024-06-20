@@ -105,9 +105,7 @@ func Color(color string, formating string, args ...interface{}) string {
 	return "\033[0;" + color + "m" + fmt.Sprintf(formating, args...) + "\033[0m"
 }
 
-func Dump(obj interface{}, strPart ...interface{}) {
-	color := ColorType_D
-
+func DumpS(obj interface{}, strPart ...interface{}) string {
 	cfg := spew.ConfigState{SortKeys: true, Indent: "    "}
 
 	var s string
@@ -128,6 +126,12 @@ func Dump(obj interface{}, strPart ...interface{}) {
 		s += cfg.Sdump(obj)
 	}
 
+	return s
+}
+
+func Dump(obj interface{}, strPart ...interface{}) {
+	color := ColorType_D
+	s := DumpS(obj, strPart...)
 	KLog(2, Conf.ShortPath, color, "D", "%s", s)
 }
 
