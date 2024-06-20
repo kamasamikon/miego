@@ -3,6 +3,7 @@ package node
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"miego/klog"
 	"miego/xmap"
@@ -21,6 +22,8 @@ type KNodeManager struct {
 	// "NodeType*hint" == (NodeA, NodeB, ..., NodeX)
 	followMap map[uint64][]*KNode
 }
+
+var cacheLock = &sync.Mutex{}
 
 var cacheNexts map[uint64][]*KNode
 
@@ -118,13 +121,10 @@ func (nm *KNodeManager) callNode(caller *KCallFrame, nodeDst *KNode, data interf
 
 	// 2: Call nodeDst.Processor with new frame
 	if nodeDst.Processor != nil {
-		klog.W("")
 		data, datafmt, hint = nodeDst.Processor(newframe)
-		klog.W("")
 	}
 
 	// 3. Push to next stage.
-	klog.W("")
 	nm.sendtoSubs(newframe, nodeDst, data, datafmt, hint)
 }
 
@@ -161,7 +161,9 @@ func (nm *KNodeManager) getNexts(node *KNode, datafmt uint64, hint uint64) []*KN
 		}
 	}
 
+	cacheLock.Lock()
 	cacheNexts[ohashkey] = nexts
+	cacheLock.Unlock()
 
 	return nexts
 }
@@ -180,7 +182,7 @@ func (nm *KNodeManager) sendtoSubs(caller *KCallFrame, nodeSrc *KNode, data inte
 
 	for _, nodeNext := range nextNodes {
 		if nodeNext.Processor != nil && nodeNext != nodeSrc {
-			klog.W("%v => %v", nodeSrc.Name, nodeNext.Name)
+			// klog.W("%v => %v", nodeSrc.Name, nodeNext.Name)
 			nm.callNode(caller, nodeNext, data, datafmt, hint)
 		}
 	}

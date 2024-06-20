@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"miego/klog"
+	"strings"
 	"time"
 
 	"github.com/twinj/uuid"
@@ -31,23 +31,83 @@ func NewCallFrame(caller *KCallFrame, this *KNode, data interface{}, datafmt uin
 }
 
 func (f *KCallFrame) Dump() {
-	var lines []string
+	x := ""
+	w := 0
+	ntWidth := 0 // NodeType
+	dfWidth := 0 // DataFormat
+	htWidth := 0 // Hint
+	nmWidth := 0 // Name
+	atWidth := 0 // NewAt
+
+	var segs []string
 
 	tmp := f
-	fmtstr := " %-16s | %4s | %4s | %s | %lld"
-	sp := fmt.Sprintf
 	for tmp != nil {
-		sDataFormat, sHint := NpStr(tmp.DataFormat), NpStr(tmp.Hint)
+		x = tmp.Node.Type
+		w = len(x)
+		if w > ntWidth {
+			ntWidth = w
+		}
+		segs = append(segs, x)
 
-		line := sp(fmtstr, tmp.Node.Type, sDataFormat, sHint, tmp.Node.Name, tmp.NewAt)
-		lines = append(lines, line)
+		x = NpStr(tmp.DataFormat)
+		w = len(x)
+		if w > dfWidth {
+			dfWidth = w
+		}
+		segs = append(segs, x)
+
+		x = NpStr(tmp.Hint)
+		w = len(x)
+		if w > htWidth {
+			htWidth = w
+		}
+		segs = append(segs, x)
+
+		x = fmt.Sprintf("%v", tmp.NewAt)
+		w = len(x)
+		if w > atWidth {
+			atWidth = w
+		}
+		segs = append(segs, x)
+
+		x = tmp.Node.Name
+		w = len(x)
+		if w > nmWidth {
+			nmWidth = w
+		}
+		segs = append(segs, x)
+
 		tmp = tmp.Caller
 	}
 
-	klog.D(">>>> DUMP (%d) >>>>", len(lines))
-	cnt := len(lines)
-	for i := range lines {
-		klog.D("|%4d|%s", i, lines[cnt-i-1])
+	var ofmt string
+	ofmt += "| "
+	ofmt += fmt.Sprintf("%%%ds", ntWidth)
+	ofmt += " | "
+	ofmt += fmt.Sprintf("%%%ds", dfWidth)
+	ofmt += " | "
+	ofmt += fmt.Sprintf("%%%ds", htWidth)
+	ofmt += " | "
+	ofmt += fmt.Sprintf("%%%ds", atWidth)
+	ofmt += " | "
+	ofmt += fmt.Sprintf("%%s")
+	ofmt += "\n"
+
+	var lines []string
+	for i := range len(segs) / 5 {
+		lines = append(
+			lines,
+			fmt.Sprintf(
+				ofmt,
+				segs[i*5+0],
+				segs[i*5+1],
+				segs[i*5+2],
+				segs[i*5+3],
+				segs[i*5+4],
+			),
+		)
 	}
-	klog.D("<<<< DUMP (%d) <<<<", len(lines))
+
+	fmt.Println(strings.Join(lines, ""))
 }
