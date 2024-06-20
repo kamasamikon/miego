@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"miego/klog"
 	"strings"
 	"time"
 
@@ -26,7 +27,7 @@ func NewCallFrame(caller *KCallFrame, this *KNode, data interface{}, datafmt uin
 		DataFormat: datafmt,
 		Hint:       hint,
 		DataID:     uuid.NewV4().String(),
-		NewAt:      time.Now().UnixNano(),
+		NewAt:      time.Now().UnixMicro(),
 	}
 }
 
@@ -83,7 +84,7 @@ func (f *KCallFrame) Dump() {
 
 	var ofmt string
 	ofmt += "| "
-	ofmt += fmt.Sprintf("%%%ds", ntWidth)
+	ofmt += fmt.Sprintf("%%-%ds", ntWidth)
 	ofmt += " | "
 	ofmt += fmt.Sprintf("%%%ds", dfWidth)
 	ofmt += " | "
@@ -109,5 +110,5 @@ func (f *KCallFrame) Dump() {
 		)
 	}
 
-	fmt.Println(strings.Join(lines, ""))
+	klog.KLog(1, false, klog.ColorType_F, "D", "\n"+strings.Join(lines, ""))
 }
