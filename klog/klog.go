@@ -130,13 +130,21 @@ func DumpS(obj interface{}, strPart ...interface{}) string {
 }
 
 func Dump(obj interface{}, strPart ...interface{}) {
+	if Conf.Mute {
+		return
+	}
+
 	color := ColorType_D
 	s := DumpS(obj, strPart...)
 	KLog(2, Conf.ShortPath, color, "D", "%s", s)
 }
 
 func init() {
-	Conf.Mute = false
+	Conf.ShortPath = os.Getenv("KLOG_SHORT_PATH") == "1"
+	Conf.NoColor = os.Getenv("KLOG_NO_COLOR") == "1"
+	Conf.Mute = os.Getenv("KLOG_MUTE") == "1"
 
-	WriterAdd("stdout")
+	if os.Getenv("KLOG_NO_STDOUT") != "1" {
+		WriterAdd("stdout")
+	}
 }
