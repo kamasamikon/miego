@@ -206,7 +206,8 @@ func (nm *KNodeManager) Run() {
 	for hashkey, arr := range nm.followMap {
 		for i, n := range arr {
 			m := fmtNode(n)
-			klog.Dump(m, cp("33;1", "%d / %d\n", hashkey, i))
+			x := strings.Join(NpSplitS(hashkey), " ")
+			klog.Dump(m, cp("33;1", "(%s) / %d\n", x, i))
 		}
 	}
 

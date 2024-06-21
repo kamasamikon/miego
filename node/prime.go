@@ -1,6 +1,7 @@
 package node
 
 import (
+	"math"
 	"miego/klog"
 	"sort"
 )
@@ -330,4 +331,35 @@ func NpDump() {
 		name := mapPrimeName[uint64(n)]
 		klog.D("%4d : %s", n, name)
 	}
+}
+
+func NpSplit(n uint64) []uint64 {
+	var factors []uint64
+	var i uint64
+
+	for n%2 == 0 {
+		factors = append(factors, 2)
+		n /= 2
+	}
+
+	for i = 3; i <= uint64(math.Sqrt(float64(n))); i += 2 {
+		for n%i == 0 {
+			factors = append(factors, i)
+			n /= i
+		}
+	}
+
+	if n > 2 {
+		factors = append(factors, n)
+	}
+
+	return factors
+}
+
+func NpSplitS(n uint64) []string {
+	var names []string
+	for _, f := range NpSplit(n) {
+		names = append(names, NpStr(f))
+	}
+	return names
 }
