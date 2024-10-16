@@ -274,27 +274,30 @@ func (o *LoginCenter) Setup(Gin *gin.Engine, SessionName string, redisAddr strin
 
 	// Gin
 	o.Gin = Gin
-	o.SessionName = SessionName
 
-	// Redis/Session
-	if redisAddr == "" {
-		redisHost := os.Getenv("DOCKER_GATEWAY")
-		redisAddr = redisHost + ":6379"
-	}
-	store, err := redis.NewStore(10, "tcp", redisAddr, "", []byte("secret"))
-	if err != nil {
-		klog.E(err.Error())
-		return
-	}
-	redisStore = store
+	if SessionName != "" {
+		o.SessionName = SessionName
 
-	if _, rstore := redis.GetRedisStore(redisStore); rstore != nil {
-		// ten years
-		rstore.SetMaxAge(3600 * 24 * 365 * 10)
-	}
+		// Redis/Session
+		if redisAddr == "" {
+			redisHost := os.Getenv("DOCKER_GATEWAY")
+			redisAddr = redisHost + ":6379"
+		}
+		store, err := redis.NewStore(10, "tcp", redisAddr, "", []byte("secret"))
+		if err != nil {
+			klog.E(err.Error())
+			return
+		}
+		redisStore = store
 
-	o.Session = sessions.Sessions(o.SessionName, store)
-	Gin.Use(o.Session)
+		if _, rstore := redis.GetRedisStore(redisStore); rstore != nil {
+			// ten years
+			rstore.SetMaxAge(3600 * 24 * 365 * 10)
+		}
+
+		o.Session = sessions.Sessions(o.SessionName, store)
+		Gin.Use(o.Session)
+	}
 
 	var Key string
 	for LoginType, l := range o.MapLogin {

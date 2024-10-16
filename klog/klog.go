@@ -24,27 +24,17 @@ var Conf struct {
 	ShortPath bool
 	NoColor   bool
 	Mute      bool
-	Writers   []io.Writer
+	Writers   map[string]io.Writer
 }
 
 // XXX 没有加保护
-func WriterAdd(args ...interface{}) {
-	for _, arg := range args {
-		if w, ok := arg.(string); ok {
-			switch w {
-			case "stdout":
-				Conf.Writers = append(Conf.Writers, os.Stdout)
-			case "stderr":
-				Conf.Writers = append(Conf.Writers, os.Stderr)
-			}
-			continue
-		}
+func WriterAdd(name string, writer io.Writer) {
+	Conf.Writers[name] = writer
+}
 
-		if w, ok := arg.(io.Writer); ok {
-			Conf.Writers = append(Conf.Writers, w)
-			continue
-		}
-	}
+// XXX 没有加保护
+func WriterRem(name string) {
+	delete(Conf.Writers, name)
 }
 
 // F :Fatal
@@ -140,11 +130,12 @@ func Dump(obj interface{}, strPart ...interface{}) {
 }
 
 func init() {
+	Conf.Writers = make(map[string]io.Writer)
 	Conf.ShortPath = os.Getenv("KLOG_SHORT_PATH") == "1"
 	Conf.NoColor = os.Getenv("KLOG_NO_COLOR") == "1"
 	Conf.Mute = os.Getenv("KLOG_MUTE") == "1"
 
 	if os.Getenv("KLOG_NO_STDOUT") != "1" {
-		WriterAdd("stdout")
+		WriterAdd("stdout", os.Stdout)
 	}
 }
