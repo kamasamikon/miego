@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"miego/conf"
@@ -76,6 +77,9 @@ func Default() *gin.Engine {
 
 		_Default = gin.New()
 
+		if conf.Bool(true, "b:/gin/cors/enable") == true {
+			_Default.Use(cors.Default())
+		}
 		if conf.Bool(true, "b:/gin/Logger/enable") == true {
 			_Default.Use(gin.Logger())
 		}
