@@ -85,6 +85,9 @@ buildPrepare: enve.mgc
 	@echo "### MSA ###" >> main.mgc
 	@echo "###" >> main.mgc
 	@echo "s:/ms/name=${msName}" >> main.mgc
+	@echo "s:/ms/version=${msVern}" >> main.mgc
+	@echo "s:/ms/desc=${msDesc}" >> main.mgc
+	@echo "i:/ms/port=${msPort}" >> main.mgc
 	@echo "" >> main.mgc
 	@echo "###" >> main.mgc
 	@echo "### BUILD ###" >> main.mgc
