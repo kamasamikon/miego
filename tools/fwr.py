@@ -6,6 +6,8 @@ import sys
 import shlex
 import time
 
+# fuwu run
+
 f = open("/tmp/fwr.log", "a+")
 
 def saferun(cmd, debug=True):
@@ -21,14 +23,14 @@ def saferun(cmd, debug=True):
         return None
 
 def volumeGet(imageName):
-    return saferun(("sudo", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", imageName))
+    return saferun(("sudo", "-S", "docker", "inspect", "--format", "{{ .Config.Labels.VOLUME }}", imageName))
 
 def dockerGateway():
-    cmd = ("sudo", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
+    cmd = ("sudo", "-S", "docker", "network", "inspect", "bridge", "--format", '{{(index .IPAM.Config 0).Gateway}}')
     return saferun(cmd)
 
 def findMSB(*args):
-    cmd = ["sudo", "docker", "ps", "-aq", "--filter", "ancestor=msb"]
+    cmd = ["sudo", "-S", "docker", "ps", "-aq", "--filter", "ancestor=msb"]
     for i in range(int(len(args)/2)):
         cmd.append("--filter")
         cmd.append("%s=%s" % (args[2*i], args[2*i+1]))
@@ -46,7 +48,7 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
     #
     # 检查MSB是否存在，如果不存在，就启动一个
     #
-    msbRun = ["sudo", "docker", "run", "--restart=always", "-it", "-d"]
+    msbRun = ["sudo", "-S", "docker", "run", "--restart=always", "-it", "-d"]
 
     if msbName and msbPort:
         # msbName = "msb.auv", msbPort = "7788"
@@ -88,7 +90,7 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
         while True:
             tmpName = container if index == 0 else container + "_%d" % index
             index += 1
-            cmd = ["sudo", "docker", "ps", "-aq", "--filter", r"""name=^/%s$""" % tmpName]
+            cmd = ["sudo", "-S", "docker", "ps", "-aq", "--filter", r"""name=^/%s$""" % tmpName]
             print(">>> ", " ".join(cmd))
             if not subprocess.check_output(cmd):
                 break
@@ -97,6 +99,7 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
 
     cmd = [
             "sudo",
+            "-S",
             "docker",
             "run",
             "-it",
@@ -131,13 +134,13 @@ def killContainer(imageName, msbName, killFirst, killLast):
     killFirst = killFirst or "0"
     killLast = killLast or "99999999999"
 
-    cmd = ["sudo", "docker", "ps", "-aq", "--filter", r'''name=\b%s\b|\b%s_.*''' % (container, container)]
+    cmd = ["sudo", "-S", "docker", "ps", "-aq", "--filter", r'''name=\b%s\b|\b%s_.*''' % (container, container)]
     idList = subprocess.check_output(cmd).strip().decode("utf-8").split()
     print(idList)
     if idList:
         a = int(killFirst)
         b = int(killLast)
-        cmd = ["sudo", "docker", "rm", "-f"]
+        cmd = ["sudo", "-S", "docker", "rm", "-f"]
         cmd.extend(idList[a:b])
         saferun(cmd)
 

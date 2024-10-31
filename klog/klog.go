@@ -3,7 +3,6 @@ package klog
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -21,9 +20,11 @@ const (
 )
 
 var Conf struct {
-	ShortPath bool
-	NoColor   bool
-	Mute      bool
+	// 0:false, 1:true, -1:notset
+	ShortPath int // 只显示文件名，否则会显示文件的全路径
+	Dull      int // 单色的，不是彩色的
+	Mute      int // 是否把文字真的打印出来
+	UseStdout int // WriterAdd(Stdout)
 	Writers   map[string]io.Writer
 }
 
@@ -120,22 +121,11 @@ func DumpS(obj interface{}, strPart ...interface{}) string {
 }
 
 func Dump(obj interface{}, strPart ...interface{}) {
-	if Conf.Mute {
+	if Conf.Mute == 1 {
 		return
 	}
 
 	color := ColorType_D
 	s := DumpS(obj, strPart...)
 	KLog(2, Conf.ShortPath, color, "D", "%s", s)
-}
-
-func init() {
-	Conf.Writers = make(map[string]io.Writer)
-	Conf.ShortPath = os.Getenv("KLOG_SHORT_PATH") == "1"
-	Conf.NoColor = os.Getenv("KLOG_NO_COLOR") == "1"
-	Conf.Mute = os.Getenv("KLOG_MUTE") == "1"
-
-	if os.Getenv("KLOG_NO_STDOUT") != "1" {
-		WriterAdd("stdout", os.Stdout)
-	}
 }

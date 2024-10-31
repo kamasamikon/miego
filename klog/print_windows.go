@@ -22,8 +22,8 @@ func OutputDebugString(s string) {
 }
 
 // KLogLN : Log with CR
-func KLogLN(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
-	if Conf.Mute {
+func KLogLN(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
+	if Conf.Mute == 1 {
 		return
 	}
 
@@ -36,7 +36,7 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 		funcname = strings.TrimPrefix(funcname, ".")
 	}
 
-	if shortPath {
+	if shortPath == 1 {
 		filename = filepath.Base(filename)
 	}
 
@@ -46,8 +46,8 @@ func KLogLN(dep int, shortPath bool, color string, class string, formating strin
 }
 
 // KLogLNS : Log with CR
-func KLogLNS(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) string {
-	if Conf.Mute {
+func KLogLNS(dep int, shortPath int, color string, class string, formating string, args ...interface{}) string {
+	if Conf.Mute == 1 {
 		return ""
 	}
 
@@ -60,7 +60,7 @@ func KLogLNS(dep int, shortPath bool, color string, class string, formating stri
 		funcname = strings.TrimPrefix(funcname, ".")
 	}
 
-	if shortPath {
+	if shortPath == 1 {
 		filename = filepath.Base(filename)
 	}
 
@@ -69,8 +69,8 @@ func KLogLNS(dep int, shortPath bool, color string, class string, formating stri
 }
 
 // KLogX : No '\s' appended.
-func KLog(dep int, shortPath bool, color string, class string, formating string, args ...interface{}) {
-	if Conf.Mute {
+func KLog(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
+	if Conf.Mute == 1 {
 		return
 	}
 
@@ -83,7 +83,7 @@ func KLog(dep int, shortPath bool, color string, class string, formating string,
 		funcname = strings.TrimPrefix(funcname, ".")
 	}
 
-	if shortPath {
+	if shortPath == 1 {
 		filename = filepath.Base(filename)
 	}
 

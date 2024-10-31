@@ -187,6 +187,17 @@ func Int(defval int64, paths ...string) int64 {
 	return defval
 }
 
+// Int : get a int typed configure
+func IntX(paths ...string) (int64, bool) {
+	// path: aaa/bbb
+	for _, path := range paths {
+		if v, ok := mapPathEntry[path]; ok {
+			return v.vInt, true
+		}
+	}
+	return 0, false
+}
+
 // Inc : Increase or Decrease on int
 func Inc(inc int64, path string) {
 	if e, ok := mapPathEntry[path]; ok {
@@ -214,6 +225,17 @@ func Str(defval string, paths ...string) string {
 	return defval
 }
 
+// Str : get a str typed configure
+func StrX(paths ...string) (string, bool) {
+	// path: aaa/bbb
+	for _, path := range paths {
+		if v, ok := mapPathEntry[path]; ok {
+			return v.vStr, true
+		}
+	}
+	return "", false
+}
+
 // Bool : get a bool entry
 func Bool(defval bool, paths ...string) bool {
 	// path: aaa/bbb
@@ -225,6 +247,17 @@ func Bool(defval bool, paths ...string) bool {
 	return defval
 }
 
+// Bool : get a bool entry
+func BoolX(paths ...string) (bool, bool) {
+	// path: aaa/bbb
+	for _, path := range paths {
+		if v, ok := mapPathEntry[path]; ok {
+			return v.vBool, true
+		}
+	}
+	return false, false
+}
+
 // Object : get a bool entry
 func Obj(defval interface{}, paths ...string) interface{} {
 	// path: aaa/bbb
@@ -234,6 +267,17 @@ func Obj(defval interface{}, paths ...string) interface{} {
 		}
 	}
 	return defval
+}
+
+// Object : get a bool entry
+func ObjX(paths ...string) (interface{}, bool) {
+	// path: aaa/bbb
+	for _, path := range paths {
+		if v, ok := mapPathEntry[path]; ok {
+			return v.vObj, true
+		}
+	}
+	return nil, false
 }
 
 // List : get a List entry. s:/names=:aaa:bbb first char is the seperator
@@ -402,18 +446,20 @@ func Ready() {
 	Set(PathReady, "", true)
 }
 
-//go:embed main.cfg
+//go:embed main.mgc
 var main_cfg string
 
 func init() {
+	fmt.Println("aaaaaaaaaaaaa")
 	//
 	// Some builtin entries
 	//
 	EntryAdd(PathReady, false)
 	LoadString(main_cfg, false)
 
+	// 优先级: 命令行 > 环境变量
 	LoadFromEnv()
-	LoadFromArg() // 命令行优先级比环境变量更高
+	LoadFromArg()
 }
 
 func LoadFromEnv() {

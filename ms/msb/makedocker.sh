@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/sh -x
+
+set -e
 
 date > now
 

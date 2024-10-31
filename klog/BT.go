@@ -10,7 +10,7 @@ import (
 
 // BT : Print back trace
 func BT(maxdep int, formating string, args ...interface{}) string {
-	if Conf.Mute {
+	if Conf.Mute == 1 {
 		return ""
 	}
 
