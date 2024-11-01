@@ -450,7 +450,6 @@ func Ready() {
 var main_cfg string
 
 func init() {
-	fmt.Println("aaaaaaaaaaaaa")
 	//
 	// Some builtin entries
 	//

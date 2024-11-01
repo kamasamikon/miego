@@ -213,7 +213,7 @@ func RegisterLoop() {
 		}
 
 		//
-		// MSBName: 通过dockerhelper
+		// MSBName: 通过dockerhelper工具（see kamasamikon/hp/dockerhelper）
 		//
 		msRegURL = ""
 		if DockerGW != "" && MSBName != "" {
