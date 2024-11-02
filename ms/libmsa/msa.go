@@ -166,15 +166,20 @@ func getParam(argPrefix string, envName string, cfgName string) string {
 // commandLine > env > configure
 func RegisterLoop() {
 	for {
+		// Loop
+		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
+		waitNG := time.Second * time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
+
 		DockerGW := getParam("--dockerGW=", "DOCKER_GATEWAY", "s:/msb/dockerGW")
+		if DockerGW == "" {
+			time.Sleep(waitNG)
+			continue
+		}
+
 		MSBName := getParam("--msbName=", "MSBNAME", "s:/msb/name")
 		MSBPort := getParam("--msbPort=", "MSBPORT", "s:/msb/port")
 
 		DockerHelperPort := getParam("--dockerHelperPort=", "DOCKERHELPERPORT", "s:/dockerhelper/port")
-
-		// Loop
-		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
-		waitNG := time.Second * time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
 
 		// Service
 		s := mscommon.KService{
@@ -200,7 +205,7 @@ func RegisterLoop() {
 		// MSBPort: DockerGW+MSBPort
 		//
 		msRegURL = ""
-		if DockerGW != "" && MSBPort != "" {
+		if MSBPort != "" {
 			msRegURL = "http://" + DockerGW + ":" + MSBPort + "/msb/service"
 			klog.D("msRegURL: %s", msRegURL)
 			for {
@@ -216,7 +221,7 @@ func RegisterLoop() {
 		// MSBName: 通过dockerhelper工具（see kamasamikon/hp/dockerhelper）
 		//
 		msRegURL = ""
-		if DockerGW != "" && MSBName != "" {
+		if MSBName != "" {
 			if DockerHelperPort == "" {
 				DockerHelperPort = "11111"
 			}

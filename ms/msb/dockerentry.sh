@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm /root/msb.cfg
+[ -f /root/msb.cfg ] && rm /root/msb.cfg
 rm /etc/nginx/conf.d/default.conf
 
 setcfg() {
@@ -37,6 +37,8 @@ fi
 
 while true; do 
     cd /root || return
+    echo ">>> cat /root/msb.cfg"
     cat /root/msb.cfg
+    echo "<<< cat /root/msb.cfg"
     /root/msb 
 done
