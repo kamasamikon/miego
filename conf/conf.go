@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -52,13 +53,21 @@ var mapPathEntry = make(map[string]*confEntry)
 var LoadOKCount = 0
 var LoadNGCount = 0
 
+var mutex = &sync.Mutex{}
+
 // Delete an entry
 func EntryRem(path string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	delete(mapPathEntry, path)
 }
 
 // Load file from configure
 func EntryAdd(line string, overwrite bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	line = strings.TrimSpace(line)
 
 	segs := strings.SplitN(line, "=", 2)
@@ -172,12 +181,18 @@ func LoadFile(fileName string, overwrite bool) error {
 
 // Has : Check if a entry exists
 func Has(path string) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	_, ok := mapPathEntry[path]
 	return ok
 }
 
 // Int : get a int typed configure
 func Int(defval int64, paths ...string) int64 {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -189,6 +204,9 @@ func Int(defval int64, paths ...string) int64 {
 
 // Int : get a int typed configure
 func IntX(paths ...string) (int64, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -200,6 +218,9 @@ func IntX(paths ...string) (int64, bool) {
 
 // Inc : Increase or Decrease on int
 func Inc(inc int64, path string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	if e, ok := mapPathEntry[path]; ok {
 		vNew := e.vInt + 1
 		setByEntry(e, vNew)
@@ -208,6 +229,9 @@ func Inc(inc int64, path string) {
 
 // Flip : flip on bool
 func Flip(path string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	if e, ok := mapPathEntry[path]; ok {
 		vNew := !e.vBool
 		setByEntry(e, vNew)
@@ -216,6 +240,9 @@ func Flip(path string) {
 
 // Str : get a str typed configure
 func Str(defval string, paths ...string) string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -227,6 +254,9 @@ func Str(defval string, paths ...string) string {
 
 // Str : get a str typed configure
 func StrX(paths ...string) (string, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -238,6 +268,9 @@ func StrX(paths ...string) (string, bool) {
 
 // Bool : get a bool entry
 func Bool(defval bool, paths ...string) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -249,6 +282,9 @@ func Bool(defval bool, paths ...string) bool {
 
 // Bool : get a bool entry
 func BoolX(paths ...string) (bool, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -260,6 +296,9 @@ func BoolX(paths ...string) (bool, bool) {
 
 // Object : get a bool entry
 func Obj(defval interface{}, paths ...string) interface{} {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -271,6 +310,9 @@ func Obj(defval interface{}, paths ...string) interface{} {
 
 // Object : get a bool entry
 func ObjX(paths ...string) (interface{}, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
@@ -282,6 +324,9 @@ func ObjX(paths ...string) (interface{}, bool) {
 
 // List : get a List entry. s:/names=:aaa:bbb first char is the seperator
 func List(paths ...string) []string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	// path: aaa/bbb
 	var slice []string
 	for _, path := range paths {
@@ -334,6 +379,9 @@ func pathParse(path string) (kind byte, hidden bool, realpath string) {
 
 // Names : All Keys
 func Names() []string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	var names []string
 	for k, _ := range mapPathEntry {
 		names = append(names, k)
@@ -343,6 +391,9 @@ func Names() []string {
 
 // SafeNames : Keys not hidden
 func SafeNames() []string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	var names []string
 	for k, e := range mapPathEntry {
 		if !e.hidden {
@@ -417,6 +468,9 @@ func setByEntry(e *confEntry, value interface{}) {
 
 // Set : Modify or Add conf entry
 func Set(path string, value interface{}, force bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	var e *confEntry
 	var ok bool
 

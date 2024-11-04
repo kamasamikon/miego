@@ -6,7 +6,7 @@ import sys
 import shlex
 import time
 
-# fuwu run
+# fuwu runner
 
 f = open("/tmp/fwr.log", "a+")
 
