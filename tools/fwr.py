@@ -71,7 +71,7 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
             msbRun.extend(["--name", msbName, "-p", ":80"])
             msbRun.append("msb")
 
-    if len(msbRun) > 6:
+    if len(msbRun) > 7:
         saferun(msbRun)
 
     #

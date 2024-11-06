@@ -25,7 +25,7 @@ init:
 	@echo "rmtAddr=127.0.0.1" > local.demo.dpc
 	@echo "rmtPort=22" >> local.demo.dpc
 	@echo "rmtUser=auv" >> local.demo.dpc
-	@echo "msbPort=22222" >> local.demo.dpc
+	@echo "msbPort=9080" >> local.demo.dpc
 	@echo "dockerRunPara=" >> local.demo.dpc
 	@echo
 	@echo "init local.demo.dpc"
