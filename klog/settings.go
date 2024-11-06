@@ -27,7 +27,7 @@ func init() {
 		Conf.Dull = 0
 	}
 	if Conf.Mute == -1 {
-		Conf.Mute = 0
+		Conf.Mute = 1
 	}
 	if Conf.UseStdout == -1 {
 		Conf.UseStdout = 1

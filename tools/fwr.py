@@ -75,6 +75,18 @@ def dockerRun(imageName, msbName, msbPort, backrun, append):
         saferun(msbRun)
 
     #
+    # 如果没有指定msbPort，就查一下，然后使用查到的第一个
+    #
+    if not msbPort:
+        x = msbName or "msb"
+        cmd = ["sudo", "-S", "docker", "port", x]
+        try:
+            msbPort = saferun(cmd).split("\n")[0].split(":")[-1]
+        except:
+            pass
+
+
+    #
     # 开始启动服务
     #
 
