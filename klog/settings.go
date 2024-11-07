@@ -1,6 +1,7 @@
 package klog
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
