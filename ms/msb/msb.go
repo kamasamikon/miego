@@ -419,6 +419,14 @@ func main() {
 		c.String(200, "DONE")
 	})
 
+	for i, x := range Gin.Routes() {
+		conf.Set(
+			fmt.Sprintf("s:/gin/routers/%02d", i),
+			fmt.Sprintf("%s -> '%s'", x.Method, x.Path),
+			true,
+		)
+	}
+
 	go RefreshLoop()
 
 	port := conf.Int(9100, "i:/msb/port")
