@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -392,8 +393,15 @@ func main() {
 	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
 
 	Gin.GET("/nginx", func(c *gin.Context) {
-		tmpl := TemplLoad("/etc/nginx/nginx.conf")
-		c.String(200, tmpl)
+		cmd := exec.Command("nginx", "-T")
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println("命令运行出错:", err)
+			return
+		}
+		c.String(200, out.String())
 	})
 
 	Gin.GET("/conf", func(c *gin.Context) {
