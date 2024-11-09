@@ -368,6 +368,17 @@ func serverRem(c *gin.Context) {
 	}
 }
 
+func getAddress() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return fmt.Sprintf("ERROR: %s", err.Error())
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP.String()
+}
+
 func main() {
 	// s:/msb/nginx/conf=/etc/nginx/nginx.conf
 	// s:/msb/nginx/tmpl=/etc/nginx/nginx.conf
@@ -409,18 +420,6 @@ func main() {
 		c.String(200, data)
 	})
 
-	Gin.GET("/addr", func(c *gin.Context) {
-		conn, err := net.Dial("udp", "8.8.8.8:80")
-		if err != nil {
-			c.String(200, "")
-			return
-		}
-		defer conn.Close()
-
-		localAddr := conn.LocalAddr().(*net.UDPAddr)
-		c.String(200, localAddr.IP.String())
-	})
-
 	Gin.GET("/reload", func(c *gin.Context) {
 		nginxConfWrite()
 		nginxReload()
@@ -434,6 +433,8 @@ func main() {
 			true,
 		)
 	}
+
+	conf.Set("s:/msb/addr", getAddress(), true)
 
 	go RefreshLoop()
 
