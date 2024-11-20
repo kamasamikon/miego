@@ -165,6 +165,10 @@ func getParam(argPrefix string, envName string, cfgName string) string {
 
 // commandLine > env > configure
 func RegisterLoop() {
+	CreatedAt := time.Now().UnixNano()
+	IPAddr := GetOutboundIP()
+	HostName := HostNameGet()
+
 	for {
 		// Loop
 		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
@@ -188,18 +192,33 @@ func RegisterLoop() {
 			Desc:        conf.Str("", "s:/ms/desc"),
 			Upstream:    conf.Str("", "s:/ms/upstream"),
 			Kind:        conf.Str("http", "s:/ms/kind"),
-			IPAddr:      GetOutboundIP(),
+			IPAddr:      IPAddr,
 			Port:        int(conf.Int(8888, "i:/ms/port")),
-			HostName:    HostNameGet(),
+			HostName:    HostName,
 			ProjName:    conf.Str("FIXME", "s:/build/dirname"),
 			ProjVersion: conf.Str("FIXME", "s:/build/version"),
 			ProjTime:    conf.Str("FIXME", "s:/build/time"),
-			CreatedAt:   time.Now().UnixNano(),
+			CreatedAt:   CreatedAt,
 		}
 		sJson, _ := json.Marshal(&s)
 		msDataReader := strings.NewReader(string(sJson))
-		klog.Dump(os.Environ(), "MSA.Env: ")
 		klog.Dump(s, "MSA.Srv: ")
+
+		//
+		// Save runtime information
+		//
+		conf.Set("s:/msa/serviceName", s.ServiceName, true)
+		conf.Set("s:/msa/version", s.Version, true)
+		conf.Set("s:/msa/desc", s.Desc, true)
+		conf.Set("s:/msa/upstream", s.Upstream, true)
+		conf.Set("s:/msa/kind", s.Kind, true)
+		conf.Set("s:/msa/IPAddr", s.IPAddr, true)
+		conf.Set("i:/msa/port", s.Port, true)
+		conf.Set("s:/msa/hostName", s.HostName, true)
+		conf.Set("s:/msa/projName", s.ProjName, true)
+		conf.Set("s:/msa/projVersion", s.ProjVersion, true)
+		conf.Set("s:/msa/projTime", s.ProjTime, true)
+		conf.Set("i:/msa/createdAt", s.CreatedAt, true)
 
 		//
 		// MSBPort: DockerGW+MSBPort
@@ -207,6 +226,9 @@ func RegisterLoop() {
 		msRegURL = ""
 		if MSBPort != "" {
 			msRegURL = "http://" + DockerGW + ":" + MSBPort + "/msb/service"
+			conf.Set("s:/msa/reg/method", "DockerGW+MSBPort", true)
+			conf.Set("s:/msa/reg/URL", msRegURL, true)
+			conf.Set("s:/msa/reg/when", time.Now().Format("2006/01/02 15:04:05"), true)
 			klog.D("msRegURL: %s", msRegURL)
 			for {
 				msDataReader.Seek(io.SeekStart, 0)
@@ -245,6 +267,9 @@ func RegisterLoop() {
 			}
 
 			if msRegURL != "" {
+				conf.Set("s:/msa/reg/method", "dockerhelper", true)
+				conf.Set("s:/msa/reg/URL", msRegURL, true)
+				conf.Set("s:/msa/reg/when", time.Now().Format("2006/01/02 15:04:05"), true)
 				klog.D("msRegURL: %s", msRegURL)
 				for {
 					msDataReader.Seek(io.SeekStart, 0)

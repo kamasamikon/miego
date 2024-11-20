@@ -61,7 +61,7 @@ func Dump(safeMode bool) string {
 }
 
 // DumpRaw : Dump without Get/Get refs
-func DumpRaw(safeMode bool) string {
+func DumpRaw(safeMode bool, group bool) string {
 	var cList []*confEntry
 	for _, v := range mapPathEntry {
 		cList = append(cList, v)
@@ -70,29 +70,50 @@ func DumpRaw(safeMode bool) string {
 		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
 	})
 
+	// Group Name
+	var groupName string
+
 	var lines []string
+	var lastLine string
 	for _, v := range cList {
 		if v.hidden && safeMode {
 			continue
 		}
 
+		if group {
+			segs := strings.SplitN(v.path, "/", 3)
+			if segs[1] != groupName {
+				if lastLine != "" {
+					lastLine = ""
+					lines = append(lines, lastLine)
+				}
+				groupName = segs[1]
+			}
+		}
+
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf("%s=%d", v.path, v.vInt))
+			lastLine = fmt.Sprintf("%s=%d", v.path, v.vInt)
+			lines = append(lines, lastLine)
 
 		case 's':
-			lines = append(lines, fmt.Sprintf("%s=%s", v.path, v.vStr))
+			lastLine = fmt.Sprintf("%s=%s", v.path, v.vStr)
+			lines = append(lines, lastLine)
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf("%s=%t", v.path, v.vBool))
+			lastLine = fmt.Sprintf("%s=%t", v.path, v.vBool)
+			lines = append(lines, lastLine)
 
 		case 'o':
-			lines = append(lines, fmt.Sprintf("%s=%s", v.path, "..."))
+			lastLine = fmt.Sprintf("%s=%s", v.path, "...")
+			lines = append(lines, lastLine)
 		}
 	}
 
 	// Add the last \n
-	lines = append(lines, "")
+	if lastLine != "" {
+		lines = append(lines, "")
+	}
 
 	return strings.Join(lines, "\n")
 }

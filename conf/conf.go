@@ -29,7 +29,6 @@ const (
 
 // See confcenter
 type confEntry struct {
-	// kind: i:int, s:str
 	// kind: a:arr, b:bool, d:dat(len+dat), e:event, i:int, s:str, p:ptr
 	//
 	// path: i:/aaa/bbb; b:/xxx/zzz
@@ -513,6 +512,14 @@ func init() {
 	// 优先级: 命令行 > 环境变量
 	LoadFromEnv()
 	LoadFromArg()
+
+	// Load environment to conf
+	for _, env := range os.Environ() {
+		segs := strings.SplitN(env, "=", 2)
+		if len(segs) == 2 {
+			Set("s:/env/"+segs[0], segs[1], true)
+		}
+	}
 }
 
 func LoadFromEnv() {
