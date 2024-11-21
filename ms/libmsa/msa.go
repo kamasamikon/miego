@@ -74,8 +74,8 @@ func RunService() {
 
 	workDir := path.Dir(exePath)
 
-	waitOK := time.Duration(conf.Int(1, "i:/ms/relaunch/ok"))
-	waitNG := time.Duration(conf.Int(1, "i:/ms/relaunch/ng"))
+	relaunchOK := time.Duration(conf.Int(1, "i:/ms/relaunch/ok"))
+	relaunchNG := time.Duration(conf.Int(1, "i:/ms/relaunch/ng"))
 
 	//
 	// Prepare
@@ -106,7 +106,7 @@ func RunService() {
 		err := cmd.Run()
 		if err != nil {
 			klog.E("cmd.Run ERROR: %s", err.Error())
-			time.Sleep(time.Second * waitNG)
+			time.Sleep(time.Second * relaunchNG)
 			if cmd.Process != nil {
 				if err := cmd.Process.Kill(); err != nil {
 					klog.E("cmd.Kill ERROR: %s", err.Error())
@@ -119,7 +119,7 @@ func RunService() {
 			if nsAfter-nsBefore < 1*1000*1000*1000 {
 				klog.C("Service quit too frequenty.")
 			}
-			time.Sleep(time.Second * waitOK)
+			time.Sleep(time.Second * relaunchOK)
 		}
 	}
 }
@@ -171,12 +171,15 @@ func RegisterLoop() {
 
 	for {
 		// Loop
-		waitOK := time.Second * time.Duration(conf.Int(10, "i:/msb/regWait/ok"))
-		waitNG := time.Second * time.Duration(conf.Int(1, "i:/msb/regWait/ng"))
+		regWaitOK := conf.Int(10, "i:/msb/regWait/ok")
+		regWaitNG := conf.Int(1, "i:/msb/regWait/ng")
+
+		sleepRegWaitOK := time.Second * time.Duration(regWaitOK)
+		sleepRegWaitNG := time.Second * time.Duration(regWaitNG)
 
 		DockerGW := getParam("--dockerGW=", "DOCKER_GATEWAY", "s:/msb/dockerGW")
 		if DockerGW == "" {
-			time.Sleep(waitNG)
+			time.Sleep(sleepRegWaitNG)
 			continue
 		}
 
@@ -199,6 +202,7 @@ func RegisterLoop() {
 			ProjVersion: conf.Str("FIXME", "s:/build/version"),
 			ProjTime:    conf.Str("FIXME", "s:/build/time"),
 			CreatedAt:   CreatedAt,
+			RegInterval: regWaitOK,
 		}
 		sJson, _ := json.Marshal(&s)
 		msDataReader := strings.NewReader(string(sJson))
@@ -235,7 +239,7 @@ func RegisterLoop() {
 				if !doReg(msRegURL, msDataReader) {
 					break
 				}
-				time.Sleep(waitOK)
+				time.Sleep(time.Second * sleepRegWaitOK)
 			}
 		}
 
@@ -276,12 +280,12 @@ func RegisterLoop() {
 					if !doReg(msRegURL, msDataReader) {
 						break
 					}
-					time.Sleep(waitOK)
+					time.Sleep(time.Second * sleepRegWaitOK)
 				}
 			}
 		}
 
-		time.Sleep(waitNG)
+		time.Sleep(time.Second * sleepRegWaitNG)
 	}
 }
 

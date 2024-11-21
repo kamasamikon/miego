@@ -14,4 +14,5 @@ type KService struct {
 	CreatedAt   int64  `json:"createdAt"`   // 服务：服务启动的时间
 	Kind        string `json:"kind"`        // Nginx：服务类型，http或者grpc。
 	Upstream    string `json:"upstream"`    // Nginx：proxy_pass对应的upstream，若为空，则和服务名相同
+	RegInterval int64  `json:"regInterval"` // 两次注册之间的时间，单位是秒
 }

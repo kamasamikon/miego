@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"miego/conf"
@@ -21,6 +22,8 @@ import (
 
 	mscommon "miego/ms/common"
 )
+
+var mutex = &sync.Mutex{}
 
 // KService : Micro Service definition
 type KService struct {
@@ -60,6 +63,9 @@ func hashKey(ServiceName string, Version string, IPAddr string, Port int) string
 }
 
 func msSet(s *KService) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	key := hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
 	if a, ok := mapServices[key]; ok {
 		if a.CreatedAt != s.CreatedAt {
@@ -80,6 +86,9 @@ func msSet(s *KService) bool {
 }
 
 func msGet(serviceName string, version string, ipAddr string, port int) (s *KService) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	key := hashKey(serviceName, version, ipAddr, port)
 	if s, ok := mapServices[key]; ok {
 		return s
@@ -89,6 +98,9 @@ func msGet(serviceName string, version string, ipAddr string, port int) (s *KSer
 }
 
 func msRem(serviceName string, version string, ipAddr string, port int) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	key := hashKey(serviceName, version, ipAddr, port)
 	if _, ok := mapServices[key]; ok {
 		delete(mapServices, key)
@@ -105,23 +117,34 @@ func RefreshLoop() {
 	for {
 		var remKeys []string
 		now := time.Now().UnixNano()
+
+		mutex.Lock()
 		for _, s := range mapServices {
-			if diff := now - s.RefreshTime; diff > 10*1000*1000*1000 {
+			var regInterval int64 = 15000
+			if s.RegInterval != 0 {
+				regInterval = int64(s.RegInterval * 1500)
+			}
+
+			if diff := now - s.RefreshTime; diff > regInterval*1000*1000 {
 				key := hashKey(s.ServiceName, s.Version, s.IPAddr, s.Port)
 				remKeys = append(remKeys, key)
 			}
 		}
+		mutex.Unlock()
 
 		if len(remKeys) > 0 {
 			klog.I("Some services should be deleted. %s", remKeys)
+			mutex.Lock()
 			for _, key := range remKeys {
 				delete(mapServices, key)
 			}
+			mutex.Unlock()
 
 			klog.I("Bad services deleted, reloading nginx")
 			nginxConfWrite()
 			nginxReload()
 		}
+
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -130,6 +153,9 @@ func RefreshLoop() {
 // Nginx
 
 func genLocationAndUpstream() (string, string, string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	var serviceGroup = make(map[string][]*KService)
 	for _, v := range mapServices {
 		key := v.ServiceName
@@ -219,6 +245,9 @@ func nginxReload() {
 // 如果发生变化，说明有ms实例的变化，就是这个期间，有别的服务发生了增减变化
 // 这个变化包括，服务A从一个实例变成两个实例。
 func msSnapShot() string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	if msSnapShotString == "" {
 		var keyList []string
 		for _, v := range mapServices {
@@ -249,6 +278,9 @@ func serverSet(c *gin.Context) {
 }
 
 func serverGet(c *gin.Context) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	serviceName := c.Param("name")
 	if serviceName == "" {
 		serviceName = "ALL"
@@ -305,6 +337,9 @@ func serverGet(c *gin.Context) {
 }
 
 func serverRem(c *gin.Context) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	serviceName := c.Param("name")
 	if serviceName == "" {
 		serviceName = "ALL"
@@ -416,7 +451,7 @@ func main() {
 	})
 
 	Gin.GET("/conf", func(c *gin.Context) {
-		data := conf.DumpRaw(true)
+		data := conf.DumpRaw(true, true)
 		c.String(200, data)
 	})
 

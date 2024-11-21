@@ -28,8 +28,10 @@ COPY ./now .
 
 VOLUME /var/lib/nginx/tmp/client_body
 
+ENV KLOG_MUTE=0
+
 ### #####################################################################
 ## Run
 #
 COPY dockerentry.sh .
-ENTRYPOINT /root/dockerentry.sh
+ENTRYPOINT ["/root/dockerentry.sh"]

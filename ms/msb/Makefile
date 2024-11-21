@@ -12,7 +12,7 @@ docker: msb
 	sudo docker build -t msb .
 
 dockerrun: docker
-	sudo docker run --restart=always -it -d --name msb -p 9080:80 -p 1443:443 msb
+	sudo docker --debug run --restart=always -it -d --name msb -p 9080:80 -p 1443:443 msb
 
 msbtar: msb.tar.gz
 	REMOTE=root@117.50.95.113
