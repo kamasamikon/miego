@@ -239,7 +239,7 @@ func RegisterLoop() {
 				if !doReg(msRegURL, msDataReader) {
 					break
 				}
-				time.Sleep(time.Second * sleepRegWaitOK)
+				time.Sleep(sleepRegWaitOK)
 			}
 		}
 
@@ -280,12 +280,12 @@ func RegisterLoop() {
 					if !doReg(msRegURL, msDataReader) {
 						break
 					}
-					time.Sleep(time.Second * sleepRegWaitOK)
+					time.Sleep(sleepRegWaitOK)
 				}
 			}
 		}
 
-		time.Sleep(time.Second * sleepRegWaitNG)
+		time.Sleep(sleepRegWaitNG)
 	}
 }
 
