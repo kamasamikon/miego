@@ -262,7 +262,7 @@ func msSnapShot() string {
 	return msSnapShotString
 }
 
-func serverSet(c *gin.Context) {
+func serviceSet(c *gin.Context) {
 	var s KService
 	c.BindJSON(&s)
 
@@ -277,7 +277,7 @@ func serverSet(c *gin.Context) {
 	c.JSON(200, &pong)
 }
 
-func serverGet(c *gin.Context) {
+func serviceGet(c *gin.Context) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -336,7 +336,7 @@ func serverGet(c *gin.Context) {
 	}
 }
 
-func serverRem(c *gin.Context) {
+func serviceRem(c *gin.Context) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -424,19 +424,19 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	Gin := gin.New()
 
-	Gin.POST("/service", serverSet)
+	Gin.POST("/service", serviceSet)
 
-	Gin.GET("/service", serverGet)
-	Gin.GET("/service/:name", serverGet)
-	Gin.GET("/service/:name/:version", serverGet)
-	Gin.GET("/service/:name/:version/:ipaddr", serverGet)
-	Gin.GET("/service/:name/:version/:ipaddr/:port", serverGet)
+	Gin.GET("/service", serviceGet)
+	Gin.GET("/service/:name", serviceGet)
+	Gin.GET("/service/:name/:version", serviceGet)
+	Gin.GET("/service/:name/:version/:ipaddr", serviceGet)
+	Gin.GET("/service/:name/:version/:ipaddr/:port", serviceGet)
 
-	Gin.DELETE("/service", serverRem)
-	Gin.DELETE("/service/:name", serverRem)
-	Gin.DELETE("/service/:name/:version", serverRem)
-	Gin.DELETE("/service/:name/:version/:ipaddr", serverRem)
-	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serverRem)
+	Gin.DELETE("/service", serviceRem)
+	Gin.DELETE("/service/:name", serviceRem)
+	Gin.DELETE("/service/:name/:version", serviceRem)
+	Gin.DELETE("/service/:name/:version/:ipaddr", serviceRem)
+	Gin.DELETE("/service/:name/:version/:ipaddr/:port", serviceRem)
 
 	Gin.GET("/nginx", func(c *gin.Context) {
 		cmd := exec.Command("nginx", "-T")
