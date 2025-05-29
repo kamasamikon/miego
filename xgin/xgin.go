@@ -46,21 +46,33 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 	}
 }
 
-func Go(Engine *gin.Engine, addr string) {
-	if conf.Bool(true, "b:/gin/releaseMode") == true {
-		gin.SetMode(gin.ReleaseMode)
+func RoutersToConf(Engine *gin.Engine) {
+	Routes := Engine.Routes()
+
+	var strfmt string
+	cnt := len(Routes)
+	if cnt < 10 {
+		strfmt = "s:/gin/routers/%01d"
+	} else if cnt < 100 {
+		strfmt = "s:/gin/routers/%02d"
+	} else if cnt < 1000 {
+		strfmt = "s:/gin/routers/%03d"
+	} else {
+		strfmt = "s:/gin/routers/%04d"
 	}
 
-	if Engine == nil {
-		Engine = Default()
-	}
-
-	for i, x := range Engine.Routes() {
+	for i, x := range Routes {
 		conf.Set(
-			fmt.Sprintf("s:/gin/routers/%02d", i),
+			fmt.Sprintf(strfmt, i),
 			fmt.Sprintf("%s -> '%s'", x.Method, x.Path),
 			true,
 		)
+	}
+}
+
+func Go(Engine *gin.Engine, addr string) {
+	if conf.Bool(true, "b:/gin/releaseMode") == true {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	if addr == "" {
