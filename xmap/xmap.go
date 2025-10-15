@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,10 +12,16 @@ import (
 	"miego/klog"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/gin-gonic/gin"
 )
 
 type Map map[string]interface{}
+
+func First(mpArr []Map) Map {
+	if mpArr == nil {
+		return nil
+	}
+	return mpArr[0]
+}
 
 func Nth(mpArr []Map, n int) Map {
 	size := len(mpArr)
@@ -55,9 +62,9 @@ func MapData(data []byte) Map {
 }
 
 // MapBody : Convert gin's request to Map
-func MapBody(c *gin.Context) Map {
+func MapBody(r *http.Request) Map {
 	xm := make(Map)
-	if dat, err := ioutil.ReadAll(c.Request.Body); err != nil {
+	if dat, err := ioutil.ReadAll(r.Body); err != nil {
 		return xm
 	} else {
 		json.Unmarshal(dat, &xm)
@@ -66,9 +73,9 @@ func MapBody(c *gin.Context) Map {
 }
 
 // MapQuery : Convert gin's request to Map
-func MapQuery(c *gin.Context, useLast bool) Map {
+func MapQuery(r *http.Request, useLast bool) Map {
 	xm := make(Map)
-	for k, a := range c.Request.URL.Query() {
+	for k, a := range r.URL.Query() {
 		if useLast {
 			v := a[len(a)-1]
 			xm[k] = v
@@ -80,12 +87,12 @@ func MapQuery(c *gin.Context, useLast bool) Map {
 }
 
 // MapAll : MapBody then MapQuery
-func MapAll(c *gin.Context, overwrite bool) Map {
+func MapAll(r *http.Request, overwrite bool) Map {
 	xm := make(Map)
-	if dat, err := ioutil.ReadAll(c.Request.Body); err == nil {
+	if dat, err := ioutil.ReadAll(r.Body); err == nil {
 		json.Unmarshal(dat, &xm)
 	}
-	for k, a := range c.Request.URL.Query() {
+	for k, a := range r.URL.Query() {
 		if overwrite {
 			v := a[len(a)-1]
 			xm[k] = v
