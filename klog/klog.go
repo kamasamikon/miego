@@ -38,6 +38,16 @@ func WriterRem(name string) {
 	delete(Conf.Writers, name)
 }
 
+// S :String
+func S(formating string, args ...interface{}) string {
+	return KLogS(2, Conf.ShortPath, "", "S", true, formating, args...)
+}
+
+// S :String with Color
+func SC(color string, formating string, args ...interface{}) string {
+	return KLogS(2, Conf.ShortPath, color, "S", true, formating, args...)
+}
+
 // F :Fatal
 func F(formating string, args ...interface{}) {
 	color := ColorType_F
