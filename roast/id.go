@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 
 	"database/sql"
 )

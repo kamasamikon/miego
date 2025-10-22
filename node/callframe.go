@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 type KCallFrame struct {

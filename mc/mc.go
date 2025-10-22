@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/twinj/uuid"
+	"github.com/google/uuid"
 )
 
 type Item struct {
