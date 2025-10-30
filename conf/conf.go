@@ -196,6 +196,8 @@ func Int(defval int64, paths ...string) int64 {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt
+		} else {
+			fmt.Printf("CONF.Int: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -210,6 +212,8 @@ func IntX(paths ...string) (int64, bool) {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt, true
+		} else {
+			fmt.Printf("CONF.IntX: Miss %s\n", path)
 		}
 	}
 	return 0, false
@@ -223,6 +227,8 @@ func Inc(inc int64, path string) {
 	if e, ok := mapPathEntry[path]; ok {
 		vNew := e.vInt + 1
 		setByEntry(e, vNew)
+	} else {
+		fmt.Printf("CONF.Inc: Miss %s\n", path)
 	}
 }
 
@@ -234,6 +240,8 @@ func Flip(path string) {
 	if e, ok := mapPathEntry[path]; ok {
 		vNew := !e.vBool
 		setByEntry(e, vNew)
+	} else {
+		fmt.Printf("CONF.Flip: Miss %s\n", path)
 	}
 }
 
@@ -246,6 +254,8 @@ func Str(defval string, paths ...string) string {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr
+		} else {
+			fmt.Printf("CONF.Str: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -260,6 +270,8 @@ func StrX(paths ...string) (string, bool) {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr, true
+		} else {
+			fmt.Printf("CONF.StrX: Miss %s\n", path)
 		}
 	}
 	return "", false
@@ -274,6 +286,8 @@ func Bool(defval bool, paths ...string) bool {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool
+		} else {
+			fmt.Printf("CONF.Bool: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -288,6 +302,8 @@ func BoolX(paths ...string) (bool, bool) {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool, true
+		} else {
+			fmt.Printf("CONF.BoolX: Miss %s\n", path)
 		}
 	}
 	return false, false
@@ -302,6 +318,8 @@ func Obj(defval interface{}, paths ...string) interface{} {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj
+		} else {
+			fmt.Printf("CONF.Obj: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -316,6 +334,8 @@ func ObjX(paths ...string) (interface{}, bool) {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj, true
+		} else {
+			fmt.Printf("CONF.ObjX: Miss %s\n", path)
 		}
 	}
 	return nil, false
@@ -337,6 +357,8 @@ func List(paths ...string) []string {
 					}
 				}
 			}
+		} else {
+			fmt.Printf("CONF.List: Miss %s\n", path)
 		}
 	}
 	return slice
