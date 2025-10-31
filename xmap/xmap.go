@@ -104,7 +104,7 @@ func MapAll(r *http.Request, overwrite bool) Map {
 }
 
 // Marshal : xmap -> string
-func (xm Map) Marshal() string {
+func (xm Map) String() string {
 	if data, err := json.MarshalIndent(xm, "", "\t"); err == nil {
 		return string(data)
 	} else {
