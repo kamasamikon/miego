@@ -3,6 +3,7 @@ package xgin
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,6 +18,20 @@ import (
 
 // Default :Only and default Engine
 var _Default *gin.Engine
+
+func GetFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
+}
 
 // XXX: Copied from gin/examples/graceful-shutdown/...
 func gracefulRun(Engine *gin.Engine, addr string) {
@@ -70,7 +85,7 @@ func RoutersToConf(Engine *gin.Engine) {
 	}
 }
 
-func Go(Engine *gin.Engine, addr string) {
+func Go(Engine *gin.Engine, addr string) error {
 	if conf.Bool(true, "b:/gin/releaseMode") == true {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -78,7 +93,16 @@ func Go(Engine *gin.Engine, addr string) {
 	if addr == "" {
 		addr = fmt.Sprintf(":%d", conf.Int(8888, "i:/ms/port"))
 	}
+	if addr == "*" {
+		if port, err := GetFreePort(); err != nil {
+			return err
+		} else {
+			addr = fmt.Sprintf(":%d", port)
+		}
+	}
+
 	gracefulRun(Engine, addr)
+	return nil
 }
 
 func Default() *gin.Engine {

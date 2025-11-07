@@ -25,6 +25,7 @@ const (
 
 const (
 	PathReady = "e:/conf/ready"
+	Debug     = "i:/conf/debug"
 )
 
 // See confcenter
@@ -54,6 +55,16 @@ var LoadNGCount = 0
 
 var mutex = &sync.Mutex{}
 
+// 打印调试信息
+var DEBUG = 0
+
+// DebugPrint: 打印调试信息
+func dp(formating string, args ...interface{}) {
+	if DEBUG != 0 {
+		fmt.Printf(formating, args...)
+	}
+}
+
 // Delete an entry
 func EntryRem(path string) {
 	mutex.Lock()
@@ -71,11 +82,13 @@ func EntryAdd(line string, overwrite bool) {
 
 	segs := strings.SplitN(line, "=", 2)
 	if len(segs) == 0 {
+		dp("EntryAdd: BadLine: %s\n", line)
 		return
 	}
 
 	path := segs[0]
 	if len(path) < 4 || path[1] != ':' {
+		dp("EntryAdd: BadSegs: %s\n", line)
 		return
 	}
 	kind, hidden, realpath := pathParse(path)
@@ -100,6 +113,7 @@ func EntryAdd(line string, overwrite bool) {
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			vNew = vInt
 		} else {
+			dp("EntryAdd: BadValue: %s\n", line)
 			return
 		}
 
@@ -115,6 +129,7 @@ func EntryAdd(line string, overwrite bool) {
 		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
 			vNew = false
 		} else {
+			dp("EntryAdd: BadValue: %s\n", line)
 			return
 		}
 
@@ -122,6 +137,7 @@ func EntryAdd(line string, overwrite bool) {
 		// line is json string
 		o := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
+			dp("EntryAdd: BadValue: %s\n", line)
 			return
 		}
 		vNew = o
@@ -169,6 +185,8 @@ func LoadFile(fileName string, overwrite bool) error {
 		EntryAdd(sp(NGWhy, LoadNGCount, err.Error()), false)
 		LoadNGCount++
 		return err
+	} else {
+		dp("LoadFile.NG: %s", fileName)
 	}
 
 	EntryAdd(sp(OKName, LoadOKCount, fileName), false)
@@ -197,7 +215,7 @@ func Int(defval int64, paths ...string) int64 {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt
 		} else {
-			fmt.Printf("CONF.Int: Miss %s\n", path)
+			dp("CONF.Int: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -213,7 +231,7 @@ func IntX(paths ...string) (int64, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt, true
 		} else {
-			fmt.Printf("CONF.IntX: Miss %s\n", path)
+			dp("CONF.IntX: Miss %s\n", path)
 		}
 	}
 	return 0, false
@@ -228,7 +246,7 @@ func Inc(inc int64, path string) {
 		vNew := e.vInt + 1
 		setByEntry(e, vNew)
 	} else {
-		fmt.Printf("CONF.Inc: Miss %s\n", path)
+		dp("CONF.Inc: Miss %s\n", path)
 	}
 }
 
@@ -241,7 +259,7 @@ func Flip(path string) {
 		vNew := !e.vBool
 		setByEntry(e, vNew)
 	} else {
-		fmt.Printf("CONF.Flip: Miss %s\n", path)
+		dp("CONF.Flip: Miss %s\n", path)
 	}
 }
 
@@ -255,7 +273,7 @@ func Str(defval string, paths ...string) string {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr
 		} else {
-			fmt.Printf("CONF.Str: Miss %s\n", path)
+			dp("CONF.Str: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -271,7 +289,7 @@ func StrX(paths ...string) (string, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr, true
 		} else {
-			fmt.Printf("CONF.StrX: Miss %s\n", path)
+			dp("CONF.StrX: Miss %s\n", path)
 		}
 	}
 	return "", false
@@ -287,7 +305,7 @@ func Bool(defval bool, paths ...string) bool {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool
 		} else {
-			fmt.Printf("CONF.Bool: Miss %s\n", path)
+			dp("CONF.Bool: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -303,7 +321,7 @@ func BoolX(paths ...string) (bool, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool, true
 		} else {
-			fmt.Printf("CONF.BoolX: Miss %s\n", path)
+			dp("CONF.BoolX: Miss %s\n", path)
 		}
 	}
 	return false, false
@@ -319,7 +337,7 @@ func Obj(defval interface{}, paths ...string) interface{} {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj
 		} else {
-			fmt.Printf("CONF.Obj: Miss %s\n", path)
+			dp("CONF.Obj: Miss %s\n", path)
 		}
 	}
 	return defval
@@ -335,7 +353,7 @@ func ObjX(paths ...string) (interface{}, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj, true
 		} else {
-			fmt.Printf("CONF.ObjX: Miss %s\n", path)
+			dp("CONF.ObjX: Miss %s\n", path)
 		}
 	}
 	return nil, false
@@ -358,7 +376,7 @@ func List(paths ...string) []string {
 				}
 			}
 		} else {
-			fmt.Printf("CONF.List: Miss %s\n", path)
+			dp("CONF.List: Miss %s\n", path)
 		}
 	}
 	return slice
@@ -392,6 +410,7 @@ func pathParse(path string) (kind byte, hidden bool, realpath string) {
 		realpath = "e" + path[1:]
 
 	default:
+		dp("BadType: %s\n", path)
 		realpath = ""
 	}
 
@@ -525,10 +544,24 @@ func Ready() {
 var main_cfg string
 
 func init() {
+	if os.Getenv("MG_CONF_DEBUG") == "debug" {
+		DEBUG = 1
+	}
+
 	//
 	// Some builtin entries
 	//
 	EntryAdd(PathReady, false)
+	EntryAdd(Debug, false)
+	MonitorAdd(
+		Debug,
+		func(p string, o, n interface{}) {
+			if x, ok := n.(int64); ok {
+				DEBUG = int(x)
+			}
+		},
+	)
+
 	LoadString(main_cfg, false)
 
 	// 优先级: 命令行 > 环境变量
@@ -600,4 +633,7 @@ func LoadFromArg() {
 // Last to call
 func Go() {
 	Ready()
+	if os.Getenv("MG_CONF_DUMP") == "1" {
+		fmt.Println(Dump(false))
+	}
 }
