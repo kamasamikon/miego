@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -60,9 +62,28 @@ var DEBUG = 0
 
 // DebugPrint: 打印调试信息
 func dp(formating string, args ...interface{}) {
-	if DEBUG != 0 {
-		fmt.Printf(formating, args...)
+	if DEBUG == 0 {
+		return
 	}
+
+	pc, filename, line, _ := runtime.Caller(1)
+
+	funcname := runtime.FuncForPC(pc).Name()
+	funcname = filepath.Ext(funcname)
+	funcname = strings.TrimPrefix(funcname, ".")
+
+	var sb strings.Builder
+	sb.WriteRune('|')
+	sb.WriteString(filename)
+	sb.WriteRune('|')
+	sb.WriteString(funcname)
+	sb.WriteRune('|')
+	sb.WriteString(strconv.Itoa(line))
+	sb.WriteRune('|')
+	sb.WriteString(fmt.Sprintf(formating, args...))
+	sb.WriteRune('\n')
+
+	fmt.Printf("%s", sb.String())
 }
 
 // Delete an entry
@@ -82,13 +103,11 @@ func EntryAdd(line string, overwrite bool) {
 
 	segs := strings.SplitN(line, "=", 2)
 	if len(segs) == 0 {
-		dp("EntryAdd: BadLine: %s\n", line)
 		return
 	}
 
 	path := segs[0]
 	if len(path) < 4 || path[1] != ':' {
-		dp("EntryAdd: BadSegs: %s\n", line)
 		return
 	}
 	kind, hidden, realpath := pathParse(path)
@@ -113,7 +132,7 @@ func EntryAdd(line string, overwrite bool) {
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			vNew = vInt
 		} else {
-			dp("EntryAdd: BadValue: %s\n", line)
+			dp("EntryAdd: BadValue: %s", line)
 			return
 		}
 
@@ -129,7 +148,7 @@ func EntryAdd(line string, overwrite bool) {
 		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
 			vNew = false
 		} else {
-			dp("EntryAdd: BadValue: %s\n", line)
+			dp("EntryAdd: BadValue: %s", line)
 			return
 		}
 
@@ -137,7 +156,7 @@ func EntryAdd(line string, overwrite bool) {
 		// line is json string
 		o := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
-			dp("EntryAdd: BadValue: %s\n", line)
+			dp("EntryAdd: BadValue: %s", line)
 			return
 		}
 		vNew = o
@@ -184,9 +203,8 @@ func LoadFile(fileName string, overwrite bool) error {
 		EntryAdd(sp(NGName, LoadNGCount, fileName), false)
 		EntryAdd(sp(NGWhy, LoadNGCount, err.Error()), false)
 		LoadNGCount++
-		return err
-	} else {
 		dp("LoadFile.NG: %s", fileName)
+		return err
 	}
 
 	EntryAdd(sp(OKName, LoadOKCount, fileName), false)
@@ -215,7 +233,7 @@ func Int(defval int64, paths ...string) int64 {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt
 		} else {
-			dp("CONF.Int: Miss %s\n", path)
+			dp("CONF.Int: Miss %s", path)
 		}
 	}
 	return defval
@@ -231,7 +249,7 @@ func IntX(paths ...string) (int64, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt, true
 		} else {
-			dp("CONF.IntX: Miss %s\n", path)
+			dp("CONF.IntX: Miss %s", path)
 		}
 	}
 	return 0, false
@@ -246,7 +264,7 @@ func Inc(inc int64, path string) {
 		vNew := e.vInt + 1
 		setByEntry(e, vNew)
 	} else {
-		dp("CONF.Inc: Miss %s\n", path)
+		dp("CONF.Inc: Miss %s", path)
 	}
 }
 
@@ -259,7 +277,7 @@ func Flip(path string) {
 		vNew := !e.vBool
 		setByEntry(e, vNew)
 	} else {
-		dp("CONF.Flip: Miss %s\n", path)
+		dp("CONF.Flip: Miss %s", path)
 	}
 }
 
@@ -273,7 +291,7 @@ func Str(defval string, paths ...string) string {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr
 		} else {
-			dp("CONF.Str: Miss %s\n", path)
+			dp("CONF.Str: Miss %s", path)
 		}
 	}
 	return defval
@@ -289,7 +307,7 @@ func StrX(paths ...string) (string, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr, true
 		} else {
-			dp("CONF.StrX: Miss %s\n", path)
+			dp("CONF.StrX: Miss %s", path)
 		}
 	}
 	return "", false
@@ -305,7 +323,7 @@ func Bool(defval bool, paths ...string) bool {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool
 		} else {
-			dp("CONF.Bool: Miss %s\n", path)
+			dp("CONF.Bool: Miss %s", path)
 		}
 	}
 	return defval
@@ -321,7 +339,7 @@ func BoolX(paths ...string) (bool, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool, true
 		} else {
-			dp("CONF.BoolX: Miss %s\n", path)
+			dp("CONF.BoolX: Miss %s", path)
 		}
 	}
 	return false, false
@@ -337,7 +355,7 @@ func Obj(defval interface{}, paths ...string) interface{} {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj
 		} else {
-			dp("CONF.Obj: Miss %s\n", path)
+			dp("CONF.Obj: Miss %s", path)
 		}
 	}
 	return defval
@@ -353,7 +371,7 @@ func ObjX(paths ...string) (interface{}, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj, true
 		} else {
-			dp("CONF.ObjX: Miss %s\n", path)
+			dp("CONF.ObjX: Miss %s", path)
 		}
 	}
 	return nil, false
@@ -376,7 +394,7 @@ func List(paths ...string) []string {
 				}
 			}
 		} else {
-			dp("CONF.List: Miss %s\n", path)
+			dp("CONF.List: Miss %s", path)
 		}
 	}
 	return slice
@@ -410,7 +428,7 @@ func pathParse(path string) (kind byte, hidden bool, realpath string) {
 		realpath = "e" + path[1:]
 
 	default:
-		dp("BadType: %s\n", path)
+		dp("BadType: %s", path)
 		realpath = ""
 	}
 
@@ -551,8 +569,8 @@ func init() {
 	//
 	// Some builtin entries
 	//
-	EntryAdd(PathReady, false)
-	EntryAdd(Debug, false)
+	Set(PathReady, "", true)
+	Set(Debug, 0, true)
 	MonitorAdd(
 		Debug,
 		func(p string, o, n interface{}) {
