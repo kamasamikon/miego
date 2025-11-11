@@ -80,7 +80,10 @@ func dp(formating string, args ...interface{}) {
 	sb.WriteRune('|')
 	sb.WriteString(strconv.Itoa(line))
 	sb.WriteRune('|')
+	sb.WriteRune(' ')
+	sb.WriteString("\x1b[31;40m")
 	sb.WriteString(fmt.Sprintf(formating, args...))
+	sb.WriteString("\x1b[0m")
 	sb.WriteRune('\n')
 
 	fmt.Printf("%s", sb.String())
@@ -132,7 +135,7 @@ func EntryAdd(line string, overwrite bool) {
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			vNew = vInt
 		} else {
-			dp("EntryAdd: BadValue: %s", line)
+			dp("BadValue.i: %s", line)
 			return
 		}
 
@@ -148,7 +151,7 @@ func EntryAdd(line string, overwrite bool) {
 		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
 			vNew = false
 		} else {
-			dp("EntryAdd: BadValue: %s", line)
+			dp("BadValue.b: %s", line)
 			return
 		}
 
@@ -156,7 +159,7 @@ func EntryAdd(line string, overwrite bool) {
 		// line is json string
 		o := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
-			dp("EntryAdd: BadValue: %s", line)
+			dp("BadValue.o: %s", line)
 			return
 		}
 		vNew = o
@@ -203,7 +206,7 @@ func LoadFile(fileName string, overwrite bool) error {
 		EntryAdd(sp(NGName, LoadNGCount, fileName), false)
 		EntryAdd(sp(NGWhy, LoadNGCount, err.Error()), false)
 		LoadNGCount++
-		dp("LoadFile.NG: %s", fileName)
+		dp("Error:'%s', fileName:'%s'", err.Error(), fileName)
 		return err
 	}
 
@@ -233,7 +236,7 @@ func Int(defval int64, paths ...string) int64 {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt
 		} else {
-			dp("CONF.Int: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return defval
@@ -249,7 +252,7 @@ func IntX(paths ...string) (int64, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vInt, true
 		} else {
-			dp("CONF.IntX: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return 0, false
@@ -264,7 +267,7 @@ func Inc(inc int64, path string) {
 		vNew := e.vInt + 1
 		setByEntry(e, vNew)
 	} else {
-		dp("CONF.Inc: Miss %s", path)
+		dp("Miss %s", path)
 	}
 }
 
@@ -277,7 +280,7 @@ func Flip(path string) {
 		vNew := !e.vBool
 		setByEntry(e, vNew)
 	} else {
-		dp("CONF.Flip: Miss %s", path)
+		dp("Miss %s", path)
 	}
 }
 
@@ -291,7 +294,7 @@ func Str(defval string, paths ...string) string {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr
 		} else {
-			dp("CONF.Str: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return defval
@@ -307,7 +310,7 @@ func StrX(paths ...string) (string, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vStr, true
 		} else {
-			dp("CONF.StrX: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return "", false
@@ -323,7 +326,7 @@ func Bool(defval bool, paths ...string) bool {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool
 		} else {
-			dp("CONF.Bool: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return defval
@@ -339,7 +342,7 @@ func BoolX(paths ...string) (bool, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vBool, true
 		} else {
-			dp("CONF.BoolX: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return false, false
@@ -355,7 +358,7 @@ func Obj(defval interface{}, paths ...string) interface{} {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj
 		} else {
-			dp("CONF.Obj: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return defval
@@ -371,7 +374,7 @@ func ObjX(paths ...string) (interface{}, bool) {
 		if v, ok := mapPathEntry[path]; ok {
 			return v.vObj, true
 		} else {
-			dp("CONF.ObjX: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return nil, false
@@ -394,7 +397,7 @@ func List(paths ...string) []string {
 				}
 			}
 		} else {
-			dp("CONF.List: Miss %s", path)
+			dp("Miss %s", path)
 		}
 	}
 	return slice
@@ -562,15 +565,10 @@ func Ready() {
 var main_cfg string
 
 func init() {
-	if os.Getenv("MG_CONF_DEBUG") == "debug" {
-		DEBUG = 1
-	}
-
 	//
 	// Some builtin entries
 	//
 	Set(PathReady, "", true)
-	Set(Debug, 0, true)
 	MonitorAdd(
 		Debug,
 		func(p string, o, n interface{}) {
@@ -579,6 +577,11 @@ func init() {
 			}
 		},
 	)
+	if os.Getenv("MG_CONF_DEBUG") == "debug" {
+		Set(Debug, 1, true)
+	} else {
+		Set(Debug, 0, true)
+	}
 
 	LoadString(main_cfg, false)
 
@@ -618,18 +621,39 @@ func LoadFromEnv() {
 }
 
 func LoadFromArg() {
+	argc := len(os.Args)
+
+	// --kfg abc.cfg --kfg=xyz.cfg
 	{
-		for _, argv := range os.Args {
+		for i, argv := range os.Args {
+			if argv == "--kfg" {
+				i++
+				if i < argc {
+					LoadFile(os.Args[i], true)
+				}
+				continue
+			}
 			if strings.HasPrefix(argv, "--kfg=") {
 				f := argv[6:]
 				if f != "" {
 					LoadFile(f, true)
 				}
+				continue
 			}
 		}
 	}
+
+	// --kfg-qqq abc.cfg --kfg-qqq=xyz.cfg
 	{
-		for _, argv := range os.Args {
+		for i, argv := range os.Args {
+			if argv == "--kfg-qqq" {
+				i++
+				if i < argc {
+					LoadFile(os.Args[i], true)
+					os.Remove(os.Args[i])
+				}
+				continue
+			}
 			if strings.HasPrefix(argv, "--kfg-qqq=") {
 				f := argv[6:]
 				if f != "" {
@@ -640,7 +664,15 @@ func LoadFromArg() {
 		}
 	}
 
-	for _, argv := range os.Args {
+	// --kfg-item i:/abc=777 --kfg-item=s:/xyz=abc
+	for i, argv := range os.Args {
+		if argv == "--kfg-item" {
+			i++
+			if i < argc {
+				EntryAdd(os.Args[i], true)
+			}
+			continue
+		}
 		if strings.HasPrefix(argv, "--kfg-item=") {
 			item := argv[11:]
 			EntryAdd(item, true)
