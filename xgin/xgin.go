@@ -101,6 +101,7 @@ func Go(Engine *gin.Engine, addr string) error {
 		}
 	}
 
+	RoutersToConf(Engine)
 	gracefulRun(Engine, addr)
 	return nil
 }
