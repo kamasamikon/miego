@@ -5,26 +5,26 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 )
 
 // BT : Print back trace
-func BT(maxdep int, formating string, args ...interface{}) string {
+func BT(maxdep int, formating string, args ...interface{}) {
+	if maxdep < 2 {
+		KLogLN(2, Conf.ShortPath, ColorType_N, "T", formating, args...)
+		return
+	}
 	if Conf.Mute == 1 {
-		return ""
+		return
+	}
+	if Conf.Dull == 1 {
+		return
 	}
 
-	now := time.Now()
-	nowQ := now.Format("2006/01/02 15:04:05.")
-	nowH := now.Nanosecond() / 1000 / 1000 % 1000
-
 	cEnd := ColorType_Reset
-	cStart := ColorType_D
-
-	content := ""
+	cStart := ColorType_N
 
 	txt := fmt.Sprintf(formating, args...)
-	content += fmt.Sprintf("%s|BT>>>>|%s %s\n", cStart, cEnd, txt)
+	content := fmt.Sprintf("%s|BT|%s %s\n", cStart, cEnd, txt)
 
 	dep := 0
 	for {
@@ -36,17 +36,19 @@ func BT(maxdep int, formating string, args ...interface{}) string {
 
 		pc, filename, line, ok := runtime.Caller(dep)
 		if ok == false {
-			content += fmt.Sprintf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
-			return content
+			break
 		}
 
 		funcname := runtime.FuncForPC(pc).Name()
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
 
-		content += fmt.Sprintf("%s|BT|S:%s%03d|F:%s|H:%s|L:%d|%s\n", cStart, nowQ, nowH, filename, funcname, line, cEnd)
+		content += fmt.Sprintf("%s|%02d| F:%s|H:%s|L:%d|%s\n", cStart, dep, filename, funcname, line, cEnd)
 	}
 
-	content += fmt.Sprintf("%s|BT<<<<|%s %s\n", cStart, cEnd, txt)
-	return content
+	s := []byte(content)
+	Writers := Conf.Writers
+	for _, w := range Writers {
+		w.Write(s)
+	}
 }
