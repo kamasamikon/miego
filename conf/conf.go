@@ -38,6 +38,7 @@ type confEntry struct {
 	//
 	// vXxx: value for each type
 	//
+	// refGet/refSet: count by Read or Write
 	//
 	// hidden: Not show by dump
 	kind byte
@@ -47,6 +48,9 @@ type confEntry struct {
 	vStr  string
 	vBool bool
 	vObj  interface{}
+
+	refGet int64
+	refSet int64
 
 	hidden bool
 }
@@ -217,12 +221,23 @@ func LoadFile(fileName string, overwrite bool) error {
 	return nil
 }
 
+// Ref : refGet, refSet
+func Ref(path string) (int64, int64) {
+	if v, ok := mapPathEntry[path]; ok {
+		return v.refGet, v.refSet
+	}
+	return -1, -1
+}
+
 // Has : Check if a entry exists
 func Has(path string) bool {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	_, ok := mapPathEntry[path]
+	v, ok := mapPathEntry[path]
+	if ok {
+		v.refGet++
+	}
 	return ok
 }
 
@@ -234,6 +249,7 @@ func Int(defval int64, paths ...string) int64 {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vInt
 		} else {
 			dp("Miss %s", path)
@@ -250,6 +266,7 @@ func IntX(paths ...string) (int64, bool) {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vInt, true
 		} else {
 			dp("Miss %s", path)
@@ -259,28 +276,34 @@ func IntX(paths ...string) (int64, bool) {
 }
 
 // Inc : Increase or Decrease on int
-func Inc(inc int64, path string) {
+func Inc(inc int64, path string) int64 {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	if e, ok := mapPathEntry[path]; ok {
+		e.refGet++
 		vNew := e.vInt + 1
 		setByEntry(e, vNew)
+		return vNew
 	} else {
 		dp("Miss %s", path)
+		return -1
 	}
 }
 
 // Flip : flip on bool
-func Flip(path string) {
+func Flip(path string) bool {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	if e, ok := mapPathEntry[path]; ok {
+		e.refGet++
 		vNew := !e.vBool
 		setByEntry(e, vNew)
+		return vNew
 	} else {
 		dp("Miss %s", path)
+		return false
 	}
 }
 
@@ -292,6 +315,7 @@ func Str(defval string, paths ...string) string {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vStr
 		} else {
 			dp("Miss %s", path)
@@ -308,6 +332,7 @@ func StrX(paths ...string) (string, bool) {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vStr, true
 		} else {
 			dp("Miss %s", path)
@@ -324,6 +349,7 @@ func Bool(defval bool, paths ...string) bool {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vBool
 		} else {
 			dp("Miss %s", path)
@@ -340,6 +366,7 @@ func BoolX(paths ...string) (bool, bool) {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vBool, true
 		} else {
 			dp("Miss %s", path)
@@ -356,6 +383,7 @@ func Obj(defval interface{}, paths ...string) interface{} {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vObj
 		} else {
 			dp("Miss %s", path)
@@ -372,6 +400,7 @@ func ObjX(paths ...string) (interface{}, bool) {
 	// path: aaa/bbb
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
+			v.refGet++
 			return v.vObj, true
 		} else {
 			dp("Miss %s", path)
@@ -390,6 +419,7 @@ func List(paths ...string) []string {
 	for _, path := range paths {
 		if v, ok := mapPathEntry[path]; ok {
 			if len(v.vStr) > 0 {
+				v.refGet++
 				for _, s := range strings.Split(v.vStr, v.vStr[0:1]) {
 					if s != "" {
 						slice = append(slice, s)
@@ -498,6 +528,7 @@ func setByEntry(e *confEntry, value interface{}) {
 		}
 
 		e.vInt = vNew
+		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 's':
@@ -505,6 +536,7 @@ func setByEntry(e *confEntry, value interface{}) {
 
 		vNew := value.(string)
 		e.vStr = vNew
+		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'b':
@@ -512,6 +544,7 @@ func setByEntry(e *confEntry, value interface{}) {
 
 		vNew := value.(bool)
 		e.vBool = vNew
+		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'o':
@@ -519,10 +552,12 @@ func setByEntry(e *confEntry, value interface{}) {
 
 		vNew := value.(interface{})
 		e.vObj = vNew
+		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'e':
 		vNew := value.(string)
+		e.refSet++
 		monitorCall(e, 0, vNew)
 	}
 }

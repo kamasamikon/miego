@@ -23,7 +23,7 @@ func Dump(safeMode bool) string {
 	})
 
 	fmtstr := fmt.Sprintf(
-		"%s%%-%ds%s : %s%%v%s",
+		"%s%%-%ds%s :(%%04d:%%04d): %s%%v%s",
 		ColorType_D,
 		keyMaxLength,
 		ColorType_Reset,
@@ -37,19 +37,19 @@ func Dump(safeMode bool) string {
 
 		switch v.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.vInt))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, v.vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.vStr))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, v.vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.vBool))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, v.vBool))
 
 		case 'o':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, "..."))
 
 		case 'e':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, "..."))
 		}
 
 	}
