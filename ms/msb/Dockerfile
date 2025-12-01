@@ -1,6 +1,7 @@
 
 # XXX: For grpc, use openresty/openresty:alpine, else use nginx:alpine
 # FROM openresty/openresty:alpine
+# FROM docker.nju.edu.cn/library/nginx:1.19.6-alpine
 FROM nginx:1.19.6-alpine
 # FROM smebberson/alpine-nginx
 

@@ -9,4 +9,5 @@ COPY ./PRC /etc/localtime
 COPY ./msa .
 
 RUN mkdir /ms
-ENTRYPOINT /root/msa
+
+ENTRYPOINT ["/root/msa"]
