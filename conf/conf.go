@@ -1,7 +1,6 @@
 package conf
 
 import (
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -596,9 +595,6 @@ func Ready() {
 	Set(PathReady, "", true)
 }
 
-//go:embed main.mgc
-var main_cfg string
-
 func init() {
 	//
 	// Some builtin entries
@@ -617,8 +613,6 @@ func init() {
 	} else {
 		Set(Debug, 0, true)
 	}
-
-	LoadString(main_cfg, false)
 
 	// 优先级: 命令行 > 环境变量
 	LoadFromEnv()
