@@ -102,8 +102,13 @@ func DD(depth int, formating string, args ...interface{}) {
 	KLogLN(depth, Conf.ShortPath, color, "D", formating, args...)
 }
 
-func Color(color string, formating string, args ...interface{}) string {
-	return "\033[0;" + color + "m" + fmt.Sprintf(formating, args...) + "\033[0m"
+func Color(color string, args ...interface{}) string {
+	if len(args) > 0 {
+		format := args[0].(string)
+		return "\033[" + color + "m" + fmt.Sprintf(format, args[1:]...) + "\033[0m"
+	} else {
+		return "\033[" + color + "m"
+	}
 }
 
 func DumpS(obj interface{}, strPart ...interface{}) string {
