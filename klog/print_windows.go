@@ -3,10 +3,7 @@
 package klog
 
 import (
-	"fmt"
-	"path/filepath"
-	"runtime"
-	"strings"
+	"io"
 	"syscall"
 	"unsafe"
 )
@@ -14,80 +11,20 @@ import (
 var kernel32 = syscall.NewLazyDLL("kernel32")
 var outputDebugStringW = kernel32.NewProc("OutputDebugStringW")
 
-func OutputDebugString(s string) {
-	p, err := syscall.UTF16PtrFromString(s)
+var debugViewWriter io.Writer
+
+type DebugViewWriter struct {
+}
+
+func (w *DebugViewWriter) Write(s []byte) (n int, err error) {
+	p, err := syscall.UTF16PtrFromString(string(s))
 	if err == nil {
 		outputDebugStringW.Call(uintptr(unsafe.Pointer(p)))
 	}
+	return len(s), nil
 }
 
-// KLogLN : Log with CR
-func KLogLN(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
-	if Conf.Mute == 1 {
-		return
-	}
-
-	filename, line, funcname := "???", 0, "???"
-	pc, filename, line, ok := runtime.Caller(dep)
-
-	if ok {
-		funcname = runtime.FuncForPC(pc).Name()
-		funcname = filepath.Ext(funcname)
-		funcname = strings.TrimPrefix(funcname, ".")
-	}
-
-	if shortPath == 1 {
-		filename = filepath.Base(filename)
-	}
-
-	aa := fmt.Sprintf(formating, args...)
-	bb := fmt.Sprintf("|%s|F:%s|H:%s|L:%d| %s\n", class, filename, funcname, line, aa)
-	OutputDebugString(bb)
-}
-
-// KLogLNS : Log with CR
-func KLogLNS(dep int, shortPath int, color string, class string, formating string, args ...interface{}) string {
-	if Conf.Mute == 1 {
-		return ""
-	}
-
-	filename, line, funcname := "???", 0, "???"
-	pc, filename, line, ok := runtime.Caller(dep)
-
-	if ok {
-		funcname = runtime.FuncForPC(pc).Name()
-		funcname = filepath.Ext(funcname)
-		funcname = strings.TrimPrefix(funcname, ".")
-	}
-
-	if shortPath == 1 {
-		filename = filepath.Base(filename)
-	}
-
-	aa := fmt.Sprintf(formating, args...)
-	return fmt.Sprintf("|%s|F:%s|H:%s|L:%d| %s\n", class, filename, funcname, line, aa)
-}
-
-// KLogX : No '\s' appended.
-func KLog(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
-	if Conf.Mute == 1 {
-		return
-	}
-
-	filename, line, funcname := "???", 0, "???"
-	pc, filename, line, ok := runtime.Caller(dep)
-
-	if ok {
-		funcname = runtime.FuncForPC(pc).Name()
-		funcname = filepath.Ext(funcname)
-		funcname = strings.TrimPrefix(funcname, ".")
-	}
-
-	if shortPath == 1 {
-		filename = filepath.Base(filename)
-	}
-
-	aa := fmt.Sprintf(formating, args...)
-	bb := fmt.Sprintf("|%s|F:%s|H:%s|L:%d| %s\n", class, filename, funcname, line, aa)
-	OutputDebugString(bb)
+func init() {
+	debugViewWriter = &DebugViewWriter{}
+	WriterAdd("debugView", debugViewWriter)
 }

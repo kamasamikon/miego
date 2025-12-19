@@ -3,6 +3,11 @@ package klog
 import (
 	"fmt"
 	"io"
+	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -19,6 +24,8 @@ const (
 	ColorType_Reset = "\x1b[0m"
 )
 
+/////////////////////////////////////////////////////////////////////////
+
 var Conf struct {
 	// 0:false, 1:true, -1:notset
 	ShortPath int // 只显示文件名，否则会显示文件的全路径
@@ -28,7 +35,9 @@ var Conf struct {
 	Writers   map[string]io.Writer
 }
 
-// XXX 没有加保护
+///////////////////////////////////////////////////////////////////////////
+
+// XXX 没有加保护，只在启动的时候弄一下
 func WriterAdd(name string, writer io.Writer) {
 	Conf.Writers[name] = writer
 }
@@ -37,6 +46,94 @@ func WriterAdd(name string, writer io.Writer) {
 func WriterRem(name string) {
 	delete(Conf.Writers, name)
 }
+
+///////////////////////////////////////////////////////////////////////////
+
+// KLogS : KLog as LN (Line) to string
+// @lf: append line feed
+func KLogS(dep int, shortPath int, color string, class string, lf bool, formating string, args ...interface{}) string {
+	pc, filename, line, _ := runtime.Caller(dep)
+
+	funcname := runtime.FuncForPC(pc).Name()
+	funcname = filepath.Ext(funcname)
+	funcname = strings.TrimPrefix(funcname, ".")
+
+	if shortPath == 1 {
+		filename = filepath.Base(filename)
+	}
+
+	now := time.Now().Format("2006/01/02 15:04:05.000000")
+
+	var sb strings.Builder
+
+	sb.WriteString(color)
+
+	sb.WriteRune('|')
+	sb.WriteString(class)
+
+	sb.WriteRune('|')
+	sb.WriteString(now)
+
+	sb.WriteRune('|')
+	sb.WriteString(filename)
+
+	sb.WriteRune('|')
+	sb.WriteString(funcname)
+
+	sb.WriteRune('|')
+	sb.WriteString(strconv.Itoa(line))
+
+	sb.WriteRune('|')
+
+	if color != "" {
+		sb.WriteString(ColorType_Reset)
+	}
+
+	sb.WriteRune(' ')
+	sb.WriteString(fmt.Sprintf(formating, args...))
+
+	if lf {
+		sb.WriteString("\n")
+	}
+
+	return sb.String()
+}
+
+// KLogLN : KLog as LN (Line)
+func KLogLN(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
+	if Conf.Mute == 1 {
+		return
+	}
+	if Conf.Dull == 1 {
+		return
+	}
+
+	s := []byte(KLogS(dep+1, shortPath, color, class, true, formating, args...))
+
+	Writers := Conf.Writers
+	for _, w := range Writers {
+		w.Write(s)
+	}
+}
+
+// KLogX : No '\s' appended.
+func KLog(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
+	if Conf.Mute == 1 {
+		return
+	}
+	if Conf.Dull == 1 {
+		color = ""
+	}
+
+	s := []byte(KLogS(dep+1, shortPath, color, class, false, formating, args...))
+
+	Writers := Conf.Writers
+	for _, w := range Writers {
+		w.Write(s)
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////
 
 // S :String
 func S(formating string, args ...interface{}) string {
@@ -47,6 +144,8 @@ func S(formating string, args ...interface{}) string {
 func SC(color string, formating string, args ...interface{}) string {
 	return KLogS(2, Conf.ShortPath, color, "S", true, formating, args...)
 }
+
+////////////////////////////////////////////////////////////////////////////
 
 // F :Fatal
 func F(formating string, args ...interface{}) {
@@ -102,6 +201,8 @@ func DD(depth int, formating string, args ...interface{}) {
 	KLogLN(depth, Conf.ShortPath, color, "D", formating, args...)
 }
 
+////////////////////////////////////////////////////////////////////////////
+
 func Color(color string, args ...interface{}) string {
 	if len(args) > 0 {
 		format := args[0].(string)
@@ -110,6 +211,8 @@ func Color(color string, args ...interface{}) string {
 		return "\033[" + color + "m"
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////
 
 func DumpS(obj interface{}, strPart ...interface{}) string {
 	cfg := spew.ConfigState{SortKeys: true, Indent: "    "}
