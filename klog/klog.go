@@ -51,7 +51,7 @@ func WriterRem(name string) {
 
 // KLogS : KLog as LN (Line) to string
 // @lf: append line feed
-func KLogS(dep int, shortPath int, color string, class string, lf bool, formating string, args ...interface{}) string {
+func KLogS(dep int, shortPath int, color string, class rune, lf bool, formating string, args ...interface{}) string {
 	pc, filename, line, _ := runtime.Caller(dep)
 
 	funcname := runtime.FuncForPC(pc).Name()
@@ -69,7 +69,7 @@ func KLogS(dep int, shortPath int, color string, class string, lf bool, formatin
 	sb.WriteString(color)
 
 	sb.WriteRune('|')
-	sb.WriteString(class)
+	sb.WriteRune(class)
 
 	sb.WriteRune('|')
 	sb.WriteString(now)
@@ -100,7 +100,7 @@ func KLogS(dep int, shortPath int, color string, class string, lf bool, formatin
 }
 
 // KLogLN : KLog as LN (Line)
-func KLogLN(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
+func KLogLN(dep int, shortPath int, color string, class rune, formating string, args ...interface{}) {
 	if Conf.Mute == 1 {
 		return
 	}
@@ -117,7 +117,7 @@ func KLogLN(dep int, shortPath int, color string, class string, formating string
 }
 
 // KLogX : No '\s' appended.
-func KLog(dep int, shortPath int, color string, class string, formating string, args ...interface{}) {
+func KLog(dep int, shortPath int, color string, class rune, formating string, args ...interface{}) {
 	if Conf.Mute == 1 {
 		return
 	}
@@ -150,55 +150,55 @@ func SC(color string, formating string, args ...interface{}) string {
 // F :Fatal
 func F(formating string, args ...interface{}) {
 	color := ColorType_F
-	KLogLN(2, Conf.ShortPath, color, "F", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'F', formating, args...)
 }
 
 // A :Alert
 func A(formating string, args ...interface{}) {
 	color := ColorType_A
-	KLogLN(2, Conf.ShortPath, color, "A", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'A', formating, args...)
 }
 
 // C :Critical conditions
 func C(formating string, args ...interface{}) {
 	color := ColorType_C
-	KLogLN(2, Conf.ShortPath, color, "C", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'C', formating, args...)
 }
 
 // E :Error
 func E(formating string, args ...interface{}) {
 	color := ColorType_E
-	KLogLN(2, Conf.ShortPath, color, "E", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'E', formating, args...)
 }
 
 // W :Warning
 func W(formating string, args ...interface{}) {
 	color := ColorType_W
-	KLogLN(2, Conf.ShortPath, color, "W", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'W', formating, args...)
 }
 
 // N :Notice
 func N(formating string, args ...interface{}) {
 	color := ColorType_N
-	KLogLN(2, Conf.ShortPath, color, "N", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'N', formating, args...)
 }
 
 // I :Information
 func I(formating string, args ...interface{}) {
 	color := ColorType_I
-	KLogLN(2, Conf.ShortPath, color, "I", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'I', formating, args...)
 }
 
 // D :Debug message
 func D(formating string, args ...interface{}) {
 	color := ColorType_D
-	KLogLN(2, Conf.ShortPath, color, "D", formating, args...)
+	KLogLN(2, Conf.ShortPath, color, 'D', formating, args...)
 }
 
 // DD :Debug message with depth
 func DD(depth int, formating string, args ...interface{}) {
 	color := ColorType_D
-	KLogLN(depth, Conf.ShortPath, color, "D", formating, args...)
+	KLogLN(depth, Conf.ShortPath, color, 'D', formating, args...)
 }
 
 ////////////////////////////////////////////////////////////////////////////
