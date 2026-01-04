@@ -25,8 +25,9 @@ const (
 )
 
 const (
-	PathReady = "e:/conf/ready"
-	Debug     = "i:/conf/debug"
+	PathReady     = "e:/conf/ready"
+	Debug         = "i:/conf/debug"
+	MissedEntries = "s:/conf/missedEntries"
 )
 
 // See confcenter
@@ -58,10 +59,31 @@ var mapPathEntry = make(map[string]*confEntry)
 var LoadOKCount = 0
 var LoadNGCount = 0
 
+// path <> ref
+var mapMissedEntries = make(map[string]int)
+
 var mutex = &sync.Mutex{}
 
 // 打印调试信息
 var DEBUG = 0
+
+func setMissedEntries(path string) {
+	if DEBUG == 0 {
+		return
+	}
+
+	if _, ok := mapMissedEntries[path]; ok {
+		return
+	}
+	mapMissedEntries[path] = 1
+
+	var sb strings.Builder
+	for p, _ := range mapMissedEntries {
+		sb.WriteString(p)
+		sb.WriteRune(';')
+	}
+	Set(MissedEntries, sb.String(), true)
+}
 
 // DebugPrint: 打印调试信息
 func dp(formating string, args ...interface{}) {
@@ -252,6 +274,7 @@ func Int(defval int64, paths ...string) int64 {
 			return v.vInt
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return defval
@@ -269,6 +292,7 @@ func IntX(paths ...string) (int64, bool) {
 			return v.vInt, true
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return 0, false
@@ -286,6 +310,7 @@ func Inc(inc int64, path string) int64 {
 		return vNew
 	} else {
 		dp("Miss %s", path)
+		setMissedEntries(path)
 		return -1
 	}
 }
@@ -302,6 +327,7 @@ func Flip(path string) bool {
 		return vNew
 	} else {
 		dp("Miss %s", path)
+		setMissedEntries(path)
 		return false
 	}
 }
@@ -318,6 +344,7 @@ func Str(defval string, paths ...string) string {
 			return v.vStr
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return defval
@@ -335,6 +362,7 @@ func StrX(paths ...string) (string, bool) {
 			return v.vStr, true
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return "", false
@@ -352,6 +380,7 @@ func Bool(defval bool, paths ...string) bool {
 			return v.vBool
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return defval
@@ -369,6 +398,7 @@ func BoolX(paths ...string) (bool, bool) {
 			return v.vBool, true
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return false, false
@@ -386,6 +416,7 @@ func Obj(defval interface{}, paths ...string) interface{} {
 			return v.vObj
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return defval
@@ -403,6 +434,7 @@ func ObjX(paths ...string) (interface{}, bool) {
 			return v.vObj, true
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return nil, false
@@ -427,6 +459,7 @@ func List(paths ...string) []string {
 			}
 		} else {
 			dp("Miss %s", path)
+			setMissedEntries(path)
 		}
 	}
 	return slice

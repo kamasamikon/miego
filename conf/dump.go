@@ -51,7 +51,6 @@ func Dump(safeMode bool) string {
 		case 'e':
 			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, "..."))
 		}
-
 	}
 
 	// Add the last \n
