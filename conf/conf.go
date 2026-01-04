@@ -734,19 +734,28 @@ func init() {
 	// Some builtin entries
 	//
 	Set(PathReady, "", true)
-	MonitorAdd(
-		Debug,
-		func(p string, o, n any) {
-			if x, ok := n.(int64); ok {
-				DEBUG = int(x)
-			}
-		},
-	)
+
+	setGetter(MissedEntries, func(e *confEntry) (vv any, ok bool) {
+		var sb strings.Builder
+		for p, _ := range mapMissedEntries {
+			sb.WriteString(p)
+			sb.WriteRune(';')
+		}
+		return sb.String(), true
+	})
+
 	if os.Getenv("MG_CONF_DEBUG") == "debug" {
 		Set(Debug, 1, true)
+		DEBUG = 1
 	} else {
 		Set(Debug, 0, true)
+		DEBUG = 0
 	}
+
+	setSetter(Debug, func(e *confEntry, v any) (vv any, ok bool) {
+		DEBUG = v.(int)
+		return nil, false
+	})
 
 	// 优先级: 命令行 > 环境变量
 	LoadFromEnv()
