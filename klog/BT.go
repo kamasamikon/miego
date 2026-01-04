@@ -10,7 +10,7 @@ import (
 // BT : Print back trace
 func BT(maxdep int, formating string, args ...interface{}) {
 	if maxdep < 2 {
-		KLogLN(2, Conf.ShortPath, ColorType_N, "T", formating, args...)
+		KLogLN(2, Conf.ShortPath, ColorType_N, 'T', formating, args...)
 		return
 	}
 	if Conf.Mute == 1 {

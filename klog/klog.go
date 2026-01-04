@@ -137,12 +137,12 @@ func KLog(dep int, shortPath int, color string, class rune, formating string, ar
 
 // S :String
 func S(formating string, args ...interface{}) string {
-	return KLogS(2, Conf.ShortPath, "", "S", true, formating, args...)
+	return KLogS(2, Conf.ShortPath, "", 'S', true, formating, args...)
 }
 
 // S :String with Color
 func SC(color string, formating string, args ...interface{}) string {
-	return KLogS(2, Conf.ShortPath, color, "S", true, formating, args...)
+	return KLogS(2, Conf.ShortPath, color, 'S', true, formating, args...)
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -245,5 +245,5 @@ func Dump(obj interface{}, strPart ...interface{}) {
 
 	color := ColorType_D
 	s := DumpS(obj, strPart...)
-	KLog(2, Conf.ShortPath, color, "D", "%s", s)
+	KLog(2, Conf.ShortPath, color, 'D', "%s", s)
 }

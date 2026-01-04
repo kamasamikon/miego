@@ -201,7 +201,7 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	//
 	// Print out
 	//
-	klog.KLog(2, 0, klog.ColorType_W, "X", strings.Join(lines, ""))
+	klog.KLog(2, 0, klog.ColorType_W, 'X', strings.Join(lines, ""))
 }
 
 // Duplicate on to another
