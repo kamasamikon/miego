@@ -12,7 +12,7 @@ import (
 //
 
 // KConfMonitor is a Callback called when wathed entry modified.
-type KConfMonitor func(path string, oVal interface{}, nVal interface{})
+type KConfMonitor func(path string, oVal any, nVal any)
 
 // map[s:Path]map[KConfMonitor]int
 var mapPathMonitorCallback = make(map[string]map[*KConfMonitor]string)
@@ -76,7 +76,7 @@ func MonitorDump() string {
 	return strings.Join(lines, "\n")
 }
 
-func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
+func monitorCall(e *confEntry, oVal any, nVal any) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
 		for Callback, _ := range mapMonitorCallback {
 			if Callback != nil {
@@ -90,7 +90,7 @@ func monitorCall(e *confEntry, oVal interface{}, nVal interface{}) {
 func OnReady(cb func()) {
 	MonitorAdd(
 		PathReady,
-		func(p string, o, n interface{}) {
+		func(p string, o, n any) {
 			cb()
 		},
 	)

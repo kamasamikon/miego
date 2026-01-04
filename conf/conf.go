@@ -30,6 +30,9 @@ const (
 	MissedEntries = "s:/conf/missedEntries"
 )
 
+type setter func(e *confEntry, v any) (vv any, ok bool) // e.v = vv when ok
+type getter func(e *confEntry) (vv any, ok bool)        // return vv if ok else e.v
+
 // See confcenter
 type confEntry struct {
 	// kind: a:arr, b:bool, d:dat(len+dat), e:event, i:int, s:str, p:ptr
@@ -47,7 +50,10 @@ type confEntry struct {
 	vInt  int64
 	vStr  string
 	vBool bool
-	vObj  interface{}
+	vObj  any
+
+	setter setter
+	getter getter
 
 	refGet int64
 	refSet int64
@@ -86,7 +92,7 @@ func setMissedEntries(path string) {
 }
 
 // DebugPrint: 打印调试信息
-func dp(formating string, args ...interface{}) {
+func dp(formating string, args ...any) {
 	if DEBUG == 0 {
 		return
 	}
@@ -153,7 +159,7 @@ func EntryAdd(line string, overwrite bool) {
 		return
 	}
 
-	var vNew interface{}
+	var vNew any
 
 	switch kind {
 	case 'i':
@@ -182,7 +188,7 @@ func EntryAdd(line string, overwrite bool) {
 
 	case 'o':
 		// line is json string
-		o := make(map[string]interface{})
+		o := make(map[string]any)
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
 			dp("BadValue.o: %s", line)
 			return
@@ -206,6 +212,18 @@ func EntryAdd(line string, overwrite bool) {
 		mapPathEntry[e.path] = e
 	}
 	setByEntry(e, vNew)
+}
+
+func setSetter(path string, setter setter) {
+	if e, ok := mapPathEntry[path]; ok {
+		e.setter = setter
+	}
+}
+
+func setGetter(path string, getter getter) {
+	if e, ok := mapPathEntry[path]; ok {
+		e.getter = getter
+	}
 }
 
 // LoadString : Load setting from string (lines of configuration)
@@ -244,8 +262,8 @@ func LoadFile(fileName string, overwrite bool) error {
 
 // Ref : refGet, refSet
 func Ref(path string) (int64, int64) {
-	if v, ok := mapPathEntry[path]; ok {
-		return v.refGet, v.refSet
+	if e, ok := mapPathEntry[path]; ok {
+		return e.refGet, e.refSet
 	}
 	return -1, -1
 }
@@ -255,9 +273,9 @@ func Has(path string) bool {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	v, ok := mapPathEntry[path]
+	e, ok := mapPathEntry[path]
 	if ok {
-		v.refGet++
+		e.refGet++
 	}
 	return ok
 }
@@ -269,9 +287,14 @@ func Int(defval int64, paths ...string) int64 {
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vInt
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv.(int64)
+				}
+			}
+			return e.vInt
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -287,9 +310,14 @@ func IntX(paths ...string) (int64, bool) {
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vInt, true
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv.(int64), true
+				}
+			}
+			return e.vInt, true
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -305,7 +333,13 @@ func Inc(inc int64, path string) int64 {
 
 	if e, ok := mapPathEntry[path]; ok {
 		e.refGet++
-		vNew := e.vInt + 1
+		vInt := e.vInt
+		if e.getter != nil {
+			if vv, ok := e.getter(e); ok {
+				vInt = vv.(int64)
+			}
+		}
+		vNew := vInt + 1
 		setByEntry(e, vNew)
 		return vNew
 	} else {
@@ -322,7 +356,13 @@ func Flip(path string) bool {
 
 	if e, ok := mapPathEntry[path]; ok {
 		e.refGet++
-		vNew := !e.vBool
+		vBool := e.vBool
+		if e.getter != nil {
+			if vv, ok := e.getter(e); ok {
+				vBool = vv.(bool)
+			}
+		}
+		vNew := !vBool
 		setByEntry(e, vNew)
 		return vNew
 	} else {
@@ -339,9 +379,14 @@ func Str(defval string, paths ...string) string {
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vStr
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv.(string)
+				}
+			}
+			return e.vStr
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -357,9 +402,14 @@ func StrX(paths ...string) (string, bool) {
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vStr, true
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv.(string), true
+				}
+			}
+			return e.vStr, true
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -375,9 +425,14 @@ func Bool(defval bool, paths ...string) bool {
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vBool
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv.(bool)
+				}
+			}
+			return e.vBool
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -393,9 +448,14 @@ func BoolX(paths ...string) (bool, bool) {
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vBool, true
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv.(bool), true
+				}
+			}
+			return e.vBool, true
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -405,15 +465,20 @@ func BoolX(paths ...string) (bool, bool) {
 }
 
 // Object : get a bool entry
-func Obj(defval interface{}, paths ...string) interface{} {
+func Obj(defval any, paths ...string) any {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vObj
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv
+				}
+			}
+			return e.vObj
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -423,15 +488,20 @@ func Obj(defval interface{}, paths ...string) interface{} {
 }
 
 // Object : get a bool entry
-func ObjX(paths ...string) (interface{}, bool) {
+func ObjX(paths ...string) (any, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	// path: aaa/bbb
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			v.refGet++
-			return v.vObj, true
+		if e, ok := mapPathEntry[path]; ok {
+			e.refGet++
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					return vv, true
+				}
+			}
+			return e.vObj, true
 		} else {
 			dp("Miss %s", path)
 			setMissedEntries(path)
@@ -448,10 +518,16 @@ func List(paths ...string) []string {
 	// path: aaa/bbb
 	var slice []string
 	for _, path := range paths {
-		if v, ok := mapPathEntry[path]; ok {
-			if len(v.vStr) > 0 {
-				v.refGet++
-				for _, s := range strings.Split(v.vStr, v.vStr[0:1]) {
+		if e, ok := mapPathEntry[path]; ok {
+			if len(e.vStr) > 0 {
+				e.refGet++
+				vStr := e.vStr
+				if e.getter != nil {
+					if vv, ok := e.getter(e); ok {
+						vStr = vv.(string)
+					}
+				}
+				for _, s := range strings.Split(vStr, vStr[0:1]) {
 					if s != "" {
 						slice = append(slice, s)
 					}
@@ -526,11 +602,11 @@ func SafeNames() []string {
 	return names
 }
 
-func Add(path string, value interface{}) {
+func Add(path string, value any) {
 	Set(path, value, true)
 }
 
-func setByEntry(e *confEntry, value interface{}) {
+func setByEntry(e *confEntry, value any) {
 	switch e.kind {
 	case 'i':
 		vOld := e.vInt
@@ -559,6 +635,11 @@ func setByEntry(e *confEntry, value interface{}) {
 			vNew = int64(value.(uint8))
 		}
 
+		if e.setter != nil {
+			if vv, ok := e.setter(e, vNew); ok {
+				vNew = vv.(int64)
+			}
+		}
 		e.vInt = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
@@ -567,6 +648,11 @@ func setByEntry(e *confEntry, value interface{}) {
 		vOld := e.vStr
 
 		vNew := value.(string)
+		if e.setter != nil {
+			if vv, ok := e.setter(e, vNew); ok {
+				vNew = vv.(string)
+			}
+		}
 		e.vStr = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
@@ -575,6 +661,11 @@ func setByEntry(e *confEntry, value interface{}) {
 		vOld := e.vBool
 
 		vNew := value.(bool)
+		if e.setter != nil {
+			if vv, ok := e.setter(e, vNew); ok {
+				vNew = vv.(bool)
+			}
+		}
 		e.vBool = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
@@ -582,20 +673,30 @@ func setByEntry(e *confEntry, value interface{}) {
 	case 'o':
 		vOld := e.vObj
 
-		vNew := value.(interface{})
+		vNew := value.(any)
+		if e.setter != nil {
+			if vv, ok := e.setter(e, vNew); ok {
+				vNew = vv
+			}
+		}
 		e.vObj = vNew
 		e.refSet++
 		monitorCall(e, vOld, vNew)
 
 	case 'e':
 		vNew := value.(string)
+		if e.setter != nil {
+			if vv, ok := e.setter(e, vNew); ok {
+				vNew = vv.(string)
+			}
+		}
 		e.refSet++
 		monitorCall(e, 0, vNew)
 	}
 }
 
 // Set : Modify or Add conf entry
-func Set(path string, value interface{}, force bool) {
+func Set(path string, value any, force bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -635,7 +736,7 @@ func init() {
 	Set(PathReady, "", true)
 	MonitorAdd(
 		Debug,
-		func(p string, o, n interface{}) {
+		func(p string, o, n any) {
 			if x, ok := n.(int64); ok {
 				DEBUG = int(x)
 			}
