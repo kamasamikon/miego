@@ -864,6 +864,6 @@ func Go() {
 		go cb()
 	}
 	if os.Getenv("MG_CONF_DUMP") == "1" {
-		fmt.Println(Dump(false))
+		fmt.Println(Dump(false, "\n"))
 	}
 }

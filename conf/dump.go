@@ -7,7 +7,7 @@ import (
 )
 
 // Dump : Print all entries
-func Dump(safeMode bool) string {
+func Dump(safeMode bool, joinBy string) string {
 	keyMaxLength := 0
 	var cList []*confEntry
 
@@ -74,11 +74,11 @@ func Dump(safeMode bool) string {
 	// Add the last \n
 	lines = append(lines, "")
 
-	return strings.Join(lines, "\n")
+	return strings.Join(lines, joinBy)
 }
 
 // DumpRaw : Dump without Get/Get refs
-func DumpRaw(safeMode bool, group bool) string {
+func DumpRaw(safeMode bool, group bool, joinBy string) string {
 	var cList []*confEntry
 	for _, e := range mapPathEntry {
 		cList = append(cList, e)
@@ -150,5 +150,5 @@ func DumpRaw(safeMode bool, group bool) string {
 		lines = append(lines, "")
 	}
 
-	return strings.Join(lines, "\n")
+	return strings.Join(lines, joinBy)
 }
