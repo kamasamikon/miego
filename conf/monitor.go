@@ -85,13 +85,3 @@ func monitorCall(e *confEntry, oVal any, nVal any) {
 		}
 	}
 }
-
-// OnReady : Called when all configure loaded.
-func OnReady(cb func()) {
-	MonitorAdd(
-		PathReady,
-		func(p string, o, n any) {
-			cb()
-		},
-	)
-}

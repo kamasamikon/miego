@@ -11,10 +11,10 @@ func Dump(safeMode bool) string {
 	keyMaxLength := 0
 	var cList []*confEntry
 
-	for k, v := range mapPathEntry {
-		cList = append(cList, v)
-		if len(k) > keyMaxLength {
-			keyMaxLength = len(k)
+	for p, e := range mapPathEntry {
+		cList = append(cList, e)
+		if len(p) > keyMaxLength {
+			keyMaxLength = len(p)
 		}
 	}
 
@@ -30,26 +30,44 @@ func Dump(safeMode bool) string {
 		ColorType_W, ColorType_Reset,
 	)
 	var lines []string
-	for _, v := range cList {
-		if v.hidden && safeMode {
+	for _, e := range cList {
+		if e.hidden && safeMode {
 			continue
 		}
 
-		switch v.kind {
+		switch e.kind {
 		case 'i':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, v.vInt))
+			vInt := e.vInt
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					vInt = vv.(int64)
+				}
+			}
+			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vInt))
 
 		case 's':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, v.vStr))
+			vStr := e.vStr
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					vStr = vv.(string)
+				}
+			}
+			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vStr))
 
 		case 'b':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, v.vBool))
+			vBool := e.vBool
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					vBool = vv.(bool)
+				}
+			}
+			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vBool))
 
 		case 'o':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, "..."))
 
 		case 'e':
-			lines = append(lines, fmt.Sprintf(fmtstr, v.path, v.refGet, v.refSet, "..."))
+			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, "..."))
 		}
 	}
 
@@ -62,8 +80,8 @@ func Dump(safeMode bool) string {
 // DumpRaw : Dump without Get/Get refs
 func DumpRaw(safeMode bool, group bool) string {
 	var cList []*confEntry
-	for _, v := range mapPathEntry {
-		cList = append(cList, v)
+	for _, e := range mapPathEntry {
+		cList = append(cList, e)
 	}
 	sort.Slice(cList, func(i int, j int) bool {
 		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
@@ -74,13 +92,13 @@ func DumpRaw(safeMode bool, group bool) string {
 
 	var lines []string
 	var lastLine string
-	for _, v := range cList {
-		if v.hidden && safeMode {
+	for _, e := range cList {
+		if e.hidden && safeMode {
 			continue
 		}
 
 		if group {
-			segs := strings.SplitN(v.path, "/", 3)
+			segs := strings.SplitN(e.path, "/", 3)
 			if segs[1] != groupName {
 				if lastLine != "" {
 					lastLine = ""
@@ -90,21 +108,39 @@ func DumpRaw(safeMode bool, group bool) string {
 			}
 		}
 
-		switch v.kind {
+		switch e.kind {
 		case 'i':
-			lastLine = fmt.Sprintf("%s=%d", v.path, v.vInt)
+			vInt := e.vInt
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					vInt = vv.(int64)
+				}
+			}
+			lastLine = fmt.Sprintf("%s=%d", e.path, vInt)
 			lines = append(lines, lastLine)
 
 		case 's':
-			lastLine = fmt.Sprintf("%s=%s", v.path, v.vStr)
+			vStr := e.vStr
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					vStr = vv.(string)
+				}
+			}
+			lastLine = fmt.Sprintf("%s=%s", e.path, vStr)
 			lines = append(lines, lastLine)
 
 		case 'b':
-			lastLine = fmt.Sprintf("%s=%t", v.path, v.vBool)
+			vBool := e.vBool
+			if e.getter != nil {
+				if vv, ok := e.getter(e); ok {
+					vBool = vv.(bool)
+				}
+			}
+			lastLine = fmt.Sprintf("%s=%t", e.path, vBool)
 			lines = append(lines, lastLine)
 
 		case 'o':
-			lastLine = fmt.Sprintf("%s=%s", v.path, "...")
+			lastLine = fmt.Sprintf("%s=%s", e.path, "...")
 			lines = append(lines, lastLine)
 		}
 	}

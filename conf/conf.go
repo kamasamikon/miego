@@ -1,7 +1,7 @@
 package conf
 
 import (
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -78,21 +78,7 @@ var mutex = &sync.Mutex{}
 var DEBUG = 0
 
 func setMissedEntries(path string) {
-	if DEBUG == 0 {
-		return
-	}
-
-	if _, ok := mapMissedEntries[path]; ok {
-		return
-	}
 	mapMissedEntries[path] = 1
-
-	var sb strings.Builder
-	for p, _ := range mapMissedEntries {
-		sb.WriteString(p)
-		sb.WriteRune(';')
-	}
-	Set(MissedEntries, sb.String(), true)
 }
 
 // DebugPrint: 打印调试信息
@@ -743,6 +729,7 @@ func init() {
 	// Some builtin entries
 	//
 	Set(PathReady, "", true)
+	Set(MissedEntries, "", true)
 
 	setGetter(MissedEntries, func(e *confEntry) (vv any, ok bool) {
 		var sb strings.Builder
@@ -861,9 +848,21 @@ func LoadFromArg() {
 	}
 }
 
+// ///////////////////////////////////////////////////////////////////////
+// OnReady : Called when all configure loaded.
+var onReadys []func()
+
+func OnReady(cb func()) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	onReadys = append(onReadys, cb)
+}
+
 // Last to call
 func Go() {
-	Ready()
+	for _, cb := range onReadys {
+		go cb()
+	}
 	if os.Getenv("MG_CONF_DUMP") == "1" {
 		fmt.Println(Dump(false))
 	}
