@@ -1,6 +1,7 @@
 package conf
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -30,7 +31,7 @@ const (
 	MissedEntries = "s:/conf/missedEntries"
 )
 
-type setter func(e *confEntry, v any) (vv any, ok bool) // e.v = vv when ok
+type setter func(e *confEntry, v any) (vv any, ok bool) // e.v = vv if ok
 type getter func(e *confEntry) (vv any, ok bool)        // return vv if ok else e.v
 
 // See confcenter
@@ -60,6 +61,9 @@ type confEntry struct {
 
 	hidden bool
 }
+
+//go:embed assets/*
+var Assets embed.FS
 
 var mapPathEntry = make(map[string]*confEntry)
 var LoadOKCount = 0
@@ -730,6 +734,11 @@ func Ready() {
 }
 
 func init() {
+	data, err := Assets.ReadFile("assets/main.cfg")
+	if err == nil {
+		LoadString(string(data), false)
+	}
+
 	//
 	// Some builtin entries
 	//
