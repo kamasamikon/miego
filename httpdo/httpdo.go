@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -17,12 +16,12 @@ func Download(URL string, filename string) error {
 	if err != nil {
 		return err
 	}
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
-	if err = ioutil.WriteFile(filename, data, 0777); err != nil {
+	if err = os.WriteFile(filename, data, 0777); err != nil {
 		return err
 	}
 	return nil
@@ -43,7 +42,7 @@ func Upload(URL string, params map[string]string, paramName, path string) error 
 		return err
 	}
 
-	_, err = io.Copy(part, file)
+	io.Copy(part, file)
 	for key, val := range params {
 		_ = writer.WriteField(key, val)
 	}

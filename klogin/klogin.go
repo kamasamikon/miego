@@ -99,7 +99,7 @@ func (o *LoginCenter) GetLoginType(c *gin.Context) string {
 	fullPath := c.FullPath()
 
 	Key := fmt.Sprintf("%s@%s", Method, fullPath)
-	LoginType, _ := o.MapRouterVsLogin[Key]
+	LoginType := o.MapRouterVsLogin[Key]
 	return LoginType
 }
 

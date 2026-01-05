@@ -3,7 +3,7 @@ package phonefind
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"os"
 	"path"
 	"runtime"
 
@@ -52,7 +52,7 @@ func Init(phoneData string) (int32, error) {
 		phoneData = path.Join(path.Dir(fulleFilename), PHONE_DAT)
 	}
 	var err error
-	content, err = ioutil.ReadFile(phoneData)
+	content, err = os.ReadFile(phoneData)
 	if err != nil {
 		return 0, err
 	}

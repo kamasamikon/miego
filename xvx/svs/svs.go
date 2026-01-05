@@ -66,7 +66,7 @@ func Dump() string {
 			continue
 		}
 
-		lines = append(lines, fmt.Sprintf("%s\t %s:%d", class_a, sa, sb))
+		lines = append(lines, fmt.Sprintf("%s\t %s:%s", class_a, sa, sb))
 	}
 
 	lines = append(lines, "")

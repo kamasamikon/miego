@@ -87,7 +87,7 @@ func (u *UpdateInfo) Exec(db *gorm.DB) *UpdateInfo {
 
 		case bool:
 			v := reflect.ValueOf(data).Bool()
-			setLines = append(setLines, fmt.Sprintf("`%s` = %b", k, v))
+			setLines = append(setLines, fmt.Sprintf("`%s` = %t", k, v))
 
 		case float32:
 			v := reflect.ValueOf(data).Float()
@@ -148,7 +148,7 @@ func (u *UpdateInfo) Exec(db *gorm.DB) *UpdateInfo {
 
 		case bool:
 			v := reflect.ValueOf(data).Bool()
-			whereLines = append(whereLines, fmt.Sprintf("`%s` = %b", k, v))
+			whereLines = append(whereLines, fmt.Sprintf("`%s` = %t", k, v))
 
 		case float32:
 			v := reflect.ValueOf(data).Float()

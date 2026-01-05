@@ -57,7 +57,7 @@ func (cc VCodeChecker) Rem(key string) {
 
 func (cc VCodeChecker) Check(key string, code string) bool {
 	if cc.CheckHook != nil {
-		if passed, processed := cc.CheckHook(key, code); processed == true {
+		if passed, processed := cc.CheckHook(key, code); processed {
 			return passed
 		}
 	}

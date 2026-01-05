@@ -363,7 +363,7 @@ func (ft *FlowTable) Gen(b64 bool) string {
 		}
 
 		var class string
-		for k, _ := range s.class {
+		for k := range s.class {
 			class += k
 			class += " "
 		}

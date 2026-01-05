@@ -25,7 +25,7 @@ func (b *Toolbar) Add(args ...interface{}) *Toolbar {
 			if x[0] == '<' {
 				HTML = x
 			} else if x[0] == '@' {
-				Action = x[1:len(x)]
+				Action = x[1:]
 			} else {
 				URL = x
 			}

@@ -298,7 +298,7 @@ func (s *QueryStatement) String(mp xmap.Map, FoundRows int) (string, string, str
 					if c.TableAlias == "" {
 						DistinctItems = append(
 							DistinctItems,
-							fmt.Sprintf(`%s`, field),
+							field,
 						)
 					} else {
 						DistinctItems = append(

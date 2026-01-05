@@ -3,7 +3,7 @@ package xmap
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 	"strconv"
@@ -64,7 +64,7 @@ func MapData(data []byte) Map {
 // MapBody : Convert gin's request to Map
 func MapBody(r *http.Request) Map {
 	xm := make(Map)
-	if dat, err := ioutil.ReadAll(r.Body); err != nil {
+	if dat, err := io.ReadAll(r.Body); err != nil {
 		return xm
 	} else {
 		json.Unmarshal(dat, &xm)
@@ -89,7 +89,7 @@ func MapQuery(r *http.Request, useLast bool) Map {
 // MapAll : MapBody then MapQuery
 func MapAll(r *http.Request, overwrite bool) Map {
 	xm := make(Map)
-	if dat, err := ioutil.ReadAll(r.Body); err == nil {
+	if dat, err := io.ReadAll(r.Body); err == nil {
 		json.Unmarshal(dat, &xm)
 	}
 	for k, a := range r.URL.Query() {
@@ -134,7 +134,7 @@ func (xm Map) Dump(title string, wlist string, blist string) {
 	// Keys in use
 	var keys []string
 
-	for k, _ := range xm {
+	for k := range xm {
 		if len(bSet) != 0 {
 			if setHas(k, bSet) {
 				continue

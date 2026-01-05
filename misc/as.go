@@ -129,5 +129,5 @@ func As(data interface{}) (*AsData, error) {
 		}, nil
 
 	}
-	return nil, fmt.Errorf("Type not supported")
+	return nil, fmt.Errorf("type not supported")
 }

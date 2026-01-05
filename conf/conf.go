@@ -4,7 +4,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -234,7 +233,7 @@ func LoadFile(fileName string, overwrite bool) error {
 	)
 
 	sp := fmt.Sprintf
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		EntryAdd(sp(NGName, LoadNGCount, fileName), false)
 		EntryAdd(sp(NGWhy, LoadNGCount, err.Error()), false)
@@ -572,7 +571,7 @@ func Names() []string {
 	defer mutex.Unlock()
 
 	var names []string
-	for k, _ := range mapPathEntry {
+	for k := range mapPathEntry {
 		names = append(names, k)
 	}
 	return names
@@ -602,27 +601,28 @@ func setByEntry(e *confEntry, value any) {
 		vOld := e.vInt
 
 		var vNew int64
-		switch value.(type) {
+
+		switch v := value.(type) {
 		case int64:
-			vNew = int64(value.(int64))
+			vNew = int64(v)
 		case int32:
-			vNew = int64(value.(int32))
+			vNew = int64(v)
 		case int:
-			vNew = int64(value.(int))
+			vNew = int64(v)
 		case int16:
-			vNew = int64(value.(int16))
+			vNew = int64(v)
 		case int8:
-			vNew = int64(value.(int8))
+			vNew = int64(v)
 		case uint64:
-			vNew = int64(value.(uint64))
+			vNew = int64(v)
 		case uint32:
-			vNew = int64(value.(uint32))
+			vNew = int64(v)
 		case uint:
-			vNew = int64(value.(uint))
+			vNew = int64(v)
 		case uint16:
-			vNew = int64(value.(uint16))
+			vNew = int64(v)
 		case uint8:
-			vNew = int64(value.(uint8))
+			vNew = int64(v)
 		}
 
 		if e.setter != nil {
@@ -663,7 +663,7 @@ func setByEntry(e *confEntry, value any) {
 	case 'o':
 		vOld := e.vObj
 
-		vNew := value.(any)
+		vNew := value
 		if e.setter != nil {
 			if vv, ok := e.setter(e, vNew); ok {
 				vNew = vv
@@ -733,7 +733,7 @@ func init() {
 
 	setGetter(MissedEntries, func(e *confEntry) (vv any, ok bool) {
 		var sb strings.Builder
-		for p, _ := range mapMissedEntries {
+		for p := range mapMissedEntries {
 			sb.WriteString(p)
 			sb.WriteRune(';')
 		}

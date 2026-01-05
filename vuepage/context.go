@@ -24,7 +24,7 @@ func (c Context) PutMap(MapName string, Name string, Value interface{}) {
 	//
 	// 如果List不存在就创建
 	//
-	subMap, _ := c[MapName]
+	subMap := c[MapName]
 	if subMap == nil {
 		subMap = xmap.Map{}
 		c[MapName] = subMap
@@ -41,7 +41,7 @@ func (c Context) PutMap(MapName string, Name string, Value interface{}) {
 
 // PutList : 把 Value 放到 ListName 中去
 func (c Context) PutList(ListName string, Value interface{}) {
-	subObject, _ := c[ListName]
+	subObject := c[ListName]
 	if subObject == nil {
 		subObject = []interface{}{}
 	}
@@ -53,7 +53,7 @@ func (c Context) PutList(ListName string, Value interface{}) {
 // PutVue : c["vueData"][Name] = Value
 func (c Context) PutVue(Name string, Value interface{}) {
 	var vueData xmap.Map
-	if tmp, _ := c["vueData"]; tmp == nil {
+	if tmp := c["vueData"]; tmp == nil {
 		vueData = xmap.Make()
 	} else {
 		vueData = tmp.(xmap.Map)

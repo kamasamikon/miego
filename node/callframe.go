@@ -26,7 +26,7 @@ func NewCallFrame(caller *KCallFrame, this *KNode, data interface{}, datafmt uin
 		Data:       data,
 		DataFormat: datafmt,
 		Hint:       hint,
-		DataID:     uuid.NewV4().String(),
+		DataID:     uuid.New().String(),
 		NewAt:      time.Now().UnixMicro(),
 	}
 }
@@ -110,5 +110,5 @@ func (f *KCallFrame) Dump() {
 		)
 	}
 
-	klog.KLog(1, false, klog.ColorType_F, "D", "\n"+strings.Join(lines, ""))
+	klog.KLog(1, 0, klog.ColorType_F, 'D', "\n"+strings.Join(lines, ""))
 }

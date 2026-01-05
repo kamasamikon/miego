@@ -230,7 +230,7 @@ func DumpS(obj interface{}, strPart ...interface{}) string {
 
 	default:
 		fmtPart := strPart[0].(string)
-		argPart := strPart[1:len(strPart)]
+		argPart := strPart[1:]
 		s = fmt.Sprintf(fmtPart, argPart...)
 		s += cfg.Sdump(obj)
 	}

@@ -20,7 +20,7 @@ func (b *BreadButton) Add(args ...interface{}) *BreadButton {
 
 		x := args[2*i+1].(string)
 		if x[0] == '@' {
-			Action = x[1:len(x)]
+			Action = x[1:]
 		} else {
 			URL = x
 		}

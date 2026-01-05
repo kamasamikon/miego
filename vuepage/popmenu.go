@@ -35,7 +35,7 @@ func (m *PopMenu) Add(args ...interface{}) *PopMenu {
 			if x[0] == '<' {
 				HTML = x
 			} else if x[0] == '@' {
-				Action = x[1:len(x)]
+				Action = x[1:]
 			} else {
 				URL = x
 			}

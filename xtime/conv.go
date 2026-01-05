@@ -75,7 +75,7 @@ func StrToNum(s string, flag byte) (Num uint64) {
 		}
 
 		n := uint64(s[i]) - '0'
-		if n < 0 || n > 9 {
+		if n > 9 {
 			// 不是数字。
 			// 当前字段已经有数字了？
 			//     已经有数字了，转到下一个字段

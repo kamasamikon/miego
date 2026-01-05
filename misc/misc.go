@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -42,7 +42,7 @@ func Shuffle2(slice []interface{}) []interface{} {
 func MD5file(path string) string {
 	ctx := md5.New()
 
-	if data, err := ioutil.ReadFile(path); err != nil {
+	if data, err := os.ReadFile(path); err != nil {
 		return ""
 	} else {
 		ctx.Write(data)

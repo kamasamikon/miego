@@ -7,12 +7,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"miego/atox"
 	"miego/klog"
 	"miego/pong"
 	"miego/xgin"
 	"miego/xmap"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ContainerInfo struct {
@@ -172,7 +173,6 @@ func main() {
 		} else {
 			pong.OK(c, xmap.Make())
 		}
-		return
 	})
 
 	xgin.Go(nil, fmt.Sprintf(":%d", *Port))

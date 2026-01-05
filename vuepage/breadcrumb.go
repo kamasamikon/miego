@@ -24,7 +24,7 @@ func (b *Breadcrumb) Add(args ...interface{}) *Breadcrumb {
 }
 
 func (b *Breadcrumb) Items() []*BreadcrumbItem {
-	for i, _ := range b.items {
+	for i := range b.items {
 		b.items[i].Active = false
 	}
 	if count := len(b.items); count > 0 {

@@ -2,7 +2,6 @@ package xrand
 
 import (
 	"math/rand"
-	"time"
 )
 
 const (
@@ -108,8 +107,4 @@ func Num(size int) []byte {
 	}
 
 	return result
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }

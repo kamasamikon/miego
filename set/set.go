@@ -21,7 +21,7 @@ func (s StrSet) Rem(key string) {
 
 func (s StrSet) Keys() []string {
 	var key []string
-	for k, _ := range s {
+	for k := range s {
 		key = append(key, k)
 	}
 	return key

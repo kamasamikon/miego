@@ -41,7 +41,7 @@ func MonitorDump() string {
 	pathMaxLength := 0
 	var pList []string
 
-	for Path, _ := range mapPathMonitorCallback {
+	for Path := range mapPathMonitorCallback {
 		pList = append(pList, Path)
 		if len(Path) > pathMaxLength {
 			pathMaxLength = len(Path)
@@ -78,7 +78,7 @@ func MonitorDump() string {
 
 func monitorCall(e *confEntry, oVal any, nVal any) {
 	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
-		for Callback, _ := range mapMonitorCallback {
+		for Callback := range mapMonitorCallback {
 			if Callback != nil {
 				go (*Callback)(e.path, oVal, nVal)
 			}

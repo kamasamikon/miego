@@ -52,7 +52,7 @@ func Raw(db *sql.DB, stmt string, verbose bool) ([]xmap.Map, error) {
 	columns, _ := rows.Columns()
 	columnLength := len(columns)
 	cache := make([]interface{}, columnLength)
-	for index, _ := range cache {
+	for index := range cache {
 		var a interface{}
 		cache[index] = &a
 	}
@@ -114,7 +114,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 	columns, _ := rows.Columns()
 	columnLength := len(columns)
 	cache := make([]interface{}, columnLength)
-	for index, _ := range cache {
+	for index := range cache {
 		var a interface{}
 		cache[index] = &a
 	}

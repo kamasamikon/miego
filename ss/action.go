@@ -29,7 +29,7 @@ func (b *Action) Add(args ...string) *Action {
 
 		What := args[3*i+1]
 		if strings.HasPrefix(What, "@") {
-			a.Act = What[1:len(What)]
+			a.Act = What[1:]
 		} else {
 			a.URL = What
 		}

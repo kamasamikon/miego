@@ -3,7 +3,6 @@ package libmsa
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -15,10 +14,6 @@ import (
 	"miego/conf"
 	"miego/klog"
 	mscommon "miego/ms/common"
-)
-
-const (
-	msaChaged = "e:/msa/changed"
 )
 
 var HTTPTransport = &http.Transport{
@@ -39,7 +34,7 @@ func GetRegURL() string {
 }
 
 func HostNameGet() string {
-	if dat, err := ioutil.ReadFile("/etc/hostname"); err != nil {
+	if dat, err := os.ReadFile("/etc/hostname"); err != nil {
 		return "N/A"
 	} else {
 		return strings.TrimSpace(string(dat))
@@ -135,7 +130,7 @@ func doReg(msRegURL string, msDataReader io.Reader) bool {
 		return false
 	}
 	defer resp.Body.Close()
-	ok := resp != nil && resp.StatusCode == 200
+	ok := resp.StatusCode == 200
 	if !ok {
 		klog.E("%s, StatusCode: %d", msRegURL, resp.StatusCode)
 	}
@@ -235,7 +230,7 @@ func RegisterLoop() {
 			conf.Set("s:/msa/reg/when", time.Now().Format("2006/01/02 15:04:05"), true)
 			klog.D("msRegURL: %s", msRegURL)
 			for {
-				msDataReader.Seek(io.SeekStart, 0)
+				msDataReader.Seek(0, io.SeekStart)
 				if !doReg(msRegURL, msDataReader) {
 					break
 				}
@@ -258,7 +253,7 @@ func RegisterLoop() {
 			}
 			if resp, err := client.Get(dockerHelperURL); err == nil {
 				if resp.StatusCode == 200 {
-					if payload, err := ioutil.ReadAll(resp.Body); err == nil {
+					if payload, err := io.ReadAll(resp.Body); err == nil {
 						var dict map[string]interface{}
 						if err := json.Unmarshal(payload, &dict); err == nil {
 							klog.Dump(dict)
@@ -276,7 +271,7 @@ func RegisterLoop() {
 				conf.Set("s:/msa/reg/when", time.Now().Format("2006/01/02 15:04:05"), true)
 				klog.D("msRegURL: %s", msRegURL)
 				for {
-					msDataReader.Seek(io.SeekStart, 0)
+					msDataReader.Seek(0, io.SeekStart)
 					if !doReg(msRegURL, msDataReader) {
 						break
 					}
@@ -287,9 +282,4 @@ func RegisterLoop() {
 
 		time.Sleep(sleepRegWaitNG)
 	}
-}
-
-func init() {
-	// conf.EntryAdd(msaChaged+"=", false)
-	// conf.MonitorAdd(msaChaged, func(p string, o, n interface{}) { })
 }

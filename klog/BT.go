@@ -35,7 +35,7 @@ func BT(maxdep int, formating string, args ...interface{}) {
 		}
 
 		pc, filename, line, ok := runtime.Caller(dep)
-		if ok == false {
+		if !ok {
 			break
 		}
 

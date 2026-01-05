@@ -3,8 +3,8 @@ package xgin
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http/httputil"
+	"os"
 	"runtime"
 	"strings"
 
@@ -21,9 +21,6 @@ var (
 )
 
 func function(pc uintptr) []byte {
-	var slash = []byte("/")
-	var dot = []byte(".")
-	var centerDot = []byte("·")
 	fn := runtime.FuncForPC(pc)
 	if fn == nil {
 		return dunno
@@ -60,7 +57,7 @@ func stack(skip int) []byte {
 
 		fmt.Fprintf(buf, "%s:%d (0x%x)\n", file, line, pc)
 		if file != lastFile {
-			data, err := ioutil.ReadFile(file)
+			data, err := os.ReadFile(file)
 			if err != nil {
 				continue
 			}

@@ -3,7 +3,7 @@ package httpdo
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -147,14 +147,14 @@ func (c *context) Post() (resp *http.Response, err error) {
 	}
 
 	if ptr, ok := c.pong.(*string); ok {
-		if buf, err := ioutil.ReadAll(r.Body); err != nil {
+		if buf, err := io.ReadAll(r.Body); err != nil {
 			return r, err
 		} else {
 			*ptr = string(buf)
 			return r, nil
 		}
 	} else if ptr, ok := c.pong.(*[]byte); ok {
-		if buf, err := ioutil.ReadAll(r.Body); err != nil {
+		if buf, err := io.ReadAll(r.Body); err != nil {
 			return r, err
 		} else {
 			*ptr = buf
@@ -215,14 +215,14 @@ func (c *context) Get() (resp *http.Response, err error) {
 	}
 
 	if ptr, ok := c.pong.(*string); ok {
-		if buf, err := ioutil.ReadAll(r.Body); err != nil {
+		if buf, err := io.ReadAll(r.Body); err != nil {
 			return r, err
 		} else {
 			*ptr = string(buf)
 			return r, nil
 		}
 	} else if ptr, ok := c.pong.(*[]byte); ok {
-		if buf, err := ioutil.ReadAll(r.Body); err != nil {
+		if buf, err := io.ReadAll(r.Body); err != nil {
 			return r, err
 		} else {
 			*ptr = buf

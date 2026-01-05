@@ -47,17 +47,14 @@ func LastOne(db *sql.DB, TableName string, FieldName string) string {
 		return ""
 	}
 	defer rows.Close()
-	for rows.Next() {
-		var UUID string
-		err := rows.Scan(
-			&UUID,
-		)
-		if err != nil {
-			return ""
-		}
-		return UUID
+
+	rows.Next()
+	var UUID string
+	err = rows.Scan(&UUID)
+	if err != nil {
+		return ""
 	}
-	return ""
+	return UUID
 }
 
 func FirstOne(db *sql.DB, TableName string, FieldName string) string {
@@ -68,15 +65,12 @@ func FirstOne(db *sql.DB, TableName string, FieldName string) string {
 		return ""
 	}
 	defer rows.Close()
-	for rows.Next() {
-		var UUID string
-		err := rows.Scan(
-			&UUID,
-		)
-		if err != nil {
-			return ""
-		}
-		return UUID
+
+	rows.Next()
+	var UUID string
+	err = rows.Scan(&UUID)
+	if err != nil {
+		return ""
 	}
-	return ""
+	return UUID
 }

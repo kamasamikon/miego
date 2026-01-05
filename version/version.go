@@ -67,19 +67,19 @@ func S2N(s string) (uint64, error) {
 	// XXX: a.b.c 版本转成内部格式
 	segs := strings.Split(s, ".")
 	if len(segs) < 3 {
-		return 0, fmt.Errorf("Bad SWVersion")
+		return 0, fmt.Errorf("bad version")
 	}
 	a, err := strconv.ParseUint(segs[0], 0, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Bad SWVersion")
+		return 0, fmt.Errorf("bad version")
 	}
 	b, err := strconv.ParseUint(segs[1], 0, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Bad SWVersion")
+		return 0, fmt.Errorf("bad version")
 	}
 	c, err := strconv.ParseUint(segs[2], 0, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Bad SWVersion")
+		return 0, fmt.Errorf("bad version")
 	}
 
 	var n uint64 = 0

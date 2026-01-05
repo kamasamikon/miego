@@ -23,7 +23,7 @@ func Set(data interface{}, exp int64, uid string, tag string) string {
 	defer mutex.Unlock()
 
 	if uid == "" {
-		uid = uuid.NewV4().String()
+		uid = uuid.New().String()
 	}
 
 	// Exp after exp seconds
@@ -149,7 +149,7 @@ func cleanup() {
 		}
 		nameCache[uid] = 1
 	}
-	for uid, _ := range nameCache {
+	for uid := range nameCache {
 		delete(Items, uid)
 	}
 }

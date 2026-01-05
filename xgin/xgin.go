@@ -49,7 +49,7 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT)
 	<-quit
 	fmt.Println("Server is shutting down...")
@@ -86,7 +86,7 @@ func RoutersToConf(Engine *gin.Engine) {
 }
 
 func Go(Engine *gin.Engine, addr string) error {
-	if conf.Bool(true, "b:/gin/releaseMode") == true {
+	if conf.Bool(true, "b:/gin/releaseMode") {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -108,19 +108,19 @@ func Go(Engine *gin.Engine, addr string) error {
 
 func Default() *gin.Engine {
 	if _Default == nil {
-		if conf.Bool(true, "b:/gin/releaseMode") == true {
+		if conf.Bool(true, "b:/gin/releaseMode") {
 			gin.SetMode(gin.ReleaseMode)
 		}
 
 		_Default = gin.New()
 
-		if conf.Bool(true, "b:/gin/cors/enable") == true {
+		if conf.Bool(true, "b:/gin/cors/enable") {
 			_Default.Use(cors.Default())
 		}
-		if conf.Bool(true, "b:/gin/Logger/enable") == true {
+		if conf.Bool(true, "b:/gin/Logger/enable") {
 			_Default.Use(gin.Logger())
 		}
-		if conf.Bool(true, "b:/gin/Recovery/enable") == true {
+		if conf.Bool(true, "b:/gin/Recovery/enable") {
 			_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
 		}
 	}

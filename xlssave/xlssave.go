@@ -2,7 +2,6 @@ package xlssave
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -71,7 +70,7 @@ func Save(path string, records []xmap.Map, columns []string) error {
 
 // 查询并返回为Excel
 func Export(c *gin.Context, doQuery func(xmap.Map) []xmap.Map, columns []string) {
-	mp := xmap.MapQuery(c, true)
+	mp := xmap.MapQuery(c.Request, true)
 
 	mp.Put("PageSize", "10000000")
 	mp.Put("PageNumber", "1")
@@ -91,7 +90,7 @@ func Export(c *gin.Context, doQuery func(xmap.Map) []xmap.Map, columns []string)
 
 	// 把数据保存到临时文件
 	Save(tmpName, records, columns)
-	content, _ := ioutil.ReadFile(tmpName)
+	content, _ := os.ReadFile(tmpName)
 
 	// 生成文件名
 	fileName := mp.Str("fileName", "导出结果")

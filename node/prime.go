@@ -323,10 +323,10 @@ func NpStr(number uint64) string {
 
 func NpDump() {
 	var nlist []int
-	for number, _ := range mapPrimeName {
+	for number := range mapPrimeName {
 		nlist = append(nlist, int(number))
 	}
-	sort.Sort(sort.IntSlice(nlist))
+	sort.Ints(nlist)
 	for _, n := range nlist {
 		name := mapPrimeName[uint64(n)]
 		klog.D("%4d : %s", n, name)

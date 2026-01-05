@@ -155,7 +155,7 @@ type KIDCardInfo struct {
 func Parse(idstring string) (*KIDCardInfo, error) {
 	// Check Length
 	if len(idstring) != 18 {
-		return nil, fmt.Errorf("Bad Length")
+		return nil, fmt.Errorf("bad length")
 	}
 
 	// Check date
@@ -163,15 +163,15 @@ func Parse(idstring string) (*KIDCardInfo, error) {
 	fmt.Println(datestring)
 	if date, err := time.Parse("20060102", datestring); err != nil {
 		fmt.Println(err.Error())
-		return nil, fmt.Errorf("Bad Date: %s", err.Error())
+		return nil, fmt.Errorf("bad date: %s", err.Error())
 	} else {
 		now := time.Now()
 		yyyy := date.Year()
 		if yyyy > now.Year() {
-			return nil, fmt.Errorf("Bad Date")
+			return nil, fmt.Errorf("bad date")
 		}
 		if yyyy < 1900 {
-			return nil, fmt.Errorf("Bad Date")
+			return nil, fmt.Errorf("bad date")
 		}
 	}
 
@@ -182,7 +182,7 @@ func Parse(idstring string) (*KIDCardInfo, error) {
 	}
 	valid := idVerify(idCheck(idCardByte[0:17]), byte2int(idCardByte[17]))
 	if !valid {
-		return nil, fmt.Errorf("Bad Checksum")
+		return nil, fmt.Errorf("bad checksum")
 	}
 
 	// Check Province
@@ -197,7 +197,7 @@ func Parse(idstring string) (*KIDCardInfo, error) {
 		}
 	}
 	if !ok {
-		return nil, fmt.Errorf("Bad Regin")
+		return nil, fmt.Errorf("bad regin")
 	}
 
 	City, _ := strconv.Atoi(string(idstring[2:4]))

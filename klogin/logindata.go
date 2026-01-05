@@ -11,7 +11,7 @@ func LoginData(c *gin.Context, keys ...string) []string {
 	var arr []string
 
 	if c.ContentType() == "application/json" {
-		mp := xmap.MapBody(c)
+		mp := xmap.MapBody(c.Request)
 		for _, key := range keys {
 			arr = append(arr, mp.S(key))
 		}

@@ -74,17 +74,17 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 	for k, v := range mp {
 		var s string
 
-		switch v.(type) {
+		switch vv := v.(type) {
 		case bool:
-			if t, _ := v.(bool); t {
+			if vv {
 				s = "true"
 			} else {
 				s = "false"
 			}
 
 		case string:
-			if t, _ := v.(string); t != "" {
-				s = t
+			if vv != "" {
+				s = vv
 			}
 		}
 
@@ -105,7 +105,7 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 
 		// Save
 		sa, ok := m[Name]
-		if ok == false {
+		if !ok {
 			sa = make(map[string][]string)
 		}
 
@@ -131,19 +131,17 @@ func (m QueryMap) Parse(mp xmap.Map) error {
 			Kind = "IN"
 			sep := segs[2]
 
-			ar, _ := sa[Kind]
+			ar := sa[Kind]
 
 			inList := strings.Split(s, sep)
-			for _, in := range inList {
-				ar = append(ar, in)
-			}
+			ar = append(ar, inList...)
 			sa[Kind] = ar
 			m[Name] = sa
 
 			continue
 		}
 
-		ar, _ := sa[Kind]
+		ar := sa[Kind]
 		ar = append(ar, s)
 		sa[Kind] = ar
 		m[Name] = sa
@@ -159,7 +157,7 @@ func (m QueryMap) Has(Name string) bool {
 
 func (m QueryMap) Use(qList []string, Name string, Table string, NewName string) []string {
 	sa, ok := m[Name]
-	if ok == false {
+	if !ok {
 		return qList
 	}
 	if NewName != "" {

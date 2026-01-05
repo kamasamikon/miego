@@ -10,7 +10,7 @@ import (
 )
 
 func IDNew() string {
-	return uuid.NewV4().String()
+	return uuid.New().String()
 }
 
 func IDNxt(db *sql.DB, TableName string) uint64 {
