@@ -125,14 +125,15 @@ func EntryAdd(line string, overwrite bool) {
 	line = strings.TrimSpace(line)
 
 	segs := strings.SplitN(line, "=", 2)
-	if len(segs) == 0 {
+	if len(segs) < 2 {
 		return
 	}
 
-	path := segs[0]
-	if len(path) < 4 || path[1] != ':' {
-		return
-	}
+	path, value := segs[0], segs[1]
+	EntryAdd2(path, value, overwrite)
+}
+
+func EntryAdd2(path string, value string, overwrite bool) {
 	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
@@ -155,7 +156,7 @@ func EntryAdd(line string, overwrite bool) {
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
 			vNew = vInt
 		} else {
-			dp("BadValue.i: %s", line)
+			dp("BadValue.i: %s", value)
 			return
 		}
 
@@ -171,7 +172,7 @@ func EntryAdd(line string, overwrite bool) {
 		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
 			vNew = false
 		} else {
-			dp("BadValue.b: %s", line)
+			dp("BadValue.b: %s", value)
 			return
 		}
 
@@ -179,7 +180,7 @@ func EntryAdd(line string, overwrite bool) {
 		// line is json string
 		o := make(map[string]any)
 		if err := json.Unmarshal([]byte(value), &o); err != nil {
-			dp("BadValue.o: %s", line)
+			dp("BadValue.o: %s", value)
 			return
 		}
 		vNew = o
@@ -225,6 +226,62 @@ func LoadString(s string, overwrite bool) {
 }
 
 // Load : configure from a file.
+func LoadFileData(xdata []byte, overwrite bool) {
+	data := strings.Replace(string(xdata), "\r", "\n", -1)
+	Lines := strings.Split(data, "\n")
+
+	size := len(Lines)
+	i := 0
+	for {
+		if i >= size {
+			break
+		}
+
+		Line := Lines[i]
+		i++
+
+		neat := strings.TrimSpace(Line)
+		if neat == "" || neat[0] == '#' {
+			continue
+		}
+		segs := strings.SplitN(neat, "=", 2)
+		if len(segs) < 2 {
+			continue
+		}
+		path, value := segs[0], segs[1]
+		if len(path) < 4 || path[1] != ':' {
+			continue
+		}
+
+		if strings.HasPrefix(value, "<<") {
+			other := value[2:]
+			multiLineTag := other
+
+			value = ""
+			for {
+				if i >= size {
+					break
+				}
+
+				Line = Lines[i]
+				i++
+
+				if Line == multiLineTag {
+					break
+				}
+
+				value += Line
+				value += "\n"
+			}
+
+			EntryAdd2(path, value[:len(value)-1], overwrite)
+		} else {
+			EntryAdd2(path, value, overwrite)
+		}
+	}
+}
+
+// Load : configure from a file.
 func LoadFile(fileName string, overwrite bool) error {
 	const (
 		NGName = "s:/conf/Load/NG/%d/Name=%s"
@@ -232,20 +289,19 @@ func LoadFile(fileName string, overwrite bool) error {
 		OKName = "s:/conf/Load/OK/%d=%s"
 	)
 
-	sp := fmt.Sprintf
 	data, err := os.ReadFile(fileName)
 	if err != nil {
-		EntryAdd(sp(NGName, LoadNGCount, fileName), false)
-		EntryAdd(sp(NGWhy, LoadNGCount, err.Error()), false)
+		EntryAdd(fmt.Sprintf(NGName, LoadNGCount, fileName), false)
+		EntryAdd(fmt.Sprintf(NGWhy, LoadNGCount, err.Error()), false)
 		LoadNGCount++
 		dp("Error:'%s', fileName:'%s'", err.Error(), fileName)
 		return err
 	}
 
-	EntryAdd(sp(OKName, LoadOKCount, fileName), false)
+	EntryAdd(fmt.Sprintf(OKName, LoadOKCount, fileName), false)
 	LoadOKCount++
 
-	LoadString(string(data), overwrite)
+	LoadFileData(data, overwrite)
 	return nil
 }
 
@@ -686,7 +742,7 @@ func setByEntry(e *confEntry, value any) {
 }
 
 // Set : Modify or Add conf entry
-func Set(path string, value any, force bool) {
+func Set(path string, value any, create bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -700,7 +756,7 @@ func Set(path string, value any, force bool) {
 
 	e, ok = mapPathEntry[realpath]
 	if !ok {
-		if force {
+		if create {
 			e = &confEntry{
 				kind:   kind,
 				hidden: hidden,
