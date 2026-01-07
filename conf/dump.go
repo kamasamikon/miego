@@ -24,10 +24,10 @@ func Dump(safeMode bool, joinBy string) string {
 
 	fmtstr := fmt.Sprintf(
 		"%s%%-%ds%s :(%%04d:%%04d): %s%%v%s",
-		ColorType_D,
+		ColorTypeD,
 		keyMaxLength,
-		ColorType_Reset,
-		ColorType_W, ColorType_Reset,
+		ColorTypeReset,
+		ColorTypeW, ColorTypeReset,
 	)
 	var lines []string
 	for _, e := range cList {

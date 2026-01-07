@@ -13,15 +13,15 @@ import (
 )
 
 const (
-	ColorType_F     = "\x1b[1;31;40m"
-	ColorType_A     = "\x1b[91;40m"
-	ColorType_C     = "\x1b[1;36;40m"
-	ColorType_E     = "\x1b[96;40m"
-	ColorType_W     = "\x1b[1;33;40m"
-	ColorType_N     = "\x1b[93;40m"
-	ColorType_I     = "\x1b[1;32;40m"
-	ColorType_D     = "\x1b[92;40m"
-	ColorType_Reset = "\x1b[0m"
+	ColorTypeF     = "\x1b[1;31;40m"
+	ColorTypeA     = "\x1b[91;40m"
+	ColorTypeC     = "\x1b[1;36;40m"
+	ColorTypeE     = "\x1b[96;40m"
+	ColorTypeW     = "\x1b[1;33;40m"
+	ColorTypeN     = "\x1b[93;40m"
+	ColorTypeI     = "\x1b[1;32;40m"
+	ColorTypeD     = "\x1b[92;40m"
+	ColorTypeReset = "\x1b[0m"
 )
 
 const (
@@ -117,31 +117,23 @@ func EntryRem(path string) {
 	delete(mapPathEntry, path)
 }
 
-// Load file from configure
-func EntryAdd(line string, overwrite bool) {
+func EntryAddByLine(line string, overwrite bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	line = strings.TrimSpace(line)
-
-	segs := strings.SplitN(line, "=", 2)
+	segs := strings.SplitN(strings.TrimSpace(line), "=", 2)
 	if len(segs) < 2 {
 		return
 	}
 
 	path, value := segs[0], segs[1]
-	EntryAdd2(path, value, overwrite)
+	EntryAdd(path, value, overwrite)
 }
 
-func EntryAdd2(path string, value string, overwrite bool) {
+func EntryAdd(path string, value string, overwrite bool) {
 	kind, hidden, realpath := pathParse(path)
 	if realpath == "" {
 		return
-	}
-
-	var value string
-	if len(segs) == 2 {
-		value = segs[1]
 	}
 
 	e, exists := mapPathEntry[path]
@@ -204,32 +196,21 @@ func EntryAdd2(path string, value string, overwrite bool) {
 	setByEntry(e, vNew)
 }
 
-func setSetter(path string, setter setter) {
+func SetSetter(path string, setter setter) {
 	if e, ok := mapPathEntry[path]; ok {
 		e.setter = setter
 	}
 }
 
-func setGetter(path string, getter getter) {
+func SetGetter(path string, getter getter) {
 	if e, ok := mapPathEntry[path]; ok {
 		e.getter = getter
 	}
 }
 
-// LoadString : Load setting from string (lines of configuration)
-func LoadString(s string, overwrite bool) {
-	s = strings.Replace(s, "\r", "\n", -1)
-	Lines := strings.Split(s, "\n")
-	for _, Line := range Lines {
-		EntryAdd(Line, overwrite)
-	}
-}
-
 // Load : configure from a file.
-func LoadFileData(xdata []byte, overwrite bool) {
-	data := strings.Replace(string(xdata), "\r", "\n", -1)
-	Lines := strings.Split(data, "\n")
-
+func LoadFromText(text string, overwrite bool) {
+	Lines := strings.Split(strings.Replace(text, "\r", "\n", -1), "\n")
 	size := len(Lines)
 	i := 0
 	for {
@@ -254,10 +235,9 @@ func LoadFileData(xdata []byte, overwrite bool) {
 		}
 
 		if strings.HasPrefix(value, "<<") {
-			other := value[2:]
-			multiLineTag := other
+			multiLineTag := value[2:]
 
-			value = ""
+			var sb strings.Builder
 			for {
 				if i >= size {
 					break
@@ -270,19 +250,19 @@ func LoadFileData(xdata []byte, overwrite bool) {
 					break
 				}
 
-				value += Line
-				value += "\n"
+				sb.WriteString(Line)
+				sb.WriteRune('\n')
 			}
 
-			EntryAdd2(path, value[:len(value)-1], overwrite)
+			EntryAdd(path, sb.String(), overwrite)
 		} else {
-			EntryAdd2(path, value, overwrite)
+			EntryAdd(path, value, overwrite)
 		}
 	}
 }
 
 // Load : configure from a file.
-func LoadFile(fileName string, overwrite bool) error {
+func LoadFromFile(fileName string, overwrite bool) error {
 	const (
 		NGName = "s:/conf/Load/NG/%d/Name=%s"
 		NGWhy  = "s:/conf/Load/NG/%d/Why=%s"
@@ -291,17 +271,17 @@ func LoadFile(fileName string, overwrite bool) error {
 
 	data, err := os.ReadFile(fileName)
 	if err != nil {
-		EntryAdd(fmt.Sprintf(NGName, LoadNGCount, fileName), false)
-		EntryAdd(fmt.Sprintf(NGWhy, LoadNGCount, err.Error()), false)
+		EntryAddByLine(fmt.Sprintf(NGName, LoadNGCount, fileName), false)
+		EntryAddByLine(fmt.Sprintf(NGWhy, LoadNGCount, err.Error()), false)
 		LoadNGCount++
 		dp("Error:'%s', fileName:'%s'", err.Error(), fileName)
 		return err
 	}
 
-	EntryAdd(fmt.Sprintf(OKName, LoadOKCount, fileName), false)
+	EntryAddByLine(fmt.Sprintf(OKName, LoadOKCount, fileName), false)
 	LoadOKCount++
 
-	LoadFileData(data, overwrite)
+	LoadFromText(string(data), overwrite)
 	return nil
 }
 
@@ -340,10 +320,9 @@ func Int(defval int64, paths ...string) int64 {
 				}
 			}
 			return e.vInt
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return defval
 }
@@ -363,10 +342,9 @@ func IntX(paths ...string) (int64, bool) {
 				}
 			}
 			return e.vInt, true
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return 0, false
 }
@@ -384,14 +362,13 @@ func Inc(inc int64, path string) int64 {
 				vInt = vv.(int64)
 			}
 		}
-		vNew := vInt + 1
+		vNew := vInt + inc
 		setByEntry(e, vNew)
 		return vNew
-	} else {
-		dp("Miss %s", path)
-		setMissedEntries(path)
-		return -1
 	}
+	dp("Miss %s", path)
+	setMissedEntries(path)
+	return -1
 }
 
 // Flip : flip on bool
@@ -410,11 +387,10 @@ func Flip(path string) bool {
 		vNew := !vBool
 		setByEntry(e, vNew)
 		return vNew
-	} else {
-		dp("Miss %s", path)
-		setMissedEntries(path)
-		return false
 	}
+	dp("Miss %s", path)
+	setMissedEntries(path)
+	return false
 }
 
 // Str : get a str typed configure
@@ -432,10 +408,9 @@ func Str(defval string, paths ...string) string {
 				}
 			}
 			return e.vStr
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return defval
 }
@@ -455,10 +430,9 @@ func StrX(paths ...string) (string, bool) {
 				}
 			}
 			return e.vStr, true
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return "", false
 }
@@ -478,10 +452,9 @@ func Bool(defval bool, paths ...string) bool {
 				}
 			}
 			return e.vBool
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return defval
 }
@@ -501,10 +474,9 @@ func BoolX(paths ...string) (bool, bool) {
 				}
 			}
 			return e.vBool, true
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return false, false
 }
@@ -524,10 +496,9 @@ func Obj(defval any, paths ...string) any {
 				}
 			}
 			return e.vObj
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return defval
 }
@@ -547,10 +518,9 @@ func ObjX(paths ...string) (any, bool) {
 				}
 			}
 			return e.vObj, true
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return nil, false
 }
@@ -578,10 +548,9 @@ func List(paths ...string) []string {
 					}
 				}
 			}
-		} else {
-			dp("Miss %s", path)
-			setMissedEntries(path)
 		}
+		dp("Miss %s", path)
+		setMissedEntries(path)
 	}
 	return slice
 }
@@ -778,7 +747,7 @@ func Ready() {
 func init() {
 	data, err := Assets.ReadFile("assets/main.cfg")
 	if err == nil {
-		LoadString(string(data), false)
+		LoadFromText(string(data), false)
 	}
 
 	//
@@ -787,7 +756,7 @@ func init() {
 	Set(PathReady, "", true)
 	Set(MissedEntries, "", true)
 
-	setGetter(MissedEntries, func(e *confEntry) (vv any, ok bool) {
+	SetGetter(MissedEntries, func(_ *confEntry) (vv any, ok bool) {
 		var sb strings.Builder
 		for p := range mapMissedEntries {
 			sb.WriteString(p)
@@ -804,7 +773,7 @@ func init() {
 		DEBUG = 0
 	}
 
-	setSetter(Debug, func(e *confEntry, v any) (vv any, ok bool) {
+	SetSetter(Debug, func(_ *confEntry, v any) (vv any, ok bool) {
 		DEBUG = v.(int)
 		return nil, false
 	})
@@ -828,7 +797,7 @@ func LoadFromEnv() {
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				LoadFile(f, true)
+				LoadFromFile(f, true)
 			}
 		}
 	}
@@ -837,7 +806,7 @@ func LoadFromEnv() {
 		files := strings.Split(cfgList, ":")
 		for _, f := range files {
 			if f != "" {
-				LoadFile(f, true)
+				LoadFromFile(f, true)
 				os.Remove(f)
 			}
 		}
@@ -853,14 +822,14 @@ func LoadFromArg() {
 			if argv == "--kfg" {
 				i++
 				if i < argc {
-					LoadFile(os.Args[i], true)
+					LoadFromFile(os.Args[i], true)
 				}
 				continue
 			}
 			if strings.HasPrefix(argv, "--kfg=") {
 				f := argv[6:]
 				if f != "" {
-					LoadFile(f, true)
+					LoadFromFile(f, true)
 				}
 				continue
 			}
@@ -873,7 +842,7 @@ func LoadFromArg() {
 			if argv == "--kfg-qqq" {
 				i++
 				if i < argc {
-					LoadFile(os.Args[i], true)
+					LoadFromFile(os.Args[i], true)
 					os.Remove(os.Args[i])
 				}
 				continue
@@ -881,7 +850,7 @@ func LoadFromArg() {
 			if strings.HasPrefix(argv, "--kfg-qqq=") {
 				f := argv[6:]
 				if f != "" {
-					LoadFile(f, true)
+					LoadFromFile(f, true)
 					os.Remove(f)
 				}
 			}
@@ -893,13 +862,13 @@ func LoadFromArg() {
 		if argv == "--kfg-item" {
 			i++
 			if i < argc {
-				EntryAdd(os.Args[i], true)
+				EntryAddByLine(os.Args[i], true)
 			}
 			continue
 		}
 		if strings.HasPrefix(argv, "--kfg-item=") {
 			item := argv[11:]
-			EntryAdd(item, true)
+			EntryAddByLine(item, true)
 		}
 	}
 }

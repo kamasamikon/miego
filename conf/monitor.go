@@ -50,9 +50,9 @@ func MonitorDump() string {
 
 	fmtstr := fmt.Sprintf(
 		"%s%%-%ds%s : %%v : %%s",
-		ColorType_I,
+		ColorTypeI,
 		pathMaxLength,
-		ColorType_Reset,
+		ColorTypeReset,
 	)
 
 	for _, Path := range pList {
