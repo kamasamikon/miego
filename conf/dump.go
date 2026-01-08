@@ -7,11 +7,11 @@ import (
 )
 
 // Dump : Print all entries
-func Dump(safeMode bool, joinBy string) string {
+func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
 	keyMaxLength := 0
 	var cList []*confEntry
 
-	for p, e := range mapPathEntry {
+	for p, e := range cc.mapPathEntry {
 		cList = append(cList, e)
 		if len(p) > keyMaxLength {
 			keyMaxLength = len(p)
@@ -78,9 +78,9 @@ func Dump(safeMode bool, joinBy string) string {
 }
 
 // DumpRaw : Dump without Get/Get refs
-func DumpRaw(safeMode bool, group bool, joinBy string) string {
+func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
 	var cList []*confEntry
-	for _, e := range mapPathEntry {
+	for _, e := range cc.mapPathEntry {
 		cList = append(cList, e)
 	}
 	sort.Slice(cList, func(i int, j int) bool {

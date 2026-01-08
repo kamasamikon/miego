@@ -11,37 +11,31 @@ import (
 // Monitor, callback when configure changed
 //
 
-// KConfMonitor is a Callback called when wathed entry modified.
-type KConfMonitor func(path string, oVal any, nVal any)
-
-// map[s:Path]map[KConfMonitor]int
-var mapPathMonitorCallback = make(map[string]map[*KConfMonitor]string)
-
-func MonitorAdd(Path string, Callback KConfMonitor) {
-	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
+func (cc *ConfCenter) MonitorAdd(Path string, Callback KConfMonitor) {
+	mapMonitorCallback, ok := cc.mapPathMonitorCallback[Path]
 	if !ok {
 		mapMonitorCallback = make(map[*KConfMonitor]string)
 	}
 
 	_, filename, line, _ := runtime.Caller(2)
 	mapMonitorCallback[&Callback] = fmt.Sprintf("%s:%d", filename, line)
-	mapPathMonitorCallback[Path] = mapMonitorCallback
+	cc.mapPathMonitorCallback[Path] = mapMonitorCallback
 }
 
-func MonitorRem(Path string, Callback KConfMonitor) {
-	mapMonitorCallback, ok := mapPathMonitorCallback[Path]
+func (cc *ConfCenter) MonitorRem(Path string, Callback KConfMonitor) {
+	mapMonitorCallback, ok := cc.mapPathMonitorCallback[Path]
 	if ok {
 		delete(mapMonitorCallback, &Callback)
 	}
 }
 
-func MonitorDump() string {
+func (cc *ConfCenter) MonitorDump() string {
 	var lines []string
 
 	pathMaxLength := 0
 	var pList []string
 
-	for Path := range mapPathMonitorCallback {
+	for Path := range cc.mapPathMonitorCallback {
 		pList = append(pList, Path)
 		if len(Path) > pathMaxLength {
 			pathMaxLength = len(Path)
@@ -56,7 +50,7 @@ func MonitorDump() string {
 	)
 
 	for _, Path := range pList {
-		for Monitor, pos := range mapPathMonitorCallback[Path] {
+		for Monitor, pos := range cc.mapPathMonitorCallback[Path] {
 			lines = append(
 				lines,
 				fmt.Sprintf(
@@ -76,8 +70,8 @@ func MonitorDump() string {
 	return strings.Join(lines, "\n")
 }
 
-func monitorCall(e *confEntry, oVal any, nVal any) {
-	if mapMonitorCallback, ok := mapPathMonitorCallback[e.path]; ok {
+func (cc *ConfCenter) monitorCall(e *confEntry, oVal any, nVal any) {
+	if mapMonitorCallback, ok := cc.mapPathMonitorCallback[e.path]; ok {
 		for Callback := range mapMonitorCallback {
 			if Callback != nil {
 				go (*Callback)(e.path, oVal, nVal)
