@@ -769,7 +769,7 @@ func (cc *ConfCenter) ObjX(paths ...string) (any, bool) {
 }
 
 // List : get a List entry. s:/names=:aaa:bbb first char is the seperator
-func (cc *ConfCenter) List(paths ...string) []string {
+func (cc *ConfCenter) List(sep string, paths ...string) []string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
@@ -785,7 +785,7 @@ func (cc *ConfCenter) List(paths ...string) []string {
 						vStr = vv.(string)
 					}
 				}
-				for _, s := range strings.Split(vStr, vStr[0:1]) {
+				for _, s := range strings.Split(vStr, sep) {
 					if s != "" {
 						slice = append(slice, s)
 					}

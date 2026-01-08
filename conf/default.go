@@ -76,8 +76,8 @@ func ObjX(paths ...string) (any, bool) {
 	return Default.ObjX(paths...)
 }
 
-func List(paths ...string) []string {
-	return Default.List(paths...)
+func List(sep string, paths ...string) []string {
+	return Default.List(sep, paths...)
 }
 
 func Names() []string {
