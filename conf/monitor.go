@@ -1,81 +1,41 @@
 package conf
 
-import (
-	"fmt"
-	"runtime"
-	"sort"
-	"strings"
-)
-
 // ////////////////////////////////////////////////////////////////////////
 // Monitor, callback when configure changed
 //
 
-func (cc *ConfCenter) MonitorAdd(Path string, Callback KConfMonitor) {
-	mapMonitorCallback, ok := cc.mapPathMonitorCallback[Path]
-	if !ok {
-		mapMonitorCallback = make(map[*KConfMonitor]string)
-	}
+func (cc *ConfCenter) MonitorAdd(path string, cb KConfMonitor) int {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
 
-	_, filename, line, _ := runtime.Caller(2)
-	mapMonitorCallback[&Callback] = fmt.Sprintf("%s:%d", filename, line)
-	cc.mapPathMonitorCallback[Path] = mapMonitorCallback
+	if e, ok := cc.mapPathEntry[path]; ok {
+		for idx := range e.monitors {
+			if e.monitors[idx] == nil {
+				e.monitors[idx] = cb
+				return idx
+			}
+		}
+		e.monitors = append(e.monitors, cb)
+		return len(e.monitors) - 1
+	}
+	return -1
 }
 
-func (cc *ConfCenter) MonitorRem(Path string, Callback KConfMonitor) {
-	mapMonitorCallback, ok := cc.mapPathMonitorCallback[Path]
-	if ok {
-		delete(mapMonitorCallback, &Callback)
-	}
-}
+func (cc *ConfCenter) MonitorRem(path string, idx int) {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
 
-func (cc *ConfCenter) MonitorDump() string {
-	var lines []string
-
-	pathMaxLength := 0
-	var pList []string
-
-	for Path := range cc.mapPathMonitorCallback {
-		pList = append(pList, Path)
-		if len(Path) > pathMaxLength {
-			pathMaxLength = len(Path)
+	if e, ok := cc.mapPathEntry[path]; ok {
+		if idx >= 0 && idx < len(e.monitors) {
+			e.monitors[idx] = nil
 		}
 	}
-
-	fmtstr := fmt.Sprintf(
-		"%s%%-%ds%s : %%v : %%s",
-		ColorTypeI,
-		pathMaxLength,
-		ColorTypeReset,
-	)
-
-	for _, Path := range pList {
-		for Monitor, pos := range cc.mapPathMonitorCallback[Path] {
-			lines = append(
-				lines,
-				fmt.Sprintf(
-					fmtstr,
-					Path,
-					Monitor,
-					pos,
-				),
-			)
-		}
-	}
-
-	lines = append(lines, "")
-	sort.Slice(lines, func(i int, j int) bool {
-		return strings.Compare(lines[i], lines[j]) < 0
-	})
-	return strings.Join(lines, "\n")
 }
 
 func (cc *ConfCenter) monitorCall(e *confEntry, oVal any, nVal any) {
-	if mapMonitorCallback, ok := cc.mapPathMonitorCallback[e.path]; ok {
-		for Callback := range mapMonitorCallback {
-			if Callback != nil {
-				go (*Callback)(e.path, oVal, nVal)
-			}
+	for _, cb := range e.monitors {
+		if cb != nil {
+			go cb(e.path, oVal, nVal)
 		}
 	}
 }

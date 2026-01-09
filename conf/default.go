@@ -124,14 +124,10 @@ func DumpRaw(safeMode bool, group bool, joinBy string) string {
 	return Default.DumpRaw(safeMode, group, joinBy)
 }
 
-func MonitorAdd(Path string, Callback KConfMonitor) {
-	Default.MonitorAdd(Path, Callback)
+func MonitorAdd(Path string, Callback KConfMonitor) int {
+	return Default.MonitorAdd(Path, Callback)
 }
 
-func MonitorRem(Path string, Callback KConfMonitor) {
-	Default.MonitorRem(Path, Callback)
-}
-
-func MonitorDump() string {
-	return Default.MonitorDump()
+func MonitorRem(Path string, idx int) {
+	Default.MonitorRem(Path, idx)
 }

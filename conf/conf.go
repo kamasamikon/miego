@@ -68,6 +68,8 @@ type confEntry struct {
 	refSet int64
 
 	hidden bool
+
+	monitors []KConfMonitor
 }
 
 type ConfCenter struct {
@@ -82,9 +84,6 @@ type ConfCenter struct {
 	loadNGCount int
 	debug       int
 
-	// map[s:Path]map[KConfMonitor]int
-	mapPathMonitorCallback map[string]map[*KConfMonitor]string
-
 	// OnReady : Called when all configure loaded.
 	onReadys []func()
 }
@@ -94,15 +93,14 @@ type ConfCenter struct {
 // ///////////////////////////////////////////////////////////////////////
 func New(Name string) *ConfCenter {
 	cc := &ConfCenter{
-		Name:                   Name,
-		mapPathEntry:           make(map[string]*confEntry),
-		loadOKCount:            0,
-		loadNGCount:            0,
-		mapMissedEntries:       make(map[string]int),
-		mutex:                  sync.Mutex{},
-		debug:                  0,
-		mapPathMonitorCallback: make(map[string]map[*KConfMonitor]string),
-		onReadys:               nil,
+		Name:             Name,
+		mapPathEntry:     make(map[string]*confEntry),
+		loadOKCount:      0,
+		loadNGCount:      0,
+		mapMissedEntries: make(map[string]int),
+		mutex:            sync.Mutex{},
+		debug:            0,
+		onReadys:         nil,
 	}
 	cc.EntryAdd("s:/conf/name", Name, true)
 
@@ -143,14 +141,6 @@ func Clone(o *ConfCenter, Name string) *ConfCenter {
 
 	for e := range o.mapMissedEntries {
 		n.mapMissedEntries[e] = 1
-	}
-
-	for path, mcMap := range o.mapPathMonitorCallback {
-		arr := make(map[*KConfMonitor]string)
-		for a, b := range mcMap {
-			arr[a] = b
-		}
-		n.mapPathMonitorCallback[path] = arr
 	}
 
 	return n
@@ -791,9 +781,10 @@ func (cc *ConfCenter) List(sep string, paths ...string) []string {
 					}
 				}
 			}
+		} else {
+			dp("Miss %s", path)
+			cc.setMissedEntries(path)
 		}
-		dp("Miss %s", path)
-		cc.setMissedEntries(path)
 	}
 	return slice
 }
