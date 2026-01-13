@@ -39,7 +39,7 @@ func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
 		case 'i':
 			vInt := e.vInt
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					vInt = vv.(int64)
 				}
 			}
@@ -48,7 +48,7 @@ func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
 		case 's':
 			vStr := e.vStr
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					vStr = vv.(string)
 				}
 			}
@@ -57,7 +57,7 @@ func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
 		case 'b':
 			vBool := e.vBool
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					vBool = vv.(bool)
 				}
 			}
@@ -112,7 +112,7 @@ func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
 		case 'i':
 			vInt := e.vInt
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					vInt = vv.(int64)
 				}
 			}
@@ -122,7 +122,7 @@ func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
 		case 's':
 			vStr := e.vStr
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					vStr = vv.(string)
 				}
 			}
@@ -132,7 +132,7 @@ func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
 		case 'b':
 			vBool := e.vBool
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					vBool = vv.(bool)
 				}
 			}

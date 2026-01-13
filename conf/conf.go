@@ -37,8 +37,8 @@ var Assets embed.FS
 // TYPES
 // ///////////////////////////////////////////////////////////////////////
 
-type setter func(e *confEntry, v any) (vv any, ok bool) // e.v = vv if ok
-type getter func(e *confEntry) (vv any, ok bool)        // return vv if ok else e.v
+type setter func(p string, v any) (vv any, ok bool) // e.v = vv if ok
+type getter func(p string) (vv any, ok bool)        // return vv if ok else e.v
 
 // KConfMonitor is a Callback called when wathed entry modified.
 type KConfMonitor func(path string, oVal any, nVal any)
@@ -86,6 +86,11 @@ type ConfCenter struct {
 
 	// OnReady : Called when all configure loaded.
 	onReadys []func()
+
+	// 防止扑空
+	// path <> 1
+	mapPendingSetter map[string]setter
+	mapPendingGetter map[string]getter
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -101,6 +106,8 @@ func New(Name string) *ConfCenter {
 		mutex:            sync.Mutex{},
 		debug:            0,
 		onReadys:         nil,
+		mapPendingSetter: make(map[string]setter),
+		mapPendingGetter: make(map[string]getter),
 	}
 	cc.EntryAdd("s:/conf/name", Name, true)
 
@@ -280,7 +287,7 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 		}
 
 		if e.setter != nil {
-			if vv, ok := e.setter(e, vNew); ok {
+			if vv, ok := e.setter(e.path, vNew); ok {
 				vNew = vv.(int64)
 			}
 		}
@@ -293,7 +300,7 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 
 		vNew := value.(string)
 		if e.setter != nil {
-			if vv, ok := e.setter(e, vNew); ok {
+			if vv, ok := e.setter(e.path, vNew); ok {
 				vNew = vv.(string)
 			}
 		}
@@ -306,7 +313,7 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 
 		vNew := value.(bool)
 		if e.setter != nil {
-			if vv, ok := e.setter(e, vNew); ok {
+			if vv, ok := e.setter(e.path, vNew); ok {
 				vNew = vv.(bool)
 			}
 		}
@@ -319,7 +326,7 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 
 		vNew := value
 		if e.setter != nil {
-			if vv, ok := e.setter(e, vNew); ok {
+			if vv, ok := e.setter(e.path, vNew); ok {
 				vNew = vv
 			}
 		}
@@ -330,7 +337,7 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 	case 'e':
 		vNew := value.(string)
 		if e.setter != nil {
-			if vv, ok := e.setter(e, vNew); ok {
+			if vv, ok := e.setter(e.path, vNew); ok {
 				vNew = vv.(string)
 			}
 		}
@@ -425,6 +432,14 @@ func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
 			path:   realpath,
 		}
 		cc.mapPathEntry[e.path] = e
+		if getter, ok := cc.mapPendingGetter[e.path]; ok {
+			e.getter = getter
+			delete(cc.mapPendingGetter, e.path)
+		}
+		if setter, ok := cc.mapPendingSetter[e.path]; ok {
+			e.setter = setter
+			delete(cc.mapPendingSetter, e.path)
+		}
 	}
 	cc.setByEntry(e, vNew)
 }
@@ -432,12 +447,16 @@ func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
 func (cc *ConfCenter) SetSetter(path string, setter setter) {
 	if e, ok := cc.mapPathEntry[path]; ok {
 		e.setter = setter
+	} else {
+		cc.mapPendingSetter[path] = setter
 	}
 }
 
 func (cc *ConfCenter) SetGetter(path string, getter getter) {
 	if e, ok := cc.mapPathEntry[path]; ok {
 		e.getter = getter
+	} else {
+		cc.mapPendingGetter[path] = getter
 	}
 }
 
@@ -548,7 +567,7 @@ func (cc *ConfCenter) Int(defval int64, paths ...string) int64 {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv.(int64)
 				}
 			}
@@ -570,7 +589,7 @@ func (cc *ConfCenter) IntX(paths ...string) (int64, bool) {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv.(int64), true
 				}
 			}
@@ -591,7 +610,7 @@ func (cc *ConfCenter) Inc(inc int64, path string) int64 {
 		e.refGet++
 		vInt := e.vInt
 		if e.getter != nil {
-			if vv, ok := e.getter(e); ok {
+			if vv, ok := e.getter(e.path); ok {
 				vInt = vv.(int64)
 			}
 		}
@@ -613,7 +632,7 @@ func (cc *ConfCenter) Flip(path string) bool {
 		e.refGet++
 		vBool := e.vBool
 		if e.getter != nil {
-			if vv, ok := e.getter(e); ok {
+			if vv, ok := e.getter(e.path); ok {
 				vBool = vv.(bool)
 			}
 		}
@@ -636,7 +655,7 @@ func (cc *ConfCenter) Str(defval string, paths ...string) string {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv.(string)
 				}
 			}
@@ -658,7 +677,7 @@ func (cc *ConfCenter) StrX(paths ...string) (string, bool) {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv.(string), true
 				}
 			}
@@ -680,7 +699,7 @@ func (cc *ConfCenter) Bool(defval bool, paths ...string) bool {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv.(bool)
 				}
 			}
@@ -702,7 +721,7 @@ func (cc *ConfCenter) BoolX(paths ...string) (bool, bool) {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv.(bool), true
 				}
 			}
@@ -724,7 +743,7 @@ func (cc *ConfCenter) Obj(defval any, paths ...string) any {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv
 				}
 			}
@@ -746,7 +765,7 @@ func (cc *ConfCenter) ObjX(paths ...string) (any, bool) {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
 			if e.getter != nil {
-				if vv, ok := e.getter(e); ok {
+				if vv, ok := e.getter(e.path); ok {
 					return vv, true
 				}
 			}
@@ -771,7 +790,7 @@ func (cc *ConfCenter) List(sep string, paths ...string) []string {
 				e.refGet++
 				vStr := e.vStr
 				if e.getter != nil {
-					if vv, ok := e.getter(e); ok {
+					if vv, ok := e.getter(e.path); ok {
 						vStr = vv.(string)
 					}
 				}
@@ -841,6 +860,14 @@ func (cc *ConfCenter) Set(path string, value any, create bool) {
 				path:   realpath,
 			}
 			cc.mapPathEntry[e.path] = e
+			if getter, ok := cc.mapPendingGetter[e.path]; ok {
+				e.getter = getter
+				delete(cc.mapPendingGetter, e.path)
+			}
+			if setter, ok := cc.mapPendingSetter[e.path]; ok {
+				e.setter = setter
+				delete(cc.mapPendingSetter, e.path)
+			}
 		} else {
 			return
 		}
@@ -967,7 +994,7 @@ func init() {
 	Default.Set(PathReady, "", true)
 	Default.Set(MissedEntries, "", true)
 
-	Default.SetGetter(MissedEntries, func(_ *confEntry) (vv any, ok bool) {
+	Default.SetGetter(MissedEntries, func(_ string) (vv any, ok bool) {
 		var sb strings.Builder
 		for p := range Default.mapMissedEntries {
 			sb.WriteString(p)
@@ -984,7 +1011,7 @@ func init() {
 		Default.debug = 0
 	}
 
-	Default.SetSetter(Debug, func(_ *confEntry, v any) (vv any, ok bool) {
+	Default.SetSetter(Debug, func(_ string, v any) (vv any, ok bool) {
 		Default.debug = v.(int)
 		return nil, false
 	})
