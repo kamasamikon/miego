@@ -13,7 +13,7 @@ type RingBuffer[T any] struct {
 // New creates a new RingBuffer with the given capacity (must be > 0).
 func New[T any](capacity int) *RingBuffer[T] {
 	if capacity <= 0 {
-		panic("ringbuffer: capacity must be > 0")
+		capacity = 128
 	}
 	return &RingBuffer[T]{
 		buf:  make([]T, capacity),
