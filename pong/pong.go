@@ -10,8 +10,8 @@ import (
 // JPong : JSON Pong
 type Body struct {
 	Error   int         `json:"Error"`
-	Message string      `json:"Message"`
-	Data    interface{} `json:"Data"`
+	Message string      `json:"Message,omitempty"`
+	Data    interface{} `json:"Data,omitempty"`
 }
 
 const (
