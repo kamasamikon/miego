@@ -573,7 +573,6 @@ func (cc *ConfCenter) Int(defval int64, paths ...string) int64 {
 			}
 			return e.vInt
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return defval
@@ -595,7 +594,6 @@ func (cc *ConfCenter) IntX(paths ...string) (int64, bool) {
 			}
 			return e.vInt, true
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return 0, false
@@ -618,7 +616,6 @@ func (cc *ConfCenter) Inc(inc int64, path string) int64 {
 		cc.setByEntry(e, vNew)
 		return vNew
 	}
-	dp("Miss %s", path)
 	cc.setMissedEntries(path)
 	return -1
 }
@@ -640,7 +637,6 @@ func (cc *ConfCenter) Flip(path string) bool {
 		cc.setByEntry(e, vNew)
 		return vNew
 	}
-	dp("Miss %s", path)
 	cc.setMissedEntries(path)
 	return false
 }
@@ -661,7 +657,6 @@ func (cc *ConfCenter) Str(defval string, paths ...string) string {
 			}
 			return e.vStr
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return defval
@@ -683,7 +678,6 @@ func (cc *ConfCenter) StrX(paths ...string) (string, bool) {
 			}
 			return e.vStr, true
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return "", false
@@ -705,7 +699,6 @@ func (cc *ConfCenter) Bool(defval bool, paths ...string) bool {
 			}
 			return e.vBool
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return defval
@@ -727,7 +720,6 @@ func (cc *ConfCenter) BoolX(paths ...string) (bool, bool) {
 			}
 			return e.vBool, true
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return false, false
@@ -749,7 +741,6 @@ func (cc *ConfCenter) Obj(defval any, paths ...string) any {
 			}
 			return e.vObj
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return defval
@@ -771,7 +762,6 @@ func (cc *ConfCenter) ObjX(paths ...string) (any, bool) {
 			}
 			return e.vObj, true
 		}
-		dp("Miss %s", path)
 		cc.setMissedEntries(path)
 	}
 	return nil, false
@@ -801,7 +791,6 @@ func (cc *ConfCenter) List(sep string, paths ...string) []string {
 				}
 			}
 		} else {
-			dp("Miss %s", path)
 			cc.setMissedEntries(path)
 		}
 	}
