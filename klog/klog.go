@@ -53,11 +53,6 @@ func WriterRem(name string) {
 	delete(Conf.Writers, name)
 }
 
-func WriterGet(name string) io.Writer {
-	w, _ := Conf.Writers[name]
-	return w
-}
-
 ///////////////////////////////////////////////////////////////////////////
 
 // KLogS : KLog as LN (Line) to string

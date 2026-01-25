@@ -119,7 +119,12 @@ func Go() {
 func Dump(safeMode bool, joinBy string) string {
 	return Default.Dump(safeMode, joinBy)
 }
-
+func DumpJson(safeMode bool) map[string]string {
+	return Default.DumpJson(safeMode)
+}
+func DumpOne(name string) (string, bool) {
+	return Default.DumpOne(name)
+}
 func DumpRaw(safeMode bool, group bool, joinBy string) string {
 	return Default.DumpRaw(safeMode, group, joinBy)
 }
