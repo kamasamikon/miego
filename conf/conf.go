@@ -28,6 +28,7 @@ const (
 	PathReady     = "e:/conf/ready"
 	Debug         = "i:/conf/debug"
 	MissedEntries = "s:/conf/missedEntries"
+	CCList        = "s:/conf/ccList"
 )
 
 //go:embed assets/*
@@ -125,34 +126,6 @@ func New(Name string) *ConfCenter {
 	return cc
 }
 
-func Clone(o *ConfCenter, Name string) *ConfCenter {
-	n := New(Name)
-
-	for p, e := range o.mapPathEntry {
-		n.mapPathEntry[p] = &confEntry{
-			kind:   e.kind,
-			path:   e.path,
-			vInt:   e.vInt,
-			vStr:   e.vStr,
-			vBool:  e.vBool,
-			vObj:   e.vObj,
-			setter: e.setter,
-			getter: e.getter,
-			refGet: e.refGet,
-			refSet: e.refSet,
-			hidden: e.hidden,
-		}
-	}
-
-	n.EntryAdd("s:/conf/name", n.Name, true)
-
-	for e := range o.mapMissedEntries {
-		n.mapMissedEntries[e] = 1
-	}
-
-	return n
-}
-
 // ///////////////////////////////////////////////////////////////////////
 // Global
 // ///////////////////////////////////////////////////////////////////////
@@ -247,6 +220,45 @@ func pathParse(path string) (kind byte, hidden bool, realpath string) {
 	}
 
 	return kind, hidden, realpath
+}
+
+// ///////////////////////////////////////////////////////////////////////
+// public members
+// ///////////////////////////////////////////////////////////////////////
+
+func (cc *ConfCenter) Clone(Name string) *ConfCenter {
+	n := New(Name)
+
+	for p, e := range cc.mapPathEntry {
+		n.mapPathEntry[p] = &confEntry{
+			kind:     e.kind,
+			path:     e.path,
+			vInt:     e.vInt,
+			vStr:     e.vStr,
+			vBool:    e.vBool,
+			vObj:     e.vObj,
+			setter:   e.setter,
+			getter:   e.getter,
+			refGet:   e.refGet,
+			refSet:   e.refSet,
+			hidden:   e.hidden,
+			monitors: monitors,
+		}
+	}
+
+	// 覆盖一些特别的配置
+	n.EntryAdd("s:/conf/name", n.Name, true)
+
+	for e := range cc.mapMissedEntries {
+		n.mapMissedEntries[e] = 1
+	}
+
+	var monitors []KConfMonitor
+	for _, m := range e.monitors {
+		monitors = append(monitors, m)
+	}
+
+	return n
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -555,6 +567,54 @@ func (cc *ConfCenter) Has(path string) bool {
 		e.refGet++
 	}
 	return ok
+}
+
+// Get value as string
+func (cc *ConfCenter) Raw(name string) (string, bool) {
+	cc.mutex.Lock()
+	e, ok := cc.mapPathEntry[name]
+	if !ok {
+		cc.mutex.Unlock()
+		return "", false
+	}
+	cc.mutex.Unlock()
+
+	switch e.kind {
+	case 'i':
+		vInt := e.vInt
+		if e.getter != nil {
+			if vv, ok := e.getter(e.path); ok {
+				vInt = vv.(int64)
+			}
+		}
+		return fmt.Sprintf("%v", vInt), true
+
+	case 's':
+		vStr := e.vStr
+		if e.getter != nil {
+			if vv, ok := e.getter(e.path); ok {
+				vStr = vv.(string)
+			}
+		}
+		return fmt.Sprintf("%v", vStr), true
+
+	case 'b':
+		vBool := e.vBool
+		if e.getter != nil {
+			if vv, ok := e.getter(e.path); ok {
+				vBool = vv.(bool)
+			}
+		}
+		return fmt.Sprintf("%v", vBool), true
+
+	case 'o':
+		return fmt.Sprintf("%v", "..."), true
+
+	case 'e':
+		return fmt.Sprintf("%v", "..."), true
+	}
+
+	return "", false
 }
 
 // Int : get a int typed configure
@@ -982,6 +1042,7 @@ func init() {
 	//
 	Default.Set(PathReady, "", true)
 	Default.Set(MissedEntries, "", true)
+	Default.Set(CCList, "", true)
 
 	Default.SetGetter(MissedEntries, func(_ string) (vv any, ok bool) {
 		var sb strings.Builder
@@ -990,6 +1051,9 @@ func init() {
 			sb.WriteRune(';')
 		}
 		return sb.String(), true
+	})
+	Default.SetGetter(CCList, func(_ string) (vv any, ok bool) {
+		return strings.Join(conf.CCList(), ";"), true
 	})
 
 	if os.Getenv("MG_CONF_DEBUG") == "debug" {

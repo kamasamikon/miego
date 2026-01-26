@@ -36,6 +36,10 @@ func Has(path string) bool {
 	return Default.Has(path)
 }
 
+func Raw(name string) (string, bool) {
+	return Default.Raw(name)
+}
+
 func Int(defval int64, paths ...string) int64 {
 	return Default.Int(defval, paths...)
 }
@@ -121,9 +125,6 @@ func Dump(safeMode bool, joinBy string) string {
 }
 func DumpJson(safeMode bool) map[string]string {
 	return Default.DumpJson(safeMode)
-}
-func DumpOne(name string) (string, bool) {
-	return Default.DumpOne(name)
 }
 func DumpRaw(safeMode bool, group bool, joinBy string) string {
 	return Default.DumpRaw(safeMode, group, joinBy)
