@@ -25,10 +25,10 @@ const (
 )
 
 const (
-	PathReady     = "e:/conf/ready"
-	Debug         = "i:/conf/debug"
-	MissedEntries = "s:/conf/missedEntries"
-	CCList        = "s:/conf/ccList"
+	_PathReady     = "e:/conf/ready"
+	_Debug         = "i:/conf/debug"
+	_MissedEntries = "s:/conf/missedEntries"
+	_CCList        = "s:/conf/ccList"
 )
 
 //go:embed assets/*
@@ -230,6 +230,11 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	n := New(Name)
 
 	for p, e := range cc.mapPathEntry {
+		var monitors []KConfMonitor
+		for _, m := range e.monitors {
+			monitors = append(monitors, m)
+		}
+
 		n.mapPathEntry[p] = &confEntry{
 			kind:     e.kind,
 			path:     e.path,
@@ -251,11 +256,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 
 	for e := range cc.mapMissedEntries {
 		n.mapMissedEntries[e] = 1
-	}
-
-	var monitors []KConfMonitor
-	for _, m := range e.monitors {
-		monitors = append(monitors, m)
 	}
 
 	return n
@@ -1015,7 +1015,7 @@ func (cc *ConfCenter) OnReady(cb func()) {
 }
 
 func (cc *ConfCenter) Ready() {
-	cc.Set(PathReady, "", true)
+	cc.Set(_PathReady, "", true)
 }
 
 // Last to call
@@ -1040,11 +1040,11 @@ func init() {
 	//
 	// Some builtin entries
 	//
-	Default.Set(PathReady, "", true)
-	Default.Set(MissedEntries, "", true)
-	Default.Set(CCList, "", true)
+	Default.Set(_PathReady, "", true)
+	Default.Set(_MissedEntries, "", true)
+	Default.Set(_CCList, "", true)
 
-	Default.SetGetter(MissedEntries, func(_ string) (vv any, ok bool) {
+	Default.SetGetter(_MissedEntries, func(_ string) (vv any, ok bool) {
 		var sb strings.Builder
 		for p := range Default.mapMissedEntries {
 			sb.WriteString(p)
@@ -1052,19 +1052,19 @@ func init() {
 		}
 		return sb.String(), true
 	})
-	Default.SetGetter(CCList, func(_ string) (vv any, ok bool) {
-		return strings.Join(conf.CCList(), ";"), true
+	Default.SetGetter(_CCList, func(_ string) (vv any, ok bool) {
+		return strings.Join(CCList(), ";"), true
 	})
 
 	if os.Getenv("MG_CONF_DEBUG") == "debug" {
-		Default.Set(Debug, 1, true)
+		Default.Set(_Debug, 1, true)
 		Default.debug = 1
 	} else {
-		Default.Set(Debug, 0, true)
+		Default.Set(_Debug, 0, true)
 		Default.debug = 0
 	}
 
-	Default.SetSetter(Debug, func(_ string, v any) (vv any, ok bool) {
+	Default.SetSetter(_Debug, func(_ string, v any) (vv any, ok bool) {
 		Default.debug = v.(int)
 		return nil, false
 	})

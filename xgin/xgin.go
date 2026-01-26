@@ -85,7 +85,10 @@ func RoutersToConf(Engine *gin.Engine) {
 	}
 }
 
-func Go(Engine *gin.Engine, addr string) error {
+func Go(
+	Engine *gin.Engine, addr string,
+	cb func(Engine *gin.Engine),
+) error {
 	if conf.Bool(true, "b:/gin/releaseMode") {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -99,6 +102,10 @@ func Go(Engine *gin.Engine, addr string) error {
 		} else {
 			addr = fmt.Sprintf(":%d", port)
 		}
+	}
+
+	if cb != nil {
+		cb(Engine)
 	}
 
 	RoutersToConf(Engine)
