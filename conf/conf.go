@@ -229,6 +229,7 @@ func pathParse(path string) (kind byte, hidden bool, realpath string) {
 func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	n := New(Name)
 
+	cc.mutex.Lock()
 	for p, e := range cc.mapPathEntry {
 		var monitors []KConfMonitor
 		for _, m := range e.monitors {
@@ -250,6 +251,7 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 			monitors: monitors,
 		}
 	}
+	cc.mutex.Unlock()
 
 	// 覆盖一些特别的配置
 	n.EntryAdd("s:/conf/name", n.Name, true)
@@ -268,6 +270,7 @@ func (cc *ConfCenter) setMissedEntries(path string) {
 	cc.mapMissedEntries[path] = 1
 }
 
+// called when locked
 func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 	switch e.kind {
 	case 'i':
@@ -370,9 +373,6 @@ func (cc *ConfCenter) EntryRem(path string) {
 }
 
 func (cc *ConfCenter) EntryAddByLine(line string, overwrite bool) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
 	segs := strings.SplitN(strings.TrimSpace(line), "=", 2)
 	if len(segs) < 2 {
 		return
@@ -387,6 +387,9 @@ func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
 	if realpath == "" {
 		return
 	}
+
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
 
 	e, exists := cc.mapPathEntry[path]
 	if exists && !overwrite {
@@ -457,6 +460,9 @@ func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
 }
 
 func (cc *ConfCenter) SetSetter(path string, setter setter) {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
+
 	if e, ok := cc.mapPathEntry[path]; ok {
 		e.setter = setter
 	} else {
@@ -465,6 +471,9 @@ func (cc *ConfCenter) SetSetter(path string, setter setter) {
 }
 
 func (cc *ConfCenter) SetGetter(path string, getter getter) {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
+
 	if e, ok := cc.mapPathEntry[path]; ok {
 		e.getter = getter
 	} else {
@@ -551,6 +560,9 @@ func (cc *ConfCenter) LoadFromFile(fileName string, overwrite bool) error {
 
 // Ref : refGet, refSet
 func (cc *ConfCenter) Ref(path string) (int64, int64) {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
+
 	if e, ok := cc.mapPathEntry[path]; ok {
 		return e.refGet, e.refSet
 	}
@@ -881,10 +893,6 @@ func (cc *ConfCenter) SafeNames() []string {
 		}
 	}
 	return names
-}
-
-func (cc *ConfCenter) Add(path string, value any) {
-	cc.Set(path, value, true)
 }
 
 // cc.Set : Modify or Add conf entry

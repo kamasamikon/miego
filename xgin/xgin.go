@@ -108,6 +108,7 @@ func Go(
 		cb(Engine)
 	}
 
+	conf.Set("s:/gin/addr", addr, true)
 	RoutersToConf(Engine)
 	gracefulRun(Engine, addr)
 	return nil

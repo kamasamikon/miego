@@ -92,10 +92,6 @@ func SafeNames() []string {
 	return Default.SafeNames()
 }
 
-func Add(path string, value any) {
-	Default.Add(path, value)
-}
-
 func Set(path string, value any, create bool) {
 	Default.Set(path, value, create)
 }
