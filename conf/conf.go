@@ -45,55 +45,32 @@ type getter func(p string) (vv any, ok bool)        // return vv if ok else e.v
 type KConfMonitor func(path string, oVal any, nVal any)
 
 type confEntry struct {
-	path     string // 不需要前缀了
+	// kind: a:arr, b:bool, d:dat(len+dat), e:event, i:int, s:str, p:ptr
+	//
+	// path: i:/aaa/bbb; b:/xxx/zzz
+	//
+	// vXxx: value for each type
+	//
+	// refGet/refSet: count by Read or Write
+	//
+	// hidden: Not show by dump
+	kind byte
+	path string
+
+	vInt  int64
+	vStr  string
+	vBool bool
+	vObj  any
+
 	setter setter
 	getter getter
+
 	refGet int64
 	refSet int64
+
 	hidden bool
+
 	monitors []KConfMonitor
-}
-
-func (o *confEntry) WatchAdd(cb KConfMonitor) {
-}
-func (o *confEntry) WatchRem(cb KConfMonitor) {
-}
-func (o *confEntry) WatchCall(ov, nv any) {
-	for _, cb := range o.monitors {
-		if cb != nil {
-			go cb(o.path, oVal, nVal)
-		}
-	}
-}
-
-// Int
-type confEntryI struct {
-	confEntry
-	value int64
-}
-
-// Bool
-type confEntryB struct {
-	confEntry
-	value int64
-}
-
-// Str
-type confEntryS struct {
-	confEntry
-	value string
-}
-
-// Obj
-type confEntryO struct {
-	confEntry
-	value any
-}
-
-// Event
-type confEntryE struct {
-	confEntry
-	value any
 }
 
 type ConfCenter struct {
@@ -101,12 +78,7 @@ type ConfCenter struct {
 
 	mutex sync.Mutex
 
-	mapPathEntryI map[string]*confEntryI
-	mapPathEntryB map[string]*confEntryB
-	mapPathEntryS map[string]*confEntryS
-	mapPathEntryO map[string]*confEntryO
-	mapPathEntryE map[string]*confEntryE
-
+	mapPathEntry     map[string]*confEntry
 	mapMissedEntries map[string]int
 
 	loadOKCount int
@@ -128,11 +100,7 @@ type ConfCenter struct {
 func New(Name string) *ConfCenter {
 	cc := &ConfCenter{
 		Name:             Name,
-		mapPathEntryI:    make(map[string]*confEntryI),
-		mapPathEntryB:    make(map[string]*confEntryB),
-		mapPathEntryS:    make(map[string]*confEntryS),
-		mapPathEntryO:    make(map[string]*confEntryO),
-		mapPathEntryE:    make(map[string]*confEntryE),
+		mapPathEntry:     make(map[string]*confEntry),
 		loadOKCount:      0,
 		loadNGCount:      0,
 		mapMissedEntries: make(map[string]int),
@@ -384,7 +352,9 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 	case 'e':
 		vNew := value.(string)
 		if e.setter != nil {
-			e.setter(e.path, vNew)
+			if vv, ok := e.setter(e.path, vNew); ok {
+				vNew = vv.(string)
+			}
 		}
 		e.refSet++
 		cc.monitorCall(e, 0, vNew)
@@ -399,19 +369,7 @@ func (cc *ConfCenter) EntryRem(path string) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	kind, hidden, realpath := pathParse(path)
-	switch kind {
-	case 'i':
-		delete(cc.mapPathEntryI, realpath)
-	case 'b':
-		delete(cc.mapPathEntryB, realpath)
-	case 's':
-		delete(cc.mapPathEntryS, realpath)
-	case 'o':
-		delete(cc.mapPathEntryO, realpath)
-	case 'e':
-		delete(cc.mapPathEntryE, realpath)
-	}
+	delete(cc.mapPathEntry, path)
 }
 
 func (cc *ConfCenter) EntryAddByLine(line string, overwrite bool) {
