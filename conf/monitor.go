@@ -4,11 +4,11 @@ package conf
 // Monitor, callback when configure changed
 //
 
-func (cc *ConfCenter) MonitorAdd(path string, cb KConfMonitor) int {
+func (cc *ConfCenter) MonitorAdd(key string, cb Monitor) int {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	if e, ok := cc.mapPathEntry[path]; ok {
+	if e, ok := cc.mapPathEntry[key]; ok {
 		for idx := range e.monitors {
 			if e.monitors[idx] == nil {
 				e.monitors[idx] = cb
@@ -21,11 +21,11 @@ func (cc *ConfCenter) MonitorAdd(path string, cb KConfMonitor) int {
 	return -1
 }
 
-func (cc *ConfCenter) MonitorRem(path string, idx int) {
+func (cc *ConfCenter) MonitorRem(key string, idx int) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	if e, ok := cc.mapPathEntry[path]; ok {
+	if e, ok := cc.mapPathEntry[key]; ok {
 		if idx >= 0 && idx < len(e.monitors) {
 			e.monitors[idx] = nil
 		}

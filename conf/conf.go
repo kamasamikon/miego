@@ -38,22 +38,13 @@ var Assets embed.FS
 // TYPES
 // ///////////////////////////////////////////////////////////////////////
 
-type setter func(p string, v any) (vv any, ok bool) // e.v = vv if ok
-type getter func(p string) (vv any, ok bool)        // return vv if ok else e.v
+type setter func(key string, val any) (vret any, ok bool) // e.val = vret if ok
+type getter func(key string) (vnew any, ok bool)          // return vnew if ok else e.val
 
-// KConfMonitor is a Callback called when wathed entry modified.
-type KConfMonitor func(path string, oVal any, nVal any)
+// Monitor is a Callback called when wathed entry modified.
+type Monitor func(key string, vnow any, vnew any)
 
 type confEntry struct {
-	// kind: a:arr, b:bool, d:dat(len+dat), e:event, i:int, s:str, p:ptr
-	//
-	// path: i:/aaa/bbb; b:/xxx/zzz
-	//
-	// vXxx: value for each type
-	//
-	// refGet/refSet: count by Read or Write
-	//
-	// hidden: Not show by dump
 	kind byte
 	path string
 
@@ -70,7 +61,7 @@ type confEntry struct {
 
 	hidden bool
 
-	monitors []KConfMonitor
+	monitors []Monitor
 }
 
 type ConfCenter struct {
@@ -80,6 +71,11 @@ type ConfCenter struct {
 
 	mapPathEntry     map[string]*confEntry
 	mapMissedEntries map[string]int
+
+	iItems map[string]*iItem
+	sItems map[string]*sItem
+	bItems map[string]*bItem
+	eItems map[string]*eItem
 
 	loadOKCount int
 	loadNGCount int
@@ -99,8 +95,14 @@ type ConfCenter struct {
 // ///////////////////////////////////////////////////////////////////////
 func New(Name string) *ConfCenter {
 	cc := &ConfCenter{
-		Name:             Name,
-		mapPathEntry:     make(map[string]*confEntry),
+		Name:         Name,
+		mapPathEntry: make(map[string]*confEntry),
+
+		iItems: make(map[string]*iItem),
+		sItems: make(map[string]*sItem),
+		bItems: make(map[string]*bItem),
+		eItems: make(map[string]*eItem),
+
 		loadOKCount:      0,
 		loadNGCount:      0,
 		mapMissedEntries: make(map[string]int),
@@ -130,7 +132,7 @@ func New(Name string) *ConfCenter {
 // Global
 // ///////////////////////////////////////////////////////////////////////
 // 默认值，这个必须存在
-var Default *ConfCenter = New("Default")
+var Default *ConfCenter = New("default")
 
 var ccList map[string]*ConfCenter = make(map[string]*ConfCenter)
 
@@ -152,7 +154,7 @@ func SetDefault(name string) {
 		Default = cc
 		return
 	}
-	SetDefault("Default")
+	SetDefault("default")
 }
 
 func GetDefault() *ConfCenter {
@@ -231,7 +233,7 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 
 	cc.mutex.Lock()
 	for p, e := range cc.mapPathEntry {
-		var monitors []KConfMonitor
+		var monitors []Monitor
 		for _, m := range e.monitors {
 			monitors = append(monitors, m)
 		}
@@ -459,28 +461,6 @@ func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
 	cc.setByEntry(e, vNew)
 }
 
-func (cc *ConfCenter) SetSetter(path string, setter setter) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	if e, ok := cc.mapPathEntry[path]; ok {
-		e.setter = setter
-	} else {
-		cc.mapPendingSetter[path] = setter
-	}
-}
-
-func (cc *ConfCenter) SetGetter(path string, getter getter) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	if e, ok := cc.mapPathEntry[path]; ok {
-		e.getter = getter
-	} else {
-		cc.mapPendingGetter[path] = getter
-	}
-}
-
 // Load : configure from a file.
 func (cc *ConfCenter) LoadFromText(text string, overwrite bool) {
 	Lines := strings.Split(strings.Replace(text, "\r", "\n", -1), "\n")
@@ -627,69 +607,6 @@ func (cc *ConfCenter) Raw(name string) (string, bool) {
 	}
 
 	return "", false
-}
-
-// Int : get a int typed configure
-func (cc *ConfCenter) Int(defval int64, paths ...string) int64 {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv.(int64)
-				}
-			}
-			return e.vInt
-		}
-		cc.setMissedEntries(path)
-	}
-	return defval
-}
-
-// Int : get a int typed configure
-func (cc *ConfCenter) IntX(paths ...string) (int64, bool) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv.(int64), true
-				}
-			}
-			return e.vInt, true
-		}
-		cc.setMissedEntries(path)
-	}
-	return 0, false
-}
-
-// Inc : Increase or Decrease on int
-func (cc *ConfCenter) Inc(inc int64, path string) int64 {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	if e, ok := cc.mapPathEntry[path]; ok {
-		e.refGet++
-		vInt := e.vInt
-		if e.getter != nil {
-			if vv, ok := e.getter(e.path); ok {
-				vInt = vv.(int64)
-			}
-		}
-		vNew := vInt + inc
-		cc.setByEntry(e, vNew)
-		return vNew
-	}
-	cc.setMissedEntries(path)
-	return -1
 }
 
 // Flip : flip on bool

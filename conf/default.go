@@ -40,18 +40,6 @@ func Raw(name string) (string, bool) {
 	return Default.Raw(name)
 }
 
-func Int(defval int64, paths ...string) int64 {
-	return Default.Int(defval, paths...)
-}
-
-func IntX(paths ...string) (int64, bool) {
-	return Default.IntX(paths...)
-}
-
-func Inc(inc int64, path string) int64 {
-	return Default.Inc(inc, path)
-}
-
 func Flip(path string) bool {
 	return Default.Flip(path)
 }
@@ -124,12 +112,4 @@ func DumpJson(safeMode bool) map[string]string {
 }
 func DumpRaw(safeMode bool, group bool, joinBy string) string {
 	return Default.DumpRaw(safeMode, group, joinBy)
-}
-
-func MonitorAdd(Path string, Callback KConfMonitor) int {
-	return Default.MonitorAdd(Path, Callback)
-}
-
-func MonitorRem(Path string, idx int) {
-	Default.MonitorRem(Path, idx)
 }
