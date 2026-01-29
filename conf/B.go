@@ -118,3 +118,14 @@ func (cc *ConfCenter) BMonitorRem(key string, cbName string) {
 		}
 	}
 }
+
+// ///////////////////////////////////////////////////////////////////////
+// Others ////////////////////////////////////////////////////////////////
+func (cc *ConfCenter) BFlip(key string) {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
+
+	if item, ok := cc.bItems[key]; ok {
+		cc.bSet(item, !item.value)
+	}
+}

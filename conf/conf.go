@@ -2,7 +2,6 @@ package conf
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,10 +24,8 @@ const (
 )
 
 const (
-	_PathReady     = "e:/conf/ready"
-	_Debug         = "i:/conf/debug"
-	_MissedEntries = "s:/conf/missedEntries"
-	_CCList        = "s:/conf/ccList"
+	_bPathReady = "conf/ready"
+	_bDebug     = "conf/debug"
 )
 
 //go:embed assets/*
@@ -50,9 +47,6 @@ type confEntry struct {
 	vBool bool
 	vObj  any
 
-	refGet int64
-	refSet int64
-
 	hidden bool
 
 	monitors []Monitor
@@ -63,8 +57,7 @@ type ConfCenter struct {
 
 	mutex sync.Mutex
 
-	mapPathEntry     map[string]*confEntry
-	mapMissedEntries map[string]int
+	mapPathEntry map[string]*confEntry
 
 	iItems map[string]*iItem
 	sItems map[string]*sItem
@@ -92,12 +85,11 @@ func New(Name string) *ConfCenter {
 		bItems: make(map[string]*bItem),
 		eItems: make(map[string]*eItem),
 
-		loadOKCount:      0,
-		loadNGCount:      0,
-		mapMissedEntries: make(map[string]int),
-		mutex:            sync.Mutex{},
-		debug:            0,
-		onReadys:         nil,
+		loadOKCount: 0,
+		loadNGCount: 0,
+		mutex:       sync.Mutex{},
+		debug:       0,
+		onReadys:    nil,
 	}
 	cc.EntryAdd("s:/conf/name", Name, true)
 
@@ -176,39 +168,39 @@ func dp(formating string, args ...any) {
 	fmt.Printf("%s", sb.String())
 }
 
-func pathParse(path string) (kind byte, hidden bool, realpath string) {
+func pathParse(path string) (kind byte, hidden bool, key string) {
 	switch path[0] {
 	case 'i', 'I':
 		kind = 'i'
 		hidden = path[0] == 'I'
-		realpath = "i" + path[1:]
+		key = "i" + path[1:]
 
 	case 's', 'S':
 		kind = 's'
 		hidden = path[0] == 'S'
-		realpath = "s" + path[1:]
+		key = "s" + path[1:]
 
 	case 'b', 'B':
 		kind = 'b'
 		hidden = path[0] == 'B'
-		realpath = "b" + path[1:]
+		key = "b" + path[1:]
 
 	case 'o', 'O':
 		kind = 'o'
 		hidden = path[0] == 'O'
-		realpath = "o" + path[1:]
+		key = "o" + path[1:]
 
 	case 'e', 'E':
 		kind = 'e'
 		hidden = path[0] == 'E'
-		realpath = "e" + path[1:]
+		key = "e" + path[1:]
 
 	default:
 		dp("BadType: %s", path)
-		realpath = ""
+		key = ""
 	}
 
-	return kind, hidden, realpath
+	return kind, hidden, key
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -232,8 +224,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 			vStr:     e.vStr,
 			vBool:    e.vBool,
 			vObj:     e.vObj,
-			refGet:   e.refGet,
-			refSet:   e.refSet,
 			hidden:   e.hidden,
 			monitors: monitors,
 		}
@@ -243,444 +233,39 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	// 覆盖一些特别的配置
 	n.EntryAdd("s:/conf/name", n.Name, true)
 
-	for e := range cc.mapMissedEntries {
-		n.mapMissedEntries[e] = 1
-	}
-
 	return n
 }
 
-// ///////////////////////////////////////////////////////////////////////
-// private members
-// ///////////////////////////////////////////////////////////////////////
-func (cc *ConfCenter) setMissedEntries(path string) {
-	cc.mapMissedEntries[path] = 1
-}
-
-// called when locked
-func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
-	switch e.kind {
-	case 'i':
-		vOld := e.vInt
-
-		var vNew int64
-
-		switch v := value.(type) {
-		case int64:
-			vNew = int64(v)
-		case int32:
-			vNew = int64(v)
-		case int:
-			vNew = int64(v)
-		case int16:
-			vNew = int64(v)
-		case int8:
-			vNew = int64(v)
-		case uint64:
-			vNew = int64(v)
-		case uint32:
-			vNew = int64(v)
-		case uint:
-			vNew = int64(v)
-		case uint16:
-			vNew = int64(v)
-		case uint8:
-			vNew = int64(v)
-		}
-
-		e.vInt = vNew
-		e.refSet++
-		cc.monitorCall(e, vOld, vNew)
-
-	case 's':
-		vOld := e.vStr
-
-		vNew := value.(string)
-		e.vStr = vNew
-		e.refSet++
-		cc.monitorCall(e, vOld, vNew)
-
-	case 'b':
-		vOld := e.vBool
-
-		vNew := value.(bool)
-		e.vBool = vNew
-		e.refSet++
-		cc.monitorCall(e, vOld, vNew)
-
-	case 'o':
-		vOld := e.vObj
-
-		vNew := value
-		e.vObj = vNew
-		e.refSet++
-		cc.monitorCall(e, vOld, vNew)
-
-	case 'e':
-		vNew := value.(string)
-		e.refSet++
-		cc.monitorCall(e, 0, vNew)
-	}
-}
-
-// ///////////////////////////////////////////////////////////////////////
-// Public members
-// ///////////////////////////////////////////////////////////////////////
-// Delete an entry
-func (cc *ConfCenter) EntryRem(path string) {
+// Get value as string
+func (cc *ConfCenter) Raw(path string) (string, bool) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	delete(cc.mapPathEntry, path)
-}
-
-func (cc *ConfCenter) EntryAddByLine(line string, overwrite bool) {
-	segs := strings.SplitN(strings.TrimSpace(line), "=", 2)
-	if len(segs) < 2 {
-		return
-	}
-
-	path, value := segs[0], segs[1]
-	cc.EntryAdd(path, value, overwrite)
-}
-
-func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
-	kind, hidden, realpath := pathParse(path)
-	if realpath == "" {
-		return
-	}
-
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	e, exists := cc.mapPathEntry[path]
-	if exists && !overwrite {
-		return
-	}
-
-	var vNew any
+	kind, _, key := pathParse(path)
 
 	switch kind {
 	case 'i':
-		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
-			vNew = vInt
-		} else {
-			dp("BadValue.i: %s", value)
-			return
+		if item, ok := cc.iItems[key]; ok {
+			return fmt.Sprintf("%v", item.value), true
 		}
 
 	case 's':
-		vNew = value
+		if item, ok := cc.sItems[key]; ok {
+			return fmt.Sprintf("%v", item.value), true
+		}
 
 	case 'b':
-		// true: 1, t, T
-		// false: 0, f, F
-		x := value[0]
-		if x == '1' || x == 't' || x == 'T' || x == 'y' || x == 'Y' {
-			vNew = true
-		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
-			vNew = false
-		} else {
-			dp("BadValue.b: %s", value)
-			return
+		if item, ok := cc.bItems[key]; ok {
+			return fmt.Sprintf("%v", item.value), true
 		}
-
-	case 'o':
-		// line is json string
-		o := make(map[string]any)
-		if err := json.Unmarshal([]byte(value), &o); err != nil {
-			dp("BadValue.o: %s", value)
-			return
-		}
-		vNew = o
 
 	case 'e':
-		// event, no data at all, value treated as a parameter
-		vNew = value
-
-	default:
-		return
-	}
-
-	if !exists {
-		e = &confEntry{
-			kind:   kind,
-			hidden: hidden,
-			path:   realpath,
+		if _, ok := cc.eItems[key]; ok {
+			return fmt.Sprintf("%v", "..."), true
 		}
-		cc.mapPathEntry[e.path] = e
-	}
-	cc.setByEntry(e, vNew)
-}
-
-// Load : configure from a file.
-func (cc *ConfCenter) LoadFromText(text string, overwrite bool) {
-	Lines := strings.Split(strings.Replace(text, "\r", "\n", -1), "\n")
-	size := len(Lines)
-	i := 0
-	for {
-		if i >= size {
-			break
-		}
-
-		Line := Lines[i]
-		i++
-
-		neat := strings.TrimSpace(Line)
-		if neat == "" || neat[0] == '#' {
-			continue
-		}
-		segs := strings.SplitN(neat, "=", 2)
-		if len(segs) < 2 {
-			continue
-		}
-		path, value := segs[0], segs[1]
-		if len(path) < 4 || path[1] != ':' {
-			continue
-		}
-
-		if strings.HasPrefix(value, "<<") {
-			multiLineTag := value[2:]
-
-			var sb strings.Builder
-			for {
-				if i >= size {
-					break
-				}
-
-				Line = Lines[i]
-				i++
-
-				if Line == multiLineTag {
-					break
-				}
-
-				sb.WriteString(Line)
-				sb.WriteRune('\n')
-			}
-
-			cc.EntryAdd(path, sb.String(), overwrite)
-		} else {
-			cc.EntryAdd(path, value, overwrite)
-		}
-	}
-}
-
-// Load : configure from a file.
-func (cc *ConfCenter) LoadFromFile(fileName string, overwrite bool) error {
-	const (
-		NGName = "s:/conf/Load/NG/%d/Name=%s"
-		NGWhy  = "s:/conf/Load/NG/%d/Why=%s"
-		OKName = "s:/conf/Load/OK/%d=%s"
-	)
-
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		cc.EntryAddByLine(fmt.Sprintf(NGName, cc.loadNGCount, fileName), false)
-		cc.EntryAddByLine(fmt.Sprintf(NGWhy, cc.loadNGCount, err.Error()), false)
-		cc.loadNGCount++
-		dp("Error:'%s', fileName:'%s'", err.Error(), fileName)
-		return err
-	}
-
-	cc.EntryAddByLine(fmt.Sprintf(OKName, cc.loadOKCount, fileName), false)
-	cc.loadOKCount++
-
-	cc.LoadFromText(string(data), overwrite)
-	return nil
-}
-
-// Ref : refGet, refSet
-func (cc *ConfCenter) Ref(path string) (int64, int64) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	if e, ok := cc.mapPathEntry[path]; ok {
-		return e.refGet, e.refSet
-	}
-	return -1, -1
-}
-
-// Has : Check if a entry exists
-func (cc *ConfCenter) Has(path string) bool {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	e, ok := cc.mapPathEntry[path]
-	if ok {
-		e.refGet++
-	}
-	return ok
-}
-
-// Get value as string
-func (cc *ConfCenter) Raw(name string) (string, bool) {
-	cc.mutex.Lock()
-	e, ok := cc.mapPathEntry[name]
-	if !ok {
-		cc.mutex.Unlock()
-		return "", false
-	}
-	cc.mutex.Unlock()
-
-	switch e.kind {
-	case 'i':
-		vInt := e.vInt
-		return fmt.Sprintf("%v", vInt), true
-
-	case 's':
-		vStr := e.vStr
-		return fmt.Sprintf("%v", vStr), true
-
-	case 'b':
-		vBool := e.vBool
-		return fmt.Sprintf("%v", vBool), true
-
-	case 'o':
-		return fmt.Sprintf("%v", "..."), true
-
-	case 'e':
-		return fmt.Sprintf("%v", "..."), true
 	}
 
 	return "", false
-}
-
-// Flip : flip on bool
-func (cc *ConfCenter) Flip(path string) bool {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	if e, ok := cc.mapPathEntry[path]; ok {
-		e.refGet++
-		vBool := e.vBool
-		vNew := !vBool
-		cc.setByEntry(e, vNew)
-		return vNew
-	}
-	cc.setMissedEntries(path)
-	return false
-}
-
-// Str : get a str typed configure
-func (cc *ConfCenter) Str(defval string, paths ...string) string {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			return e.vStr
-		}
-		cc.setMissedEntries(path)
-	}
-	return defval
-}
-
-// Str : get a str typed configure
-func (cc *ConfCenter) StrX(paths ...string) (string, bool) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			return e.vStr, true
-		}
-		cc.setMissedEntries(path)
-	}
-	return "", false
-}
-
-// Bool : get a bool entry
-func (cc *ConfCenter) Bool(defval bool, paths ...string) bool {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			return e.vBool
-		}
-		cc.setMissedEntries(path)
-	}
-	return defval
-}
-
-// Bool : get a bool entry
-func (cc *ConfCenter) BoolX(paths ...string) (bool, bool) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			return e.vBool, true
-		}
-		cc.setMissedEntries(path)
-	}
-	return false, false
-}
-
-// Object : get a bool entry
-func (cc *ConfCenter) Obj(defval any, paths ...string) any {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			return e.vObj
-		}
-		cc.setMissedEntries(path)
-	}
-	return defval
-}
-
-// Object : get a bool entry
-func (cc *ConfCenter) ObjX(paths ...string) (any, bool) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			e.refGet++
-			return e.vObj, true
-		}
-		cc.setMissedEntries(path)
-	}
-	return nil, false
-}
-
-// List : get a List entry. s:/names=:aaa:bbb first char is the seperator
-func (cc *ConfCenter) List(sep string, paths ...string) []string {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	// path: aaa/bbb
-	var slice []string
-	for _, path := range paths {
-		if e, ok := cc.mapPathEntry[path]; ok {
-			if len(e.vStr) > 0 {
-				e.refGet++
-				vStr := e.vStr
-				for _, s := range strings.Split(vStr, sep) {
-					if s != "" {
-						slice = append(slice, s)
-					}
-				}
-			}
-		} else {
-			cc.setMissedEntries(path)
-		}
-	}
-	return slice
 }
 
 // Names : All Keys
@@ -689,137 +274,21 @@ func (cc *ConfCenter) Names() []string {
 	defer cc.mutex.Unlock()
 
 	var names []string
-	for k := range cc.mapPathEntry {
-		names = append(names, k)
+
+	for k := range cc.iItems {
+		names = append(names, "i:/"+k)
 	}
+	for k := range cc.sItems {
+		names = append(names, "s:/"+k)
+	}
+	for k := range cc.bItems {
+		names = append(names, "b:/"+k)
+	}
+	for k := range cc.eItems {
+		names = append(names, "e:/"+k)
+	}
+
 	return names
-}
-
-// SafeNames : Keys not hidden
-func (cc *ConfCenter) SafeNames() []string {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	var names []string
-	for k, e := range cc.mapPathEntry {
-		if !e.hidden {
-			names = append(names, k)
-		}
-	}
-	return names
-}
-
-// cc.Set : Modify or Add conf entry
-func (cc *ConfCenter) Set(path string, value any, create bool) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	var e *confEntry
-	var ok bool
-
-	kind, hidden, realpath := pathParse(path)
-	if realpath == "" {
-		return
-	}
-
-	e, ok = cc.mapPathEntry[realpath]
-	if !ok {
-		if create {
-			e = &confEntry{
-				kind:   kind,
-				hidden: hidden,
-				path:   realpath,
-			}
-			cc.mapPathEntry[e.path] = e
-		} else {
-			return
-		}
-	}
-
-	cc.setByEntry(e, value)
-}
-
-func (cc *ConfCenter) LoadFromEnv() {
-	{
-		cfgList := os.Getenv("KCFG_FILES")
-		files := strings.Split(cfgList, ":")
-		for _, f := range files {
-			if f != "" {
-				cc.LoadFromFile(f, true)
-			}
-		}
-	}
-
-	{
-		cfgList := os.Getenv("KCFG_QQQ_FILES")
-		files := strings.Split(cfgList, ":")
-		for _, f := range files {
-			if f != "" {
-				cc.LoadFromFile(f, true)
-				os.Remove(f)
-			}
-		}
-	}
-}
-
-func (cc *ConfCenter) LoadFromArg() {
-	argc := len(os.Args)
-
-	// --kfg abc.cfg --kfg=xyz.cfg
-	{
-		for i, argv := range os.Args {
-			if argv == "--kfg" {
-				i++
-				if i < argc {
-					cc.LoadFromFile(os.Args[i], true)
-				}
-				continue
-			}
-			if strings.HasPrefix(argv, "--kfg=") {
-				f := argv[6:]
-				if f != "" {
-					cc.LoadFromFile(f, true)
-				}
-				continue
-			}
-		}
-	}
-
-	// --kfg-qqq abc.cfg --kfg-qqq=xyz.cfg
-	{
-		for i, argv := range os.Args {
-			if argv == "--kfg-qqq" {
-				i++
-				if i < argc {
-					cc.LoadFromFile(os.Args[i], true)
-					os.Remove(os.Args[i])
-				}
-				continue
-			}
-			if strings.HasPrefix(argv, "--kfg-qqq=") {
-				f := argv[6:]
-				if f != "" {
-					cc.LoadFromFile(f, true)
-					os.Remove(f)
-				}
-			}
-		}
-	}
-
-	// --kfg-item i:/abc=777 --kfg-item=s:/xyz=abc
-	for i, argv := range os.Args {
-		if argv == "--kfg-item" {
-			i++
-			if i < argc {
-				cc.EntryAddByLine(os.Args[i], true)
-			}
-			continue
-		}
-		if strings.HasPrefix(argv, "--kfg-item=") {
-			item := argv[11:]
-			cc.EntryAddByLine(item, true)
-		}
-	}
 }
 
 func (cc *ConfCenter) OnReady(cb func()) {
@@ -829,7 +298,7 @@ func (cc *ConfCenter) OnReady(cb func()) {
 }
 
 func (cc *ConfCenter) Ready() {
-	cc.Set(_PathReady, "", true)
+	cc.BSet(_bPathReady, true)
 }
 
 // Last to call
@@ -854,15 +323,13 @@ func init() {
 	//
 	// Some builtin entries
 	//
-	Default.Set(_PathReady, "", true)
-	Default.Set(_MissedEntries, "", true)
-	Default.Set(_CCList, "", true)
+	Default.BSetf(_bPathReady, false)
 
 	if os.Getenv("MG_CONF_DEBUG") == "debug" {
-		Default.Set(_Debug, 1, true)
+		Default.BSetf(_bDebug, true)
 		Default.debug = 1
 	} else {
-		Default.Set(_Debug, 0, true)
+		Default.BSetf(_bDebug, false)
 		Default.debug = 0
 	}
 

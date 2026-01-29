@@ -1,8 +1,6 @@
 package conf
 
 import (
-	"strings"
-
 	"github.com/google/uuid"
 )
 
@@ -126,20 +124,3 @@ func (cc *ConfCenter) SMonitorRem(key string, cbName string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Others ////////////////////////////////////////////////////////////////
-func (cc *ConfCenter) SList(sep string, key string) []string {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	var arr []string
-	if e, ok := cc.sItems[key]; ok {
-		if len(e.value) > 0 {
-			value := e.value
-			for _, s := range strings.Split(value, sep) {
-				if s != "" {
-					arr = append(arr, s)
-				}
-			}
-		}
-	}
-	return arr
-}
