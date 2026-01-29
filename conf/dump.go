@@ -40,29 +40,14 @@ func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
 		switch e.kind {
 		case 'i':
 			vInt := e.vInt
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vInt = vv.(int64)
-				}
-			}
 			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vInt))
 
 		case 's':
 			vStr := e.vStr
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vStr = vv.(string)
-				}
-			}
 			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vStr))
 
 		case 'b':
 			vBool := e.vBool
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vBool = vv.(bool)
-				}
-			}
 			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vBool))
 
 		case 'o':
@@ -103,29 +88,14 @@ func (cc *ConfCenter) DumpJson(safeMode bool) map[string]string {
 		switch e.kind {
 		case 'i':
 			vInt := e.vInt
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vInt = vv.(int64)
-				}
-			}
 			j[e.path] = fmt.Sprintf("%v", vInt)
 
 		case 's':
 			vStr := e.vStr
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vStr = vv.(string)
-				}
-			}
 			j[e.path] = vStr
 
 		case 'b':
 			vBool := e.vBool
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vBool = vv.(bool)
-				}
-			}
 			j[e.path] = fmt.Sprintf("%v", vBool)
 
 		case 'o':
@@ -177,31 +147,16 @@ func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
 		switch e.kind {
 		case 'i':
 			vInt := e.vInt
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vInt = vv.(int64)
-				}
-			}
 			lastLine = fmt.Sprintf("%s=%d", e.path, vInt)
 			lines = append(lines, lastLine)
 
 		case 's':
 			vStr := e.vStr
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vStr = vv.(string)
-				}
-			}
 			lastLine = fmt.Sprintf("%s=%s", e.path, vStr)
 			lines = append(lines, lastLine)
 
 		case 'b':
 			vBool := e.vBool
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					vBool = vv.(bool)
-				}
-			}
 			lastLine = fmt.Sprintf("%s=%t", e.path, vBool)
 			lines = append(lines, lastLine)
 

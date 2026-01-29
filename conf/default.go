@@ -12,14 +12,6 @@ func EntryAdd(path string, value string, overwrite bool) {
 	Default.EntryAdd(path, value, overwrite)
 }
 
-func SetSetter(path string, setter setter) {
-	Default.SetSetter(path, setter)
-}
-
-func SetGetter(path string, getter getter) {
-	Default.SetGetter(path, getter)
-}
-
 func LoadFromText(text string, overwrite bool) {
 	Default.LoadFromText(text, overwrite)
 }

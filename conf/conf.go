@@ -38,9 +38,6 @@ var Assets embed.FS
 // TYPES
 // ///////////////////////////////////////////////////////////////////////
 
-type setter func(key string, val any) (vret any, ok bool) // e.val = vret if ok
-type getter func(key string) (vnew any, ok bool)          // return vnew if ok else e.val
-
 // Monitor is a Callback called when wathed entry modified.
 type Monitor func(key string, vnow any, vnew any)
 
@@ -52,9 +49,6 @@ type confEntry struct {
 	vStr  string
 	vBool bool
 	vObj  any
-
-	setter setter
-	getter getter
 
 	refGet int64
 	refSet int64
@@ -83,11 +77,6 @@ type ConfCenter struct {
 
 	// OnReady : Called when all configure loaded.
 	onReadys []func()
-
-	// 防止扑空
-	// path <> 1
-	mapPendingSetter map[string]setter
-	mapPendingGetter map[string]getter
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -109,8 +98,6 @@ func New(Name string) *ConfCenter {
 		mutex:            sync.Mutex{},
 		debug:            0,
 		onReadys:         nil,
-		mapPendingSetter: make(map[string]setter),
-		mapPendingGetter: make(map[string]getter),
 	}
 	cc.EntryAdd("s:/conf/name", Name, true)
 
@@ -245,8 +232,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 			vStr:     e.vStr,
 			vBool:    e.vBool,
 			vObj:     e.vObj,
-			setter:   e.setter,
-			getter:   e.getter,
 			refGet:   e.refGet,
 			refSet:   e.refSet,
 			hidden:   e.hidden,
@@ -303,11 +288,6 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 			vNew = int64(v)
 		}
 
-		if e.setter != nil {
-			if vv, ok := e.setter(e.path, vNew); ok {
-				vNew = vv.(int64)
-			}
-		}
 		e.vInt = vNew
 		e.refSet++
 		cc.monitorCall(e, vOld, vNew)
@@ -316,11 +296,6 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 		vOld := e.vStr
 
 		vNew := value.(string)
-		if e.setter != nil {
-			if vv, ok := e.setter(e.path, vNew); ok {
-				vNew = vv.(string)
-			}
-		}
 		e.vStr = vNew
 		e.refSet++
 		cc.monitorCall(e, vOld, vNew)
@@ -329,11 +304,6 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 		vOld := e.vBool
 
 		vNew := value.(bool)
-		if e.setter != nil {
-			if vv, ok := e.setter(e.path, vNew); ok {
-				vNew = vv.(bool)
-			}
-		}
 		e.vBool = vNew
 		e.refSet++
 		cc.monitorCall(e, vOld, vNew)
@@ -342,22 +312,12 @@ func (cc *ConfCenter) setByEntry(e *confEntry, value any) {
 		vOld := e.vObj
 
 		vNew := value
-		if e.setter != nil {
-			if vv, ok := e.setter(e.path, vNew); ok {
-				vNew = vv
-			}
-		}
 		e.vObj = vNew
 		e.refSet++
 		cc.monitorCall(e, vOld, vNew)
 
 	case 'e':
 		vNew := value.(string)
-		if e.setter != nil {
-			if vv, ok := e.setter(e.path, vNew); ok {
-				vNew = vv.(string)
-			}
-		}
 		e.refSet++
 		cc.monitorCall(e, 0, vNew)
 	}
@@ -449,14 +409,6 @@ func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
 			path:   realpath,
 		}
 		cc.mapPathEntry[e.path] = e
-		if getter, ok := cc.mapPendingGetter[e.path]; ok {
-			e.getter = getter
-			delete(cc.mapPendingGetter, e.path)
-		}
-		if setter, ok := cc.mapPendingSetter[e.path]; ok {
-			e.setter = setter
-			delete(cc.mapPendingSetter, e.path)
-		}
 	}
 	cc.setByEntry(e, vNew)
 }
@@ -574,29 +526,14 @@ func (cc *ConfCenter) Raw(name string) (string, bool) {
 	switch e.kind {
 	case 'i':
 		vInt := e.vInt
-		if e.getter != nil {
-			if vv, ok := e.getter(e.path); ok {
-				vInt = vv.(int64)
-			}
-		}
 		return fmt.Sprintf("%v", vInt), true
 
 	case 's':
 		vStr := e.vStr
-		if e.getter != nil {
-			if vv, ok := e.getter(e.path); ok {
-				vStr = vv.(string)
-			}
-		}
 		return fmt.Sprintf("%v", vStr), true
 
 	case 'b':
 		vBool := e.vBool
-		if e.getter != nil {
-			if vv, ok := e.getter(e.path); ok {
-				vBool = vv.(bool)
-			}
-		}
 		return fmt.Sprintf("%v", vBool), true
 
 	case 'o':
@@ -617,11 +554,6 @@ func (cc *ConfCenter) Flip(path string) bool {
 	if e, ok := cc.mapPathEntry[path]; ok {
 		e.refGet++
 		vBool := e.vBool
-		if e.getter != nil {
-			if vv, ok := e.getter(e.path); ok {
-				vBool = vv.(bool)
-			}
-		}
 		vNew := !vBool
 		cc.setByEntry(e, vNew)
 		return vNew
@@ -639,11 +571,6 @@ func (cc *ConfCenter) Str(defval string, paths ...string) string {
 	for _, path := range paths {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv.(string)
-				}
-			}
 			return e.vStr
 		}
 		cc.setMissedEntries(path)
@@ -660,11 +587,6 @@ func (cc *ConfCenter) StrX(paths ...string) (string, bool) {
 	for _, path := range paths {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv.(string), true
-				}
-			}
 			return e.vStr, true
 		}
 		cc.setMissedEntries(path)
@@ -681,11 +603,6 @@ func (cc *ConfCenter) Bool(defval bool, paths ...string) bool {
 	for _, path := range paths {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv.(bool)
-				}
-			}
 			return e.vBool
 		}
 		cc.setMissedEntries(path)
@@ -702,11 +619,6 @@ func (cc *ConfCenter) BoolX(paths ...string) (bool, bool) {
 	for _, path := range paths {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv.(bool), true
-				}
-			}
 			return e.vBool, true
 		}
 		cc.setMissedEntries(path)
@@ -723,11 +635,6 @@ func (cc *ConfCenter) Obj(defval any, paths ...string) any {
 	for _, path := range paths {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv
-				}
-			}
 			return e.vObj
 		}
 		cc.setMissedEntries(path)
@@ -744,11 +651,6 @@ func (cc *ConfCenter) ObjX(paths ...string) (any, bool) {
 	for _, path := range paths {
 		if e, ok := cc.mapPathEntry[path]; ok {
 			e.refGet++
-			if e.getter != nil {
-				if vv, ok := e.getter(e.path); ok {
-					return vv, true
-				}
-			}
 			return e.vObj, true
 		}
 		cc.setMissedEntries(path)
@@ -768,11 +670,6 @@ func (cc *ConfCenter) List(sep string, paths ...string) []string {
 			if len(e.vStr) > 0 {
 				e.refGet++
 				vStr := e.vStr
-				if e.getter != nil {
-					if vv, ok := e.getter(e.path); ok {
-						vStr = vv.(string)
-					}
-				}
 				for _, s := range strings.Split(vStr, sep) {
 					if s != "" {
 						slice = append(slice, s)
@@ -834,14 +731,6 @@ func (cc *ConfCenter) Set(path string, value any, create bool) {
 				path:   realpath,
 			}
 			cc.mapPathEntry[e.path] = e
-			if getter, ok := cc.mapPendingGetter[e.path]; ok {
-				e.getter = getter
-				delete(cc.mapPendingGetter, e.path)
-			}
-			if setter, ok := cc.mapPendingSetter[e.path]; ok {
-				e.setter = setter
-				delete(cc.mapPendingSetter, e.path)
-			}
 		} else {
 			return
 		}
@@ -969,18 +858,6 @@ func init() {
 	Default.Set(_MissedEntries, "", true)
 	Default.Set(_CCList, "", true)
 
-	Default.SetGetter(_MissedEntries, func(_ string) (vv any, ok bool) {
-		var sb strings.Builder
-		for p := range Default.mapMissedEntries {
-			sb.WriteString(p)
-			sb.WriteRune(';')
-		}
-		return sb.String(), true
-	})
-	Default.SetGetter(_CCList, func(_ string) (vv any, ok bool) {
-		return strings.Join(CCList(), ";"), true
-	})
-
 	if os.Getenv("MG_CONF_DEBUG") == "debug" {
 		Default.Set(_Debug, 1, true)
 		Default.debug = 1
@@ -988,11 +865,6 @@ func init() {
 		Default.Set(_Debug, 0, true)
 		Default.debug = 0
 	}
-
-	Default.SetSetter(_Debug, func(_ string, v any) (vv any, ok bool) {
-		Default.debug = v.(int)
-		return nil, false
-	})
 
 	// 优先级: 命令行 > 环境变量
 	Default.LoadFromEnv()
