@@ -74,7 +74,7 @@ func (cc *ConfCenter) DumpMap() map[string]string {
 		dict["i:/"+item.key] = fmt.Sprintf("%v", item.value)
 	}
 	for _, item := range cc.sItems {
-		dict["s:/"+item.key] = item.value
+		dict["s:/"+item.key] = strings.TrimSpace(item.value)
 	}
 	for _, item := range cc.bItems {
 		dict["b:/"+item.key] = fmt.Sprintf("%v", item.value)
