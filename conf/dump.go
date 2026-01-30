@@ -40,17 +40,17 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 		"31", keyMaxLength+3, "34",
 	)
 
-	for _, e := range cc.iItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+e.key, e.value))
+	for _, item := range cc.iItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+item.key, item.value))
 	}
-	for _, e := range cc.sItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+e.key, e.value))
+	for _, item := range cc.sItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+item.key, item.value))
 	}
-	for _, e := range cc.bItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+e.key, e.value))
+	for _, item := range cc.bItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+item.key, item.value))
 	}
-	for _, e := range cc.eItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+e.key, "..."))
+	for _, item := range cc.eItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+item.key, "..."))
 	}
 
 	sort.Slice(lines, func(i int, j int) bool {
@@ -70,17 +70,17 @@ func (cc *ConfCenter) DumpMap() map[string]string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	for _, e := range cc.iItems {
-		dict["i:/"+e.key] = fmt.Sprintf("%v", e.value)
+	for _, item := range cc.iItems {
+		dict["i:/"+item.key] = fmt.Sprintf("%v", item.value)
 	}
-	for _, e := range cc.sItems {
-		dict["s:/"+e.key] = e.value
+	for _, item := range cc.sItems {
+		dict["s:/"+item.key] = item.value
 	}
-	for _, e := range cc.bItems {
-		dict["b:/"+e.key] = fmt.Sprintf("%v", e.value)
+	for _, item := range cc.bItems {
+		dict["b:/"+item.key] = fmt.Sprintf("%v", item.value)
 	}
-	for _, e := range cc.eItems {
-		dict["e:/"+e.key] = "..."
+	for _, item := range cc.eItems {
+		dict["e:/"+item.key] = "..."
 	}
 
 	return dict
@@ -88,33 +88,31 @@ func (cc *ConfCenter) DumpMap() map[string]string {
 
 // DumpRaw : Dump without Get/Get refs
 func (cc *ConfCenter) DumpRaw(joinBy string) string {
-	var lines []string
+	dict := cc.DumpMap()
 
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	fmtstr := "%s=%v"
-
-	for _, e := range cc.iItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+e.key, e.value))
+	var keys []string
+	for key := range dict {
+		keys = append(keys, key)
 	}
-	for _, e := range cc.sItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+e.key, e.value))
-	}
-	for _, e := range cc.bItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+e.key, e.value))
-	}
-	for _, e := range cc.eItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+e.key, "..."))
-	}
-
-	sort.Slice(lines, func(i int, j int) bool {
-		return strings.Compare(lines[i][1:], lines[j][1:]) < 0
+	sort.Slice(keys, func(i int, j int) bool {
+		return strings.Compare(keys[i][1:], keys[j][1:]) < 0
 	})
+
+	var lines []string
+	for _, key := range keys {
+		val := dict[key]
+
+		if strings.IndexByte(val, '\n') >= 0 {
+			lines = append(lines, fmt.Sprintf("s:/%s=<<EOF", key))
+			lines = append(lines, fmt.Sprintf("%s", val))
+			lines = append(lines, fmt.Sprintf("%s", "EOF"))
+		} else {
+			lines = append(lines, fmt.Sprintf("s:/%s=%s", key, val))
+		}
+	}
 
 	// Add the last \n
 	lines = append(lines, "")
 
 	return strings.Join(lines, joinBy)
-
 }
