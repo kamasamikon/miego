@@ -140,8 +140,8 @@ func Dump(joinBy string) string {
 func DumpMap() map[string]string {
 	return Default.DumpMap()
 }
-func DumpRaw(group bool, joinBy string) string {
-	return Default.DumpRaw(group, joinBy)
+func DumpRaw(joinBy string) string {
+	return Default.DumpRaw(joinBy)
 }
 
 // ///////////////////////////////////////////////////////////////////////
