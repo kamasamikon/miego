@@ -7,56 +7,60 @@ import (
 )
 
 // Dump : Print all entries
-func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
+func (cc *ConfCenter) Dump(joinBy string) string {
 	keyMaxLength := 0
-	var cList []*confEntry
 
 	cc.mutex.Lock()
-	for p, e := range cc.mapPathEntry {
-		cList = append(cList, e)
+	defer cc.mutex.Unlock()
+
+	for p := range cc.iItems {
 		if len(p) > keyMaxLength {
 			keyMaxLength = len(p)
 		}
 	}
-	cc.mutex.Unlock()
+	for p := range cc.sItems {
+		if len(p) > keyMaxLength {
+			keyMaxLength = len(p)
+		}
+	}
+	for p := range cc.bItems {
+		if len(p) > keyMaxLength {
+			keyMaxLength = len(p)
+		}
+	}
+	for p := range cc.eItems {
+		if len(p) > keyMaxLength {
+			keyMaxLength = len(p)
+		}
+	}
 
-	sort.Slice(cList, func(i int, j int) bool {
-		return strings.Compare(cList[i].path[1:], cList[j].path[1:]) < 0
-	})
-
+	// FIXME: keyMaxLength应该+3
 	fmtstr := fmt.Sprintf(
-		"%s%%-%ds%s :(%%04d:%%04d): %s%%v%s",
+		"%s%%-%ds%s %s%%v%s",
 		ColorTypeD,
 		keyMaxLength,
 		ColorTypeReset,
 		ColorTypeW, ColorTypeReset,
 	)
+
 	var lines []string
-	for _, e := range cList {
-		if e.hidden && safeMode {
-			continue
-		}
 
-		switch e.kind {
-		case 'i':
-			vInt := e.vInt
-			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vInt))
-
-		case 's':
-			vStr := e.vStr
-			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vStr))
-
-		case 'b':
-			vBool := e.vBool
-			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, vBool))
-
-		case 'o':
-			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, "..."))
-
-		case 'e':
-			lines = append(lines, fmt.Sprintf(fmtstr, e.path, e.refGet, e.refSet, "..."))
-		}
+	for _, e := range cc.iItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+e.key, e.value))
 	}
+	for _, e := range cc.sItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+e.key, e.value))
+	}
+	for _, e := range cc.bItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+e.key, e.value))
+	}
+	for _, e := range cc.eItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+e.key, "..."))
+	}
+
+	sort.Slice(lines, func(i int, j int) bool {
+		return strings.Compare(lines[i][1:], lines[j][1:]) < 0
+	})
 
 	// Add the last \n
 	lines = append(lines, "")
@@ -65,7 +69,7 @@ func (cc *ConfCenter) Dump(safeMode bool, joinBy string) string {
 }
 
 // Dump : Print all entries
-func (cc *ConfCenter) DumpJson(safeMode bool) map[string]string {
+func (cc *ConfCenter) DumpMap() map[string]string {
 	keyMaxLength := 0
 	var cList []*confEntry
 
@@ -81,10 +85,6 @@ func (cc *ConfCenter) DumpJson(safeMode bool) map[string]string {
 	var j map[string]string = make(map[string]string)
 
 	for _, e := range cList {
-		if e.hidden && safeMode {
-			continue
-		}
-
 		switch e.kind {
 		case 'i':
 			vInt := e.vInt
@@ -110,7 +110,7 @@ func (cc *ConfCenter) DumpJson(safeMode bool) map[string]string {
 }
 
 // DumpRaw : Dump without Get/Get refs
-func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
+func (cc *ConfCenter) DumpRaw(group bool, joinBy string) string {
 	var cList []*confEntry
 
 	cc.mutex.Lock()
@@ -129,10 +129,6 @@ func (cc *ConfCenter) DumpRaw(safeMode bool, group bool, joinBy string) string {
 	var lines []string
 	var lastLine string
 	for _, e := range cList {
-		if e.hidden && safeMode {
-			continue
-		}
-
 		if group {
 			segs := strings.SplitN(e.path, "/", 3)
 			if segs[1] != groupName {

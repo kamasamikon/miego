@@ -168,39 +168,35 @@ func dp(formating string, args ...any) {
 	fmt.Printf("%s", sb.String())
 }
 
-func pathParse(path string) (kind byte, hidden bool, key string) {
+// XXX: path = kind + key
+func pathParse(path string) (kind byte, key string) {
 	switch path[0] {
 	case 'i', 'I':
 		kind = 'i'
-		hidden = path[0] == 'I'
-		key = "i" + path[1:]
+		key = path[3:]
 
 	case 's', 'S':
 		kind = 's'
-		hidden = path[0] == 'S'
-		key = "s" + path[1:]
+		key = path[3:]
 
 	case 'b', 'B':
 		kind = 'b'
-		hidden = path[0] == 'B'
-		key = "b" + path[1:]
+		key = path[3:]
 
 	case 'o', 'O':
 		kind = 'o'
-		hidden = path[0] == 'O'
-		key = "o" + path[1:]
+		key = path[3:]
 
 	case 'e', 'E':
 		kind = 'e'
-		hidden = path[0] == 'E'
-		key = "e" + path[1:]
+		key = path[3:]
 
 	default:
 		dp("BadType: %s", path)
 		key = ""
 	}
 
-	return kind, hidden, key
+	return kind, key
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -241,7 +237,7 @@ func (cc *ConfCenter) Raw(path string) (string, bool) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	kind, _, key := pathParse(path)
+	kind, key := pathParse(path)
 
 	switch kind {
 	case 'i':
@@ -307,7 +303,7 @@ func (cc *ConfCenter) Go() {
 		go cb()
 	}
 	if os.Getenv("MG_CONF_DUMP") == "1" {
-		fmt.Println(cc.Dump(false, "\n"))
+		fmt.Println(cc.Dump("\n"))
 	}
 }
 
@@ -341,7 +337,7 @@ func init() {
 	for _, env := range os.Environ() {
 		segs := strings.SplitN(env, "=", 2)
 		if len(segs) == 2 {
-			Default.Set("s:/env/"+segs[0], segs[1], true)
+			Default.EntryAdd("s:/env/"+segs[0], segs[1], true)
 		}
 	}
 }

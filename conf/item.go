@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"encoding/json"
 	"strconv"
 	"strings"
 )
@@ -24,75 +23,61 @@ func (cc *ConfCenter) EntryAddByLine(line string, overwrite bool) {
 }
 
 func (cc *ConfCenter) EntryAdd(path string, value string, overwrite bool) {
-	kind, hidden, realpath := pathParse(path)
-	if realpath == "" {
+	kind, key := pathParse(path)
+	if key == "" {
 		return
 	}
-
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
-
-	e, exists := cc.mapPathEntry[path]
-	if exists && !overwrite {
-		return
-	}
-
-	var vNew any
 
 	switch kind {
 	case 'i':
 		if vInt, err := strconv.ParseInt(value, 10, 64); err == nil {
-			vNew = vInt
+			if overwrite {
+				cc.ISetf(key, vInt)
+			} else {
+				cc.ISet(key, vInt)
+			}
 		} else {
 			dp("BadValue.i: %s", value)
 			return
 		}
-		cc.ISet(realpath, vNew)
 
 	case 's':
-		vNew = value
-		cc.ISet(realpath, vNew)
+		if overwrite {
+			cc.SSetf(key, value)
+		} else {
+			cc.SSet(key, value)
+		}
 
 	case 'b':
 		// true: 1, t, T
 		// false: 0, f, F
 		x := value[0]
 		if x == '1' || x == 't' || x == 'T' || x == 'y' || x == 'Y' {
-			vNew = true
+			if overwrite {
+				cc.BSetf(key, true)
+			} else {
+				cc.BSet(key, true)
+			}
 		} else if x == '0' || x == 'f' || x == 'F' || x == 'n' || x == 'N' {
-			vNew = false
+			if overwrite {
+				cc.BSetf(key, false)
+			} else {
+				cc.BSet(key, false)
+			}
 		} else {
 			dp("BadValue.b: %s", value)
 			return
 		}
-		cc.ISet(realpath, vNew)
-
-	case 'o':
-		// line is json string
-		o := make(map[string]any)
-		if err := json.Unmarshal([]byte(value), &o); err != nil {
-			dp("BadValue.o: %s", value)
-			return
-		}
-		vNew = o
-		cc.ISet(realpath, vNew)
 
 	case 'e':
 		// event, no data at all, value treated as a parameter
-		vNew = value
-		cc.ISet(realpath, vNew)
+		if overwrite {
+			cc.ESendf(key, value)
+		} else {
+			cc.ESendf(key, value)
+		}
 
 	default:
 		return
 	}
-
-	if !exists {
-		e = &confEntry{
-			kind:   kind,
-			hidden: hidden,
-			path:   realpath,
-		}
-		cc.mapPathEntry[e.path] = e
-	}
-	cc.setByEntry(e, vNew)
 }

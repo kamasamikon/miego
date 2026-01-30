@@ -36,7 +36,7 @@ func (cc *ConfCenter) SHas(key string) bool {
 	return ok
 }
 
-func (cc *ConfCenter) SGet(vdef string, key string) string {
+func (cc *ConfCenter) SGet(key string, vdef string) string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
@@ -90,7 +90,7 @@ func (cc *ConfCenter) SRem(key string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Monitor ///////////////////////////////////////////////////////////////
-func (cc *ConfCenter) SMonitorAdd(key string, cb sMonitor, cbName string) string {
+func (cc *ConfCenter) SMonitorAdd(key string, cbName string, cb sMonitor) string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 

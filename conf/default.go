@@ -1,5 +1,108 @@
 package conf
 
+//////////////////////////////////////////////////////////////////////////
+// Values
+
+func BFlip(key string) {
+	Default.BFlip(key)
+}
+func BGet(key string, vdef bool) bool {
+	return Default.BGet(key, vdef)
+}
+func BGetb(key string) (bool, bool) {
+	return Default.BGetb(key)
+}
+func BHas(key string) bool {
+	return Default.BHas(key)
+}
+func BMonitorAdd(key string, cbName string, cb bMonitor) string {
+	return Default.BMonitorAdd(key, cbName, cb)
+}
+func BMonitorRem(key string, cbName string) {
+	Default.BMonitorRem(key, cbName)
+}
+func BRem(key string) {
+	Default.BRem(key)
+}
+func BSet(key string, val bool) {
+	Default.BSet(key, val)
+}
+func BSetf(key string, val bool) {
+	Default.BSetf(key, val)
+}
+func EHas(key string) bool {
+	return Default.EHas(key)
+}
+func EListenerAdd(key string, cbName string, cb eListener) string {
+	return Default.EListenerAdd(key, cbName, cb)
+}
+func EListenerRem(key string, cbName string) {
+	Default.EListenerRem(key, cbName)
+}
+func ERem(key string) {
+	Default.ERem(key)
+}
+func ESend(key string, arg any) {
+	Default.ESend(key, arg)
+}
+func ESendf(key string, arg any) {
+	Default.ESendf(key, arg)
+}
+func IGet(key string, vdef int64) int64 {
+	return Default.IGet(key, vdef)
+}
+func IGetb(key string) (int64, bool) {
+	return Default.IGetb(key)
+}
+func IHas(key string) bool {
+	return Default.IHas(key)
+}
+func IInc(key string, inc int64) int64 {
+	return Default.IInc(key, inc)
+}
+func IMonitorAdd(key string, cbName string, cb iMonitor) string {
+	return Default.IMonitorAdd(key, cbName, cb)
+}
+func IMonitorRem(key string, cbName string) {
+	Default.IMonitorRem(key, cbName)
+}
+func IRem(key string) {
+	Default.IRem(key)
+}
+func ISet(key string, val any) {
+	Default.ISet(key, val)
+}
+func ISetf(key string, val any) {
+	Default.ISetf(key, val)
+}
+func SGet(key string, vdef string) string {
+	return Default.SGet(key, vdef)
+}
+func SGetb(key string) (string, bool) {
+	return Default.SGetb(key)
+}
+func SHas(key string) bool {
+	return Default.SHas(key)
+}
+func SMonitorAdd(key string, cbName string, cb sMonitor) string {
+	return Default.SMonitorAdd(key, cbName, cb)
+}
+func SMonitorRem(key string, cbName string) {
+	Default.SMonitorRem(key, cbName)
+}
+func SRem(key string) {
+	Default.SRem(key)
+}
+func SSet(key string, val string) {
+	Default.SSet(key, val)
+}
+func SSetf(key string, val string) {
+	Default.SSetf(key, val)
+}
+
+// ///////////////////////////////////////////////////////////////////////
+// Entries
+
 func EntryRem(path string) {
 	Default.EntryRem(path)
 }
@@ -12,96 +115,46 @@ func EntryAdd(path string, value string, overwrite bool) {
 	Default.EntryAdd(path, value, overwrite)
 }
 
+// ///////////////////////////////////////////////////////////////////////
+// Load
+
 func LoadFromText(text string, overwrite bool) {
 	Default.LoadFromText(text, overwrite)
 }
-
 func LoadFromFile(fileName string, overwrite bool) error {
 	return Default.LoadFromFile(fileName, overwrite)
 }
-
-func Ref(path string) (int64, int64) {
-	return Default.Ref(path)
-}
-
-func Has(path string) bool {
-	return Default.Has(path)
-}
-
-func Raw(name string) (string, bool) {
-	return Default.Raw(name)
-}
-
-func Flip(path string) bool {
-	return Default.Flip(path)
-}
-
-func Str(defval string, paths ...string) string {
-	return Default.Str(defval, paths...)
-}
-
-func StrX(paths ...string) (string, bool) {
-	return Default.StrX(paths...)
-}
-
-func Bool(defval bool, paths ...string) bool {
-	return Default.Bool(defval, paths...)
-}
-
-func BoolX(paths ...string) (bool, bool) {
-	return Default.BoolX(paths...)
-}
-
-func Obj(defval any, paths ...string) any {
-	return Default.Obj(defval, paths...)
-}
-
-func ObjX(paths ...string) (any, bool) {
-	return Default.ObjX(paths...)
-}
-
-func List(sep string, paths ...string) []string {
-	return Default.List(sep, paths...)
-}
-
-func Names() []string {
-	return Default.Names()
-}
-
-func SafeNames() []string {
-	return Default.SafeNames()
-}
-
-func Set(path string, value any, create bool) {
-	Default.Set(path, value, create)
-}
-
-func Ready() {
-	Default.Ready()
-}
-
 func LoadFromEnv() {
 	Default.LoadFromEnv()
 }
-
 func LoadFromArg() {
 	Default.LoadFromArg()
 }
 
+// ///////////////////////////////////////////////////////////////////////
+// Dump
+
+func Dump(joinBy string) string {
+	return Default.Dump(joinBy)
+}
+func DumpMap() map[string]string {
+	return Default.DumpMap()
+}
+func DumpRaw(group bool, joinBy string) string {
+	return Default.DumpRaw(group, joinBy)
+}
+
+// ///////////////////////////////////////////////////////////////////////
+// Others
+func Names() []string {
+	return Default.Names()
+}
 func OnReady(cb func()) {
 	Default.OnReady(cb)
 }
-
+func Ready() {
+	Default.Ready()
+}
 func Go() {
 	Default.Go()
-}
-
-func Dump(safeMode bool, joinBy string) string {
-	return Default.Dump(safeMode, joinBy)
-}
-func DumpJson(safeMode bool) map[string]string {
-	return Default.DumpJson(safeMode)
-}
-func DumpRaw(safeMode bool, group bool, joinBy string) string {
-	return Default.DumpRaw(safeMode, group, joinBy)
 }

@@ -64,7 +64,7 @@ func (cc *ConfCenter) ERem(key string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Monitor ///////////////////////////////////////////////////////////////
-func (cc *ConfCenter) EListenerAdd(key string, cb eListener, cbName string) string {
+func (cc *ConfCenter) EListenerAdd(key string, cbName string, cb eListener) string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 

@@ -34,7 +34,7 @@ func (cc *ConfCenter) BHas(key string) bool {
 	return ok
 }
 
-func (cc *ConfCenter) BGet(vdef bool, key string) bool {
+func (cc *ConfCenter) BGet(key string, vdef bool) bool {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
@@ -88,7 +88,7 @@ func (cc *ConfCenter) BRem(key string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Monitor ///////////////////////////////////////////////////////////////
-func (cc *ConfCenter) BMonitorAdd(key string, cb bMonitor, cbName string) string {
+func (cc *ConfCenter) BMonitorAdd(key string, cbName string, cb bMonitor) string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 

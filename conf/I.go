@@ -58,7 +58,7 @@ func (cc *ConfCenter) IHas(key string) bool {
 	return ok
 }
 
-func (cc *ConfCenter) IGet(vdef int64, key string) int64 {
+func (cc *ConfCenter) IGet(key string, vdef int64) int64 {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
@@ -112,7 +112,7 @@ func (cc *ConfCenter) IRem(key string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Monitor ///////////////////////////////////////////////////////////////
-func (cc *ConfCenter) IMonitorAdd(key string, cb iMonitor, cbName string) string {
+func (cc *ConfCenter) IMonitorAdd(key string, cbName string, cb iMonitor) string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
@@ -146,7 +146,7 @@ func (cc *ConfCenter) IMonitorRem(key string, cbName string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Others ////////////////////////////////////////////////////////////////
-func (cc *ConfCenter) IInc(inc int64, key string) int64 {
+func (cc *ConfCenter) IInc(key string, inc int64) int64 {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
