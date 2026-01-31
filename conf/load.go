@@ -61,9 +61,9 @@ func (cc *ConfCenter) LoadFromText(text string, overwrite bool) {
 // Load : configure from a file.
 func (cc *ConfCenter) LoadFromFile(fileName string, overwrite bool) error {
 	const (
-		NGName = "conf/Load/NG/%d/Name=%s"
-		NGWhy  = "conf/Load/NG/%d/Why=%s"
-		OKName = "conf/Load/OK/%d=%s"
+		NGName = "conf/Load/NG/%d/Name"
+		NGWhy  = "conf/Load/NG/%d/Why"
+		OKName = "conf/Load/OK/%d"
 	)
 
 	sp := fmt.Sprintf

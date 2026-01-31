@@ -103,11 +103,9 @@ func (cc *ConfCenter) DumpRaw(joinBy string) string {
 		val := dict[key]
 
 		if strings.IndexByte(val, '\n') >= 0 {
-			lines = append(lines, fmt.Sprintf("s:/%s=<<EOF", key))
-			lines = append(lines, fmt.Sprintf("%s", val))
-			lines = append(lines, fmt.Sprintf("%s", "EOF"))
+			lines = append(lines, fmt.Sprintf("%s=<<EOF\n%s\nEOF", key, val))
 		} else {
-			lines = append(lines, fmt.Sprintf("s:/%s=%s", key, val))
+			lines = append(lines, fmt.Sprintf("%s=%s", key, val))
 		}
 	}
 
