@@ -38,7 +38,7 @@ func Raw(db *sql.DB, stmt string, verbose bool) ([]xmap.Map, error) {
 	rows, err := db.Query(stmt)
 	if err != nil {
 		if Conf.NotifyQueryError {
-			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), stmt)
+			go wxcard.New("").SendStr("roast.Query", err.Error(), stmt)
 		}
 
 		klog.E(err.Error())
@@ -99,7 +99,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 	rows, err := db.Query(qStmt)
 	if err != nil {
 		if Conf.NotifyQueryError {
-			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+			go wxcard.New("").SendStr("roast.Query", err.Error(), qStmt)
 		}
 
 		klog.E("%s", err.Error())
@@ -164,7 +164,7 @@ func ViaMap(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows int) (
 				}
 			} else {
 				if Conf.NotifyQueryError {
-					go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+					go wxcard.New("").SendStr("roast.Query", err.Error(), qStmt)
 				}
 
 				klog.E(err.Error())
@@ -188,7 +188,7 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows in
 	rows, err := db.Query(qStmt)
 	if err != nil {
 		if Conf.NotifyQueryError {
-			go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+			go wxcard.New("").SendStr("roast.Query", err.Error(), qStmt)
 		}
 
 		klog.E(err.Error())
@@ -232,7 +232,7 @@ func ViaScanner(db *sql.DB, queryStmt *QueryStatement, mp xmap.Map, FoundRows in
 				}
 			} else {
 				if Conf.NotifyQueryError {
-					go wxcard.WxCardNew("").SendStr("roast.Query", err.Error(), qStmt)
+					go wxcard.New("").SendStr("roast.Query", err.Error(), qStmt)
 				}
 
 				klog.E(err.Error())

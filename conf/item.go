@@ -6,10 +6,23 @@ import (
 )
 
 func (cc *ConfCenter) EntryRem(path string) {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
+	kind, key := pathParse(path)
+	if key == "" {
+		return
+	}
 
-	delete(cc.mapPathEntry, path)
+	switch kind {
+	case 'i':
+		cc.IRem(key)
+	case 's':
+		cc.SRem(key)
+	case 'b':
+		cc.BRem(key)
+	case 'e':
+		cc.ERem(key)
+	default:
+		return
+	}
 }
 
 func (cc *ConfCenter) EntryAddByLine(line string, overwrite bool) {

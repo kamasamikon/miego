@@ -12,18 +12,6 @@ import (
 )
 
 const (
-	ColorTypeF     = "\x1b[1;31;40m"
-	ColorTypeA     = "\x1b[91;40m"
-	ColorTypeC     = "\x1b[1;36;40m"
-	ColorTypeE     = "\x1b[96;40m"
-	ColorTypeW     = "\x1b[1;33;40m"
-	ColorTypeN     = "\x1b[93;40m"
-	ColorTypeI     = "\x1b[1;32;40m"
-	ColorTypeD     = "\x1b[92;40m"
-	ColorTypeReset = "\x1b[0m"
-)
-
-const (
 	_bPathReady = "conf/ready"
 	_bDebug     = "conf/debug"
 )
@@ -38,26 +26,10 @@ var Assets embed.FS
 // Monitor is a Callback called when wathed entry modified.
 type Monitor func(key string, vnow any, vnew any)
 
-type confEntry struct {
-	kind byte
-	path string
-
-	vInt  int64
-	vStr  string
-	vBool bool
-	vObj  any
-
-	hidden bool
-
-	monitors []Monitor
-}
-
 type ConfCenter struct {
 	Name string
 
 	mutex sync.Mutex
-
-	mapPathEntry map[string]*confEntry
 
 	iItems map[string]*iItem
 	sItems map[string]*sItem
@@ -77,8 +49,7 @@ type ConfCenter struct {
 // ///////////////////////////////////////////////////////////////////////
 func New(Name string) *ConfCenter {
 	cc := &ConfCenter{
-		Name:         Name,
-		mapPathEntry: make(map[string]*confEntry),
+		Name: Name,
 
 		iItems: make(map[string]*iItem),
 		sItems: make(map[string]*sItem),
@@ -207,21 +178,15 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	n := New(Name)
 
 	cc.mutex.Lock()
-	for p, e := range cc.mapPathEntry {
-		var monitors []Monitor
-		for _, m := range e.monitors {
-			monitors = append(monitors, m)
+	for p, e := range cc.iItems {
+		monitors := make(map[string]iMonitor)
+		for n, m := range e.monitors {
+			monitors[n] = m
 		}
-
-		n.mapPathEntry[p] = &confEntry{
-			kind:     e.kind,
-			path:     e.path,
-			vInt:     e.vInt,
-			vStr:     e.vStr,
-			vBool:    e.vBool,
-			vObj:     e.vObj,
-			hidden:   e.hidden,
+		n.iItems[p] = &iItem{
+			key:      e.key,
 			monitors: monitors,
+			value:    e.value,
 		}
 	}
 	cc.mutex.Unlock()
