@@ -176,6 +176,10 @@ func DumpRaw(joinBy string) string {
 	return Default.DumpRaw(joinBy)
 }
 
+func Raw(path string) (string, bool) {
+	return Default.Raw(path)
+}
+
 // ///////////////////////////////////////////////////////////////////////
 // Others
 func Names() []string {
