@@ -175,26 +175,74 @@ func pathParse(path string) (kind byte, key string) {
 // ///////////////////////////////////////////////////////////////////////
 
 func (cc *ConfCenter) Clone(Name string) *ConfCenter {
-	n := New(Name)
+	newcc := New(Name)
 
 	cc.mutex.Lock()
-	for p, e := range cc.iItems {
-		monitors := make(map[string]iMonitor)
-		for n, m := range e.monitors {
-			monitors[n] = m
+	for key, item := range cc.iItems {
+		iItemsNew := &iItem{
+			key:   item.key,
+			value: item.value,
 		}
-		n.iItems[p] = &iItem{
-			key:      e.key,
-			monitors: monitors,
-			value:    e.value,
+		if item.monitors != nil {
+			monitors := make(map[string]iMonitor)
+			for n, m := range item.monitors {
+				monitors[n] = m
+			}
+			iItemsNew.monitors = monitors
 		}
+		newcc.iItems[key] = iItemsNew
 	}
+	for key, item := range cc.sItems {
+		sItemsNew := &sItem{
+			key:   item.key,
+			value: item.value,
+		}
+		if item.monitors != nil {
+			monitors := make(map[string]sMonitor)
+			for n, m := range item.monitors {
+				monitors[n] = m
+			}
+			sItemsNew.monitors = monitors
+		}
+		newcc.sItems[key] = sItemsNew
+	}
+	for key, item := range cc.bItems {
+		bItemsNew := &bItem{
+			key:   item.key,
+			value: item.value,
+		}
+		if item.monitors != nil {
+			monitors := make(map[string]bMonitor)
+			for n, m := range item.monitors {
+				monitors[n] = m
+			}
+			bItemsNew.monitors = monitors
+		}
+		newcc.bItems[key] = bItemsNew
+	}
+	for key, item := range cc.eItems {
+		eItemsNew := &eItem{
+			key: item.key,
+		}
+		if item.listeners != nil {
+			listeners := make(map[string]eListener)
+			for n, m := range item.listeners {
+				listeners[n] = m
+			}
+			eItemsNew.listeners = listeners
+		}
+		newcc.eItems[key] = eItemsNew
+	}
+
+	newcc.loadOKCount = cc.loadOKCount
+	newcc.loadNGCount = cc.loadNGCount
+	newcc.debug = cc.debug
 	cc.mutex.Unlock()
 
 	// 覆盖一些特别的配置
-	n.SSetf("conf/name", n.Name)
+	newcc.SSetf("conf/name", newcc.Name)
 
-	return n
+	return newcc
 }
 
 // Get value as string
