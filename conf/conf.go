@@ -62,7 +62,7 @@ func New(Name string) *ConfCenter {
 		debug:       0,
 		onReadys:    nil,
 	}
-	cc.EntryAdd("s:/conf/name", Name, true)
+	cc.SSetf("conf/name", Name)
 
 	tmpName := Name
 	for i := 0; ; i++ {
@@ -192,7 +192,7 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	cc.mutex.Unlock()
 
 	// 覆盖一些特别的配置
-	n.EntryAdd("s:/conf/name", n.Name, true)
+	n.SSetf("conf/name", n.Name)
 
 	return n
 }
@@ -302,7 +302,7 @@ func init() {
 	for _, env := range os.Environ() {
 		segs := strings.SplitN(env, "=", 2)
 		if len(segs) == 2 {
-			Default.EntryAdd("s:/env/"+segs[0], segs[1], true)
+			Default.SSetf("env/"+segs[0], segs[1])
 		}
 	}
 }

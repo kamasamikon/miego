@@ -216,7 +216,7 @@ func nginxConfWrite() error {
 	// 3. Write back to nginx.conf
 	redirListHttp, redirListGrpc, upsList := genLocationAndUpstream()
 
-	tmpl := TemplLoad(conf.S("msb/nginx/tmpl", "/etc/nginx/nginx.conf.tmpl"))
+	tmpl := TemplLoad(conf.SGet("msb/nginx/tmpl", "/etc/nginx/nginx.conf.tmpl"))
 
 	tmpl = strings.Replace(tmpl, "#@@UPSTREAM_LIST@@", upsList, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
@@ -233,7 +233,7 @@ func nginxConfWrite() error {
 
 func nginxReload() {
 	if reload := conf.BTrue("msb/nginx/reload"); reload == true {
-		nginx := conf.S("/usr/sbin/nginx", "s:/msb/nginx/exec")
+		nginx := conf.SGet("/usr/sbin/nginx", "s:/msb/nginx/exec")
 		cmd := exec.Command(nginx, "-s", "reload")
 		err := cmd.Run()
 		if err != nil {
@@ -464,7 +464,7 @@ func main() {
 	for i, x := range Gin.Routes() {
 		conf.SSetf(
 			fmt.Sprintf("gin/routers/%02d", i),
-			fmt.Sprintf("%s -> '%s'", x.Method, x.Path),
+			fmt.Sprintf("%s => '%s'", x.Method, x.Path),
 		)
 	}
 

@@ -22,7 +22,7 @@ func (c *XLogger) Output(calldepth int, s string) error {
 var xLogger = &XLogger{}
 
 func init() {
-	if conf.B("db/mg/debug", false) {
+	if conf.BFalse("db/mg/debug") {
 		mgo.SetLogger(xLogger)
 		mgo.SetDebug(true)
 	}

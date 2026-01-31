@@ -84,7 +84,7 @@ func OpenByConf(confprefix string, models ...interface{}) *gorm.DB {
 	dbHost := conf.SGet(confprefix+"/addr/host", os.Getenv("DOCKER_GATEWAY"))
 	dbPort := conf.SGet(confprefix+"/addr/port", "3306")
 
-	verbose := conf.B(confprefix+"/verbose", false)
+	verbose := conf.BFalse(confprefix+"/verbose")
 
 	db := Open(dbDatabase, dbUser, dbPass, dbHost, dbPort, verbose)
 	CreateTable(db, models...)

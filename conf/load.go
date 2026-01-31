@@ -61,21 +61,22 @@ func (cc *ConfCenter) LoadFromText(text string, overwrite bool) {
 // Load : configure from a file.
 func (cc *ConfCenter) LoadFromFile(fileName string, overwrite bool) error {
 	const (
-		NGName = "s:/conf/Load/NG/%d/Name=%s"
-		NGWhy  = "s:/conf/Load/NG/%d/Why=%s"
-		OKName = "s:/conf/Load/OK/%d=%s"
+		NGName = "conf/Load/NG/%d/Name=%s"
+		NGWhy  = "conf/Load/NG/%d/Why=%s"
+		OKName = "conf/Load/OK/%d=%s"
 	)
 
+	sp := fmt.Sprintf
 	data, err := os.ReadFile(fileName)
 	if err != nil {
-		cc.EntryAddByLine(fmt.Sprintf(NGName, cc.loadNGCount, fileName), false)
-		cc.EntryAddByLine(fmt.Sprintf(NGWhy, cc.loadNGCount, err.Error()), false)
+		cc.SSetf(sp(NGName, cc.loadNGCount), fileName)
+		cc.SSetf(sp(NGWhy, cc.loadNGCount), err.Error())
 		cc.loadNGCount++
 		dp("Error:'%s', fileName:'%s'", err.Error(), fileName)
 		return err
 	}
 
-	cc.EntryAddByLine(fmt.Sprintf(OKName, cc.loadOKCount, fileName), false)
+	cc.SSetf(sp(OKName, cc.loadNGCount), fileName)
 	cc.loadOKCount++
 
 	cc.LoadFromText(string(data), overwrite)

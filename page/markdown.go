@@ -42,10 +42,10 @@ func Markdown(title string, markedjs string, markdown string) string {
 		title = "json"
 	}
 	if markedjs == "" {
-		markedjs = conf.SGet(
-			"mie/page/markedjs",
-			"https://cdn.jsdelivr.net/npm/marked/marked.min.js",
-		)
+		markedjs = conf.S("mie/page/markedjs")
+		if markedjs == "" {
+			markedjs = "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+		}
 	}
 	markdown = strings.Replace(markdown, "\r", "\\r", -1)
 	markdown = strings.Replace(markdown, "\n", "\\n", -1)

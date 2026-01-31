@@ -67,13 +67,13 @@ func RoutersToConf(Engine *gin.Engine) {
 	var strfmt string
 	cnt := len(Routes)
 	if cnt < 10 {
-		strfmt = "s:/gin/routers/%01d"
+		strfmt = "gin/routers/%01d"
 	} else if cnt < 100 {
-		strfmt = "s:/gin/routers/%02d"
+		strfmt = "gin/routers/%02d"
 	} else if cnt < 1000 {
-		strfmt = "s:/gin/routers/%03d"
+		strfmt = "gin/routers/%03d"
 	} else {
-		strfmt = "s:/gin/routers/%04d"
+		strfmt = "gin/routers/%04d"
 	}
 
 	for i, x := range Routes {
@@ -88,7 +88,7 @@ func Go(
 	Engine *gin.Engine, addr string,
 	cb func(Engine *gin.Engine),
 ) error {
-	if conf.B("gin/releaseMode", true) {
+	if conf.BTrue("gin/releaseMode") {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -115,19 +115,19 @@ func Go(
 
 func Default() *gin.Engine {
 	if _Default == nil {
-		if conf.B("gin/releaseMode", true) {
+		if conf.BTrue("gin/releaseMode") {
 			gin.SetMode(gin.ReleaseMode)
 		}
 
 		_Default = gin.New()
 
-		if conf.B("gin/cors/enable", true) {
+		if conf.BTrue("gin/cors/enable") {
 			_Default.Use(cors.Default())
 		}
-		if conf.B("gin/Logger/enable", true) {
+		if conf.BTrue("gin/Logger/enable") {
 			_Default.Use(gin.Logger())
 		}
-		if conf.B("gin/Recovery/enable", true) {
+		if conf.BTrue("gin/Recovery/enable") {
 			_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
 		}
 	}
