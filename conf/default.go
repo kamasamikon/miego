@@ -47,6 +47,9 @@ func BSetf(key string, val bool) {
 func EHas(key string) bool {
 	return Default.EHas(key)
 }
+func EAdd(key string) {
+	Default.EAdd(key)
+}
 func EListenerAdd(key string, cbName string, cb eListener) string {
 	return Default.EListenerAdd(key, cbName, cb)
 }
@@ -124,6 +127,9 @@ func SSet(key string, val string) {
 }
 func SSetf(key string, val string) {
 	Default.SSetf(key, val)
+}
+func SSplit(key string, sep string) []string {
+	return Default.SSplit(key, sep)
 }
 
 // ///////////////////////////////////////////////////////////////////////

@@ -1,6 +1,8 @@
 package conf
 
 import (
+	"strings"
+
 	"github.com/google/uuid"
 )
 
@@ -127,3 +129,6 @@ func (cc *ConfCenter) SMonitorRem(key string, cbName string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Others ////////////////////////////////////////////////////////////////
+func (cc *ConfCenter) SSplit(key string, sep string) []string {
+	return strings.Split(cc.SGet(key, ""), sep)
+}
