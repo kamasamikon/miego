@@ -17,16 +17,16 @@ type WXCard struct {
 	agentId    int
 }
 
-func WxCardNew(hashDocURL string) *WXCard {
+func New(hashDocURL string) *WXCard {
 	if hashDocURL == "" {
-		hashDocURL = conf.Str("", "s:/hashdoc/URL")
+		hashDocURL = conf.S("hashdoc/URL")
 	}
 
 	c := WXCard{
 		hashDocURL: hashDocURL,
-		corpId:     conf.Str("", "s:/wxnotify/corp_id"),
-		corpSecret: conf.Str("", "s:/wxnotify/corp_secret"),
-		agentId:    int(conf.Int(0, "i:/wxnotify/agent_id")),
+		corpId:     conf.S("wxnotify/corp_id"),
+		corpSecret: conf.S("wxnotify/corp_secret"),
+		agentId:    int(conf.I("wxnotify/agent_id", 0)),
 	}
 	return &c
 }

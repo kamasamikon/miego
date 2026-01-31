@@ -65,7 +65,7 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 
 // Dump : Print all entries
 func (cc *ConfCenter) DumpMap() map[string]string {
-	var dict map[string]string = make(map[string]string)
+	dict := make(map[string]string)
 
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()

@@ -9,13 +9,13 @@ import (
 
 func Client(Addr string, Pass string, DB int) *redis.Client {
 	if Addr == "" {
-		Addr = conf.Str("172.17.0.1:6379", "s:/db/redis/addr")
+		Addr = conf.SGet("db/redis/addr", "172.17.0.1:6379")
 	}
 	if Pass == "" {
-		Pass = conf.Str("", "s:/db/redis/pass")
+		Pass = conf.S("db/redis/pass")
 	}
 	if DB < 0 {
-		DB = int(conf.Int(0, "i:/db/redis/db"))
+		DB = int(conf.I("db/redis/db", 0))
 	}
 	redisdb := redis.NewClient(&redis.Options{
 		Addr:     Addr,

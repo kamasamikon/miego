@@ -175,5 +175,5 @@ func main() {
 		}
 	})
 
-	xgin.Go(nil, fmt.Sprintf(":%d", *Port))
+	xgin.Go(nil, fmt.Sprintf(":%d", *Port), nil)
 }

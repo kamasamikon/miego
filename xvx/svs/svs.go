@@ -38,7 +38,7 @@ func LoadConf(prefix string) {
 		// segs := ["s:", "svs", "<class>", "<name>"]
 		// s:/svs/Role/管理员=1	=> svs.Add(1, "管理员", "Role")
 		if len(segs) == 4 && segs[0] == "i:" && segs[1] == prefix {
-			sa := conf.Str("", name)
+			sa := conf.S(name)
 			if sa == "" {
 				continue
 			}

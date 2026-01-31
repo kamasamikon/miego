@@ -248,7 +248,7 @@ func (xm Map) SafeMerge(other Map) int {
 	for k, v := range other {
 		if _, ok := xm[k]; !ok {
 			xm[k] = v
-			cnt += 1
+			cnt++
 		}
 	}
 	return cnt
@@ -260,7 +260,7 @@ func (xm Map) MergeSome(other Map, names ...string) int {
 		if _, ok := other[name]; ok {
 			klog.W("%s", name)
 			xm[name] = other[name]
-			cnt += 1
+			cnt++
 		}
 	}
 	return cnt

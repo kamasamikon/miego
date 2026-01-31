@@ -16,12 +16,12 @@ func AddTime(a uint64, b uint64) int64 {
 
 	MMx := MMa + MMb
 	if MMx > 59 {
-		FFb += 1
+		FFb++
 		MMx %= 60
 	}
 	FFx := FFa + FFb
 	if FFx > 59 {
-		SSb += 1
+		SSb++
 		FFx %= 60
 	}
 	SSx := SSa + SSb
@@ -45,12 +45,12 @@ func SubTime(a uint64, b uint64) int64 {
 
 	MMx := MMa - MMb
 	if MMx < 0 {
-		FFb += 1
+		FFb++
 		MMx += 60
 	}
 	FFx := FFa - FFb
 	if FFx < 0 {
-		SSb += 1
+		SSb++
 		FFx += 60
 	}
 	SSx := SSa - SSb
@@ -74,12 +74,12 @@ func DiffTime(a uint64, b uint64) int64 {
 
 	MMx := MMa - MMb
 	if MMx < 0 {
-		FFb += 1
+		FFb++
 		MMx += 60
 	}
 	FFx := FFa - FFb
 	if FFx < 0 {
-		SSb += 1
+		SSb++
 		FFx += 60
 	}
 	SSx := SSa - SSb

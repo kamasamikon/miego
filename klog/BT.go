@@ -28,7 +28,7 @@ func BT(maxdep int, formating string, args ...interface{}) {
 
 	dep := 0
 	for {
-		dep += 1
+		dep++
 
 		if maxdep > 0 && dep > maxdep {
 			break

@@ -111,9 +111,9 @@ func New(Name string) *ConfCenter {
 // Global
 // ///////////////////////////////////////////////////////////////////////
 // 默认值，这个必须存在
-var Default *ConfCenter = New("default")
+var Default = New("default")
 
-var ccList map[string]*ConfCenter = make(map[string]*ConfCenter)
+var ccList = make(map[string]*ConfCenter)
 
 func CCList() []string {
 	var names []string

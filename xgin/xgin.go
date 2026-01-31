@@ -77,10 +77,9 @@ func RoutersToConf(Engine *gin.Engine) {
 	}
 
 	for i, x := range Routes {
-		conf.Set(
+		conf.SSetf(
 			fmt.Sprintf(strfmt, i),
 			fmt.Sprintf("%s -> '%s'", x.Method, x.Path),
-			true,
 		)
 	}
 }
@@ -89,12 +88,12 @@ func Go(
 	Engine *gin.Engine, addr string,
 	cb func(Engine *gin.Engine),
 ) error {
-	if conf.Bool(true, "b:/gin/releaseMode") {
+	if conf.B("gin/releaseMode", true) {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	if addr == "" {
-		addr = fmt.Sprintf(":%d", conf.Int(8888, "i:/ms/port"))
+		addr = fmt.Sprintf(":%d", conf.I("ms/port", 8888))
 	}
 	if addr == "*" {
 		if port, err := GetFreePort(); err != nil {
@@ -108,7 +107,7 @@ func Go(
 		cb(Engine)
 	}
 
-	conf.Set("s:/gin/addr", addr, true)
+	conf.SSetf("gin/addr", addr)
 	RoutersToConf(Engine)
 	gracefulRun(Engine, addr)
 	return nil
@@ -116,19 +115,19 @@ func Go(
 
 func Default() *gin.Engine {
 	if _Default == nil {
-		if conf.Bool(true, "b:/gin/releaseMode") {
+		if conf.B("gin/releaseMode", true) {
 			gin.SetMode(gin.ReleaseMode)
 		}
 
 		_Default = gin.New()
 
-		if conf.Bool(true, "b:/gin/cors/enable") {
+		if conf.B("gin/cors/enable", true) {
 			_Default.Use(cors.Default())
 		}
-		if conf.Bool(true, "b:/gin/Logger/enable") {
+		if conf.B("gin/Logger/enable", true) {
 			_Default.Use(gin.Logger())
 		}
-		if conf.Bool(true, "b:/gin/Recovery/enable") {
+		if conf.B("gin/Recovery/enable", true) {
 			_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
 		}
 	}

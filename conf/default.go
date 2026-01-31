@@ -3,11 +3,22 @@ package conf
 //////////////////////////////////////////////////////////////////////////
 // Values
 
+// Bool
+
 func BFlip(key string) {
 	Default.BFlip(key)
 }
 func BGet(key string, vdef bool) bool {
 	return Default.BGet(key, vdef)
+}
+func B(key string, vdef bool) bool {
+	return Default.B(key, vdef)
+}
+func BTrue(key string) bool {
+	return Default.BTrue(key)
+}
+func BFalse(key string) bool {
+	return Default.BFalse(key)
 }
 func BGetb(key string) (bool, bool) {
 	return Default.BGetb(key)
@@ -30,6 +41,9 @@ func BSet(key string, val bool) {
 func BSetf(key string, val bool) {
 	Default.BSetf(key, val)
 }
+
+// Event
+
 func EHas(key string) bool {
 	return Default.EHas(key)
 }
@@ -48,8 +62,14 @@ func ESend(key string, arg any) {
 func ESendf(key string, arg any) {
 	Default.ESendf(key, arg)
 }
+
+// Int
+
 func IGet(key string, vdef int64) int64 {
 	return Default.IGet(key, vdef)
+}
+func I(key string, vdef int64) int64 {
+	return Default.I(key, vdef)
 }
 func IGetb(key string) (int64, bool) {
 	return Default.IGetb(key)
@@ -75,8 +95,14 @@ func ISet(key string, val any) {
 func ISetf(key string, val any) {
 	Default.ISetf(key, val)
 }
+
+// String
+
 func SGet(key string, vdef string) string {
 	return Default.SGet(key, vdef)
+}
+func S(key string) string {
+	return Default.S(key)
 }
 func SGetb(key string) (string, bool) {
 	return Default.SGetb(key)

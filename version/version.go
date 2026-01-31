@@ -40,7 +40,7 @@ func N(v interface{}) uint64 {
 			return 0
 		}
 
-		var n uint64 = 0
+		var n uint64
 		n += (a << 32) & 0xffff00000000
 		n += (b << 16) & 0xffff0000
 		n += (c << 0) & 0xffff
@@ -82,7 +82,7 @@ func S2N(s string) (uint64, error) {
 		return 0, fmt.Errorf("bad version")
 	}
 
-	var n uint64 = 0
+	var n uint64
 	n += (a << 32) & 0xffff00000000
 	n += (b << 16) & 0xffff0000
 	n += (c << 0) & 0xffff

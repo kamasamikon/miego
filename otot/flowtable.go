@@ -346,7 +346,7 @@ func (ft *FlowTable) Gen(b64 bool) string {
 
 		if cols+colspan > ft.Column {
 			cols = 0
-			rows += 1
+			rows++
 			lines = append(lines, "</tr>")
 			lines = append(
 				lines,

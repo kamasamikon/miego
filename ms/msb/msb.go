@@ -216,13 +216,13 @@ func nginxConfWrite() error {
 	// 3. Write back to nginx.conf
 	redirListHttp, redirListGrpc, upsList := genLocationAndUpstream()
 
-	tmpl := TemplLoad(conf.Str("/etc/nginx/nginx.conf.tmpl", "s:/msb/nginx/tmpl"))
+	tmpl := TemplLoad(conf.S("msb/nginx/tmpl", "/etc/nginx/nginx.conf.tmpl"))
 
 	tmpl = strings.Replace(tmpl, "#@@UPSTREAM_LIST@@", upsList, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_HTTP@@", redirListHttp, -1)
 	tmpl = strings.Replace(tmpl, "#@@REDIRECT_LIST_GRPC@@", redirListGrpc, -1)
 
-	path := conf.Str("/etc/nginx/nginx.conf", "s:/msb/nginx/conf")
+	path := conf.S("msb/nginx/conf", "/etc/nginx/nginx.conf")
 	if err := ioutil.WriteFile(path, []byte(tmpl), os.ModeAppend); err != nil {
 		klog.E(err.Error())
 		return err
@@ -232,8 +232,8 @@ func nginxConfWrite() error {
 }
 
 func nginxReload() {
-	if reload := conf.Bool(true, "b:/msb/nginx/reload"); reload == true {
-		nginx := conf.Str("/usr/sbin/nginx", "s:/msb/nginx/exec")
+	if reload := conf.BTrue("msb/nginx/reload"); reload == true {
+		nginx := conf.S("/usr/sbin/nginx", "s:/msb/nginx/exec")
 		cmd := exec.Command(nginx, "-s", "reload")
 		err := cmd.Run()
 		if err != nil {
@@ -418,8 +418,8 @@ func main() {
 	// s:/msb/nginx/conf=/etc/nginx/nginx.conf
 	// s:/msb/nginx/tmpl=/etc/nginx/nginx.conf
 	// s:/msb/nginx/exec=/usr/sbin/nginx
-	conf.LoadFile("./etc/msb.cfg", true)
-	conf.LoadFile("./msb.cfg", true)
+	conf.LoadFromFile("./etc/msb.cfg", true)
+	conf.LoadFromFile("./msb.cfg", true)
 
 	gin.SetMode(gin.ReleaseMode)
 	Gin := gin.New()
@@ -462,17 +462,16 @@ func main() {
 	})
 
 	for i, x := range Gin.Routes() {
-		conf.Set(
-			fmt.Sprintf("s:/gin/routers/%02d", i),
+		conf.SSetf(
+			fmt.Sprintf("gin/routers/%02d", i),
 			fmt.Sprintf("%s -> '%s'", x.Method, x.Path),
-			true,
 		)
 	}
 
-	conf.Set("s:/msb/addr", getAddress(), true)
+	conf.SSetf("msb/addr", getAddress())
 
 	go RefreshLoop()
 
-	port := conf.Int(9100, "i:/msb/port")
+	port := conf.I("msb/port", 9100)
 	Gin.Run(fmt.Sprintf(":%d", port))
 }

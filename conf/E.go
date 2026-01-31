@@ -31,6 +31,17 @@ func (cc *ConfCenter) EHas(key string) bool {
 	return ok
 }
 
+func (cc *ConfCenter) EAdd(key string) {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
+
+	if _, ok := cc.eItems[key]; !ok {
+		cc.eItems[key] = &eItem{
+			key: key,
+		}
+	}
+}
+
 func (cc *ConfCenter) ESend(key string, arg any) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
@@ -38,6 +49,9 @@ func (cc *ConfCenter) ESend(key string, arg any) {
 	if item, ok := cc.eItems[key]; ok {
 		cc.eShout(item, arg)
 	}
+}
+func (cc *ConfCenter) Emit(key string, arg any) {
+	cc.ESend(key, arg)
 }
 
 func (cc *ConfCenter) ESendf(key string, arg any) {
@@ -53,6 +67,9 @@ func (cc *ConfCenter) ESendf(key string, arg any) {
 	}
 
 	cc.eShout(item, arg)
+}
+func (cc *ConfCenter) Emitf(key string, arg any) {
+	cc.ESendf(key, arg)
 }
 
 func (cc *ConfCenter) ERem(key string) {

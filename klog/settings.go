@@ -36,7 +36,7 @@ func init() {
 }
 
 func LoadFromConf() {
-	if x, ok := conf.BGetb("b:/klog/shortPath"); ok {
+	if x, ok := conf.BGetb("klog/shortPath"); ok {
 		if x {
 			Conf.ShortPath = 1
 		} else {
@@ -44,7 +44,7 @@ func LoadFromConf() {
 		}
 	}
 
-	if x, ok := conf.BGetb("b:/klog/dull"); ok {
+	if x, ok := conf.BGetb("klog/dull"); ok {
 		if x {
 			Conf.Dull = 1
 		} else {
@@ -52,7 +52,7 @@ func LoadFromConf() {
 		}
 	}
 
-	if x, ok := conf.BGetb("b:/klog/mute"); ok {
+	if x, ok := conf.BGetb("klog/mute"); ok {
 		if x {
 			Conf.Mute = 1
 		} else {
@@ -60,7 +60,7 @@ func LoadFromConf() {
 		}
 	}
 
-	if x, ok := conf.BGetb("b:/klog/useStdout"); ok {
+	if x, ok := conf.BGetb("klog/useStdout"); ok {
 		if x {
 			Conf.UseStdout = 1
 		} else {

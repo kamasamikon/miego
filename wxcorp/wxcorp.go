@@ -69,7 +69,7 @@ func (t *WxToken) Get(corpId string, corpSecret string) string {
 		return token
 	}
 
-	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
+	URLBASE := conf.S("wxnotify/urlbase")
 	url := fmt.Sprintf("%sgettoken?corpid=%s&corpsecret=%s", URLBASE, corpId, corpSecret)
 	klog.D("%s", url)
 	pong := KPong_GetToken{}
@@ -91,13 +91,13 @@ func (t *WxToken) Rem(corpId string, corpSecret string) {
 func SendText(text string, toUser string, corpId string, corpSecret string, agentId int) {
 	// Set default
 	if corpId == "" {
-		corpId = conf.Str("", "s:/wxnotify/corp_id")
+		corpId = conf.S("wxnotify/corp_id")
 	}
 	if corpSecret == "" {
-		corpSecret = conf.Str("", "s:/wxnotify/corp_secret")
+		corpSecret = conf.S("wxnotify/corp_secret")
 	}
 	if agentId == 0 {
-		agentId = int(conf.Int(0, "i:/wxnotify/agentid"))
+		agentId = int(conf.I("wxnotify/agentid", 0))
 	}
 
 	// set data
@@ -112,7 +112,7 @@ func SendText(text string, toUser string, corpId string, corpSecret string, agen
 
 	// Send
 	t := token().Get(corpId, corpSecret)
-	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
+	URLBASE := conf.S("wxnotify/urlbase")
 	url := fmt.Sprintf("%smessage/send?access_token=%s", URLBASE, t)
 	klog.D(url)
 	if _, err := httpdo.New(url).Ping(&ping).Pong(&pong).Post(); err != nil {
@@ -134,13 +134,13 @@ func SendText(text string, toUser string, corpId string, corpSecret string, agen
 func SendCard(title string, description string, URL string, toUser string, corpId string, corpSecret string, agentId int) {
 	// Set default
 	if corpId == "" {
-		corpId = conf.Str("", "s:/wxnotify/corp_id")
+		corpId = conf.S("wxnotify/corp_id")
 	}
 	if corpSecret == "" {
-		corpSecret = conf.Str("", "s:/wxnotify/corp_secret")
+		corpSecret = conf.S("wxnotify/corp_secret")
 	}
 	if agentId == 0 {
-		agentId = int(conf.Int(0, "i:/wxnotify/agentid"))
+		agentId = int(conf.I("wxnotify/agentid", 0))
 	}
 
 	// set data
@@ -156,7 +156,7 @@ func SendCard(title string, description string, URL string, toUser string, corpI
 
 	// Send
 	t := token().Get(corpId, corpSecret)
-	URLBASE := conf.Str("", "s:/wxnotify/urlbase")
+	URLBASE := conf.S("wxnotify/urlbase")
 	url := fmt.Sprintf("%smessage/send?access_token=%s", URLBASE, t)
 	klog.D(url)
 	if _, err := httpdo.New(url).Ping(&ping).Pong(&pong).Post(); err != nil {

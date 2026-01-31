@@ -30,13 +30,13 @@ func DSN(confprefix string) string {
 		confprefix = "db/my"
 	}
 
-	dbDatabase := conf.Str("gene", "s:/"+confprefix+"/database")
+	dbDatabase := conf.SGet(confprefix+"/database", "gene")
 
-	dbUser := conf.Str("root", "s:/"+confprefix+"/user/name")
-	dbPass := conf.Str("root", "s:/"+confprefix+"/user/pass")
+	dbUser := conf.SGet(confprefix+"/user/name", "root")
+	dbPass := conf.SGet(confprefix+"/user/pass", "root")
 
-	dbHost := conf.Str(os.Getenv("DOCKER_GATEWAY"), "s:/"+confprefix+"/addr/host")
-	dbPort := conf.Str("3306", "s:/"+confprefix+"/addr/port")
+	dbHost := conf.SGet(confprefix+"/addr/host", os.Getenv("DOCKER_GATEWAY"))
+	dbPort := conf.SGet(confprefix+"/addr/port", "3306")
 
 	return fmt.Sprintf("%s:%s@(%s:%s)/%s?collation=utf8mb4_general_ci&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbDatabase)
 }
@@ -76,15 +76,15 @@ func OpenByConf(confprefix string, models ...interface{}) *gorm.DB {
 		confprefix = "db/my"
 	}
 
-	dbDatabase := conf.Str("gene", "s:/"+confprefix+"/database")
+	dbDatabase := conf.SGet(confprefix+"/database", "gene")
 
-	dbUser := conf.Str("root", "s:/"+confprefix+"/user/name")
-	dbPass := conf.Str("root", "s:/"+confprefix+"/user/pass")
+	dbUser := conf.SGet(confprefix+"/user/name", "root")
+	dbPass := conf.SGet(confprefix+"/user/pass", "root")
 
-	dbHost := conf.Str(os.Getenv("DOCKER_GATEWAY"), "s:/"+confprefix+"/addr/host")
-	dbPort := conf.Str("3306", "s:/"+confprefix+"/addr/port")
+	dbHost := conf.SGet(confprefix+"/addr/host", os.Getenv("DOCKER_GATEWAY"))
+	dbPort := conf.SGet(confprefix+"/addr/port", "3306")
 
-	verbose := conf.Bool(false, "b:/"+confprefix+"/verbose")
+	verbose := conf.B(confprefix+"/verbose", false)
 
 	db := Open(dbDatabase, dbUser, dbPass, dbHost, dbPort, verbose)
 	CreateTable(db, models...)

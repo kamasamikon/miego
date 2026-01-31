@@ -45,6 +45,9 @@ func (cc *ConfCenter) SGet(key string, vdef string) string {
 	}
 	return vdef
 }
+func (cc *ConfCenter) S(key string) string {
+	return cc.SGet(key, "")
+}
 
 func (cc *ConfCenter) SGetb(key string) (string, bool) {
 	cc.mutex.Lock()

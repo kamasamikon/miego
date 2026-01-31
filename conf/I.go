@@ -67,6 +67,9 @@ func (cc *ConfCenter) IGet(key string, vdef int64) int64 {
 	}
 	return vdef
 }
+func (cc *ConfCenter) I(key string, vdef int64) int64 {
+	return cc.IGet(key, vdef)
+}
 
 func (cc *ConfCenter) IGetb(key string) (int64, bool) {
 	cc.mutex.Lock()

@@ -133,9 +133,8 @@ func (o *LoginCenter) loginChecker(h gin.HandlerFunc) gin.HandlerFunc {
 			if Type != nil {
 				h(c)
 				return
-			} else {
-				klog.E("Type is none for LoginType %s", LoginType)
 			}
+			klog.E("Type is none for LoginType %s", LoginType)
 		}
 
 		l := o.MapLogin[LoginType]

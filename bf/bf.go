@@ -22,7 +22,7 @@ func (c *XLogger) Output(calldepth int, s string) error {
 var xLogger = &XLogger{}
 
 func init() {
-	if conf.Bool(false, "b:/db/mg/debug") {
+	if conf.B("db/mg/debug", false) {
 		mgo.SetLogger(xLogger)
 		mgo.SetDebug(true)
 	}
@@ -33,8 +33,8 @@ func Bye(session *mgo.Session) {
 }
 
 func Hey() *mgo.Session {
-	addr := conf.Str("", "s:/db/mg/addr")
-	port := conf.Int(3717, "i:/db/mg/port")
+	addr := conf.S("db/mg/addr")
+	port := conf.I("db/mg/port", 3717)
 
 	// Dial
 	mgoaddr := fmt.Sprintf("%s:%d", addr, port)
@@ -46,9 +46,9 @@ func Hey() *mgo.Session {
 	}
 
 	// Login
-	if user := conf.Str("root", "s:/db/mg/user"); user != "" {
-		pass := conf.Str("", "s:/db/mg/pass")
-		auth := conf.Str("SCRAM-SHA-1", "s:/db/mg/auth")
+	if user := conf.SGet("db/mg/user", "root"); user != "" {
+		pass := conf.S("db/mg/pass")
+		auth := conf.SGet("db/mg/auth", "SCRAM-SHA-1")
 
 		err = session.Login(&mgo.Credential{
 			Username:  user,

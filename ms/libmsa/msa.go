@@ -55,22 +55,22 @@ func GetLocalAddr() string {
 
 // GetOutboundIP : Get preferred outbound ip of this machine
 func GetOutboundIP() string {
-	if addr := conf.Str("", "s:/ms/addr"); addr != "" {
+	if addr := conf.S("ms/addr"); addr != "" {
 		return addr
 	}
 	return GetLocalAddr()
 }
 
 func RunService() {
-	exePath := conf.Str("", "s:/ms/exe")
+	exePath := conf.S("ms/exe")
 	if exePath == "" {
 		return
 	}
 
 	workDir := path.Dir(exePath)
 
-	relaunchOK := time.Duration(conf.Int(1, "i:/ms/relaunch/ok"))
-	relaunchNG := time.Duration(conf.Int(1, "i:/ms/relaunch/ng"))
+	relaunchOK := time.Duration(conf.I("ms/relaunch/ok", 1))
+	relaunchNG := time.Duration(conf.I("ms/relaunch/ng", 1))
 
 	//
 	// Prepare
@@ -79,9 +79,9 @@ func RunService() {
 
 	cmd.Dir = workDir
 
-	ServiceName := conf.Str("demo", "s:/ms/name")
-	Version := conf.Str("v1", "s:/ms/version")
-	Desc := conf.Str("", "s:/ms/desc")
+	ServiceName := conf.SGet("ms/name", "demo")
+	Version := conf.SGet("ms/version", "v1")
+	Desc := conf.S("ms/desc")
 
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "MS_NAME="+ServiceName)
@@ -152,7 +152,7 @@ func getParam(argPrefix string, envName string, cfgName string) string {
 		}
 	}
 	if cfgName != "" {
-		x := conf.Str("", cfgName)
+		x := conf.S(cfgName)
 		return x
 	}
 	return ""
@@ -166,8 +166,8 @@ func RegisterLoop() {
 
 	for {
 		// Loop
-		regWaitOK := conf.Int(10, "i:/msb/regWait/ok")
-		regWaitNG := conf.Int(1, "i:/msb/regWait/ng")
+		regWaitOK := conf.I("msb/regWait/ok", 10)
+		regWaitNG := conf.I("msb/regWait/ng", 1)
 
 		sleepRegWaitOK := time.Second * time.Duration(regWaitOK)
 		sleepRegWaitNG := time.Second * time.Duration(regWaitNG)
@@ -185,17 +185,17 @@ func RegisterLoop() {
 
 		// Service
 		s := mscommon.KService{
-			ServiceName: conf.Str("demo", "s:/ms/name"),
-			Version:     conf.Str("v1", "s:/ms/version"),
-			Desc:        conf.Str("", "s:/ms/desc"),
-			Upstream:    conf.Str("", "s:/ms/upstream"),
-			Kind:        conf.Str("http", "s:/ms/kind"),
+			ServiceName: conf.SGet("ms/name", "demo"),
+			Version:     conf.SGet("ms/version", "v1"),
+			Desc:        conf.S("ms/desc"),
+			Upstream:    conf.S("ms/upstream"),
+			Kind:        conf.SGet("ms/kind", "http"),
 			IPAddr:      IPAddr,
-			Port:        int(conf.Int(8888, "i:/ms/port")),
+			Port:        int(conf.I("ms/port", 8888)),
 			HostName:    HostName,
-			ProjName:    conf.Str("FIXME", "s:/build/dirname"),
-			ProjVersion: conf.Str("FIXME", "s:/build/version"),
-			ProjTime:    conf.Str("FIXME", "s:/build/time"),
+			ProjName:    conf.S("build/dirname"),
+			ProjVersion: conf.S("build/version"),
+			ProjTime:    conf.S("build/time"),
 			CreatedAt:   CreatedAt,
 			RegInterval: regWaitOK,
 		}
@@ -206,18 +206,18 @@ func RegisterLoop() {
 		//
 		// Save runtime information
 		//
-		conf.Set("s:/msa/serviceName", s.ServiceName, true)
-		conf.Set("s:/msa/version", s.Version, true)
-		conf.Set("s:/msa/desc", s.Desc, true)
-		conf.Set("s:/msa/upstream", s.Upstream, true)
-		conf.Set("s:/msa/kind", s.Kind, true)
-		conf.Set("s:/msa/IPAddr", s.IPAddr, true)
-		conf.Set("i:/msa/port", s.Port, true)
-		conf.Set("s:/msa/hostName", s.HostName, true)
-		conf.Set("s:/msa/projName", s.ProjName, true)
-		conf.Set("s:/msa/projVersion", s.ProjVersion, true)
-		conf.Set("s:/msa/projTime", s.ProjTime, true)
-		conf.Set("i:/msa/createdAt", s.CreatedAt, true)
+		conf.SSetf("msa/serviceName", s.ServiceName)
+		conf.SSetf("msa/version", s.Version)
+		conf.SSetf("msa/desc", s.Desc)
+		conf.SSetf("msa/upstream", s.Upstream)
+		conf.SSetf("msa/kind", s.Kind)
+		conf.SSetf("msa/IPAddr", s.IPAddr)
+		conf.ISetf("msa/port", s.Port)
+		conf.SSetf("msa/hostName", s.HostName)
+		conf.SSetf("msa/projName", s.ProjName)
+		conf.SSetf("msa/projVersion", s.ProjVersion)
+		conf.SSetf("msa/projTime", s.ProjTime)
+		conf.ISetf("msa/createdAt", s.CreatedAt)
 
 		//
 		// MSBPort: DockerGW+MSBPort
@@ -225,9 +225,9 @@ func RegisterLoop() {
 		msRegURL = ""
 		if MSBPort != "" {
 			msRegURL = "http://" + DockerGW + ":" + MSBPort + "/msb/service"
-			conf.Set("s:/msa/reg/method", "DockerGW+MSBPort", true)
-			conf.Set("s:/msa/reg/URL", msRegURL, true)
-			conf.Set("s:/msa/reg/when", time.Now().Format("2006/01/02 15:04:05"), true)
+			conf.SSetf("msa/reg/method", "DockerGW+MSBPort")
+			conf.SSetf("msa/reg/URL", msRegURL)
+			conf.SSetf("msa/reg/when", time.Now().Format("2006/01/02 15:04:05"))
 			klog.D("msRegURL: %s", msRegURL)
 			for {
 				msDataReader.Seek(0, io.SeekStart)
@@ -266,9 +266,9 @@ func RegisterLoop() {
 			}
 
 			if msRegURL != "" {
-				conf.Set("s:/msa/reg/method", "dockerhelper", true)
-				conf.Set("s:/msa/reg/URL", msRegURL, true)
-				conf.Set("s:/msa/reg/when", time.Now().Format("2006/01/02 15:04:05"), true)
+				conf.SSetf("msa/reg/method", "dockerhelper")
+				conf.SSetf("msa/reg/URL", msRegURL)
+				conf.SSetf("msa/reg/when", time.Now().Format("2006/01/02 15:04:05"))
 				klog.D("msRegURL: %s", msRegURL)
 				for {
 					msDataReader.Seek(0, io.SeekStart)

@@ -11,7 +11,7 @@ var Conf struct {
 
 func init() {
 	conf.OnReady(func() {
-		Conf.Noisy = conf.Bool(false, "b:/roast/Noisy")
-		Conf.NotifyQueryError = conf.Bool(false, "b:/roast/NotifyQueryError")
+		Conf.Noisy = conf.BFalse("roast/Noisy")
+		Conf.NotifyQueryError = conf.BFalse("roast/NotifyQueryError")
 	})
 }

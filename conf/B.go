@@ -43,6 +43,15 @@ func (cc *ConfCenter) BGet(key string, vdef bool) bool {
 	}
 	return vdef
 }
+func (cc *ConfCenter) B(key string, vdef bool) bool {
+	return cc.BGet(key, vdef)
+}
+func (cc *ConfCenter) BTrue(key string) bool {
+	return cc.BGet(key, true)
+}
+func (cc *ConfCenter) BFalse(key string) bool {
+	return cc.BGet(key, false)
+}
 
 func (cc *ConfCenter) BGetb(key string) (bool, bool) {
 	cc.mutex.Lock()
