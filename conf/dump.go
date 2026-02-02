@@ -37,7 +37,7 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 
 	fmtstr := fmt.Sprintf(
 		"\033[%sm%%-%ds\033[0m\033[%sm%%v\033[0m",
-		"31", keyMaxLength+3, "34",
+		"94", keyMaxLength+4, "7;93",
 	)
 
 	for _, item := range cc.iItems {
