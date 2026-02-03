@@ -61,6 +61,17 @@ func MapData(data []byte) Map {
 	return xm
 }
 
+// MapReader :
+func MapReader(r io.Reader) Map {
+	xm := make(Map)
+	if dat, err := io.ReadAll(r); err != nil {
+		return xm
+	} else {
+		json.Unmarshal(dat, &xm)
+		return xm
+	}
+}
+
 // MapBody : Convert gin's request to Map
 func MapBody(r *http.Request) Map {
 	xm := make(Map)
