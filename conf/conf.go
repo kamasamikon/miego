@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -49,8 +50,6 @@ type ConfCenter struct {
 // ///////////////////////////////////////////////////////////////////////
 func New(Name string) *ConfCenter {
 	cc := &ConfCenter{
-		Name: Name,
-
 		iItems: make(map[string]*iItem),
 		sItems: make(map[string]*sItem),
 		bItems: make(map[string]*bItem),
@@ -62,7 +61,6 @@ func New(Name string) *ConfCenter {
 		debug:       0,
 		onReadys:    nil,
 	}
-	cc.SSetf("conf/name", Name)
 
 	tmpName := Name
 	for i := 0; ; i++ {
@@ -74,6 +72,14 @@ func New(Name string) *ConfCenter {
 
 	ccList[tmpName] = cc
 	cc.Name = tmpName
+	cc.SSetf("conf/name", Name)
+
+	var ccNames []string
+	for ccName := range ccList {
+		ccNames = append(ccNames, ccName)
+	}
+	sort.Strings(ccNames)
+	cc.SSetf("conf/names", strings.Join(ccNames, ","))
 
 	return cc
 }
@@ -239,9 +245,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	newcc.debug = cc.debug
 	cc.mutex.Unlock()
 
-	// 覆盖一些特别的配置
-	newcc.SSetf("conf/name", newcc.Name)
-
 	return newcc
 }
 
@@ -312,6 +315,11 @@ func (cc *ConfCenter) Ready() {
 
 // Last to call
 func (cc *ConfCenter) Go() {
+	if cc.BTrue(_bPathReady) {
+		return
+	}
+
+	cc.Ready()
 	for _, cb := range cc.onReadys {
 		go cb()
 	}
