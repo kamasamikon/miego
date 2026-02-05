@@ -5,19 +5,18 @@ import "github.com/google/uuid"
 type bMonitor func(key string, vnow bool, vnew bool)
 
 type bItem struct {
-	key      string
 	monitors map[string]bMonitor
 	value    bool
 }
 
 // XXX: no lock
-func (cc *ConfCenter) bSet(item *bItem, vnew bool) {
+func (cc *ConfCenter) bSet(item *bItem, key string, vnew bool) {
 	vnow := item.value
 	item.value = vnew
 	if item.monitors != nil {
 		for _, cb := range item.monitors {
 			if cb != nil {
-				go cb(item.key, vnow, vnew)
+				go cb(key, vnow, vnew)
 			}
 		}
 	}
@@ -69,7 +68,7 @@ func (cc *ConfCenter) BSet(key string, val bool) {
 	defer cc.mutex.Unlock()
 
 	if item, ok := cc.bItems[key]; ok {
-		cc.bSet(item, val)
+		cc.bSet(item, key, val)
 	}
 }
 
@@ -79,13 +78,11 @@ func (cc *ConfCenter) BSetf(key string, val bool) {
 
 	item, ok := cc.bItems[key]
 	if !ok {
-		item = &bItem{
-			key: key,
-		}
-		cc.bItems[item.key] = item
+		item = &bItem{}
+		cc.bItems[key] = item
 	}
 
-	cc.bSet(item, val)
+	cc.bSet(item, key, val)
 }
 
 func (cc *ConfCenter) BRem(key string) {
@@ -135,6 +132,6 @@ func (cc *ConfCenter) BFlip(key string) {
 	defer cc.mutex.Unlock()
 
 	if item, ok := cc.bItems[key]; ok {
-		cc.bSet(item, !item.value)
+		cc.bSet(item, key, !item.value)
 	}
 }

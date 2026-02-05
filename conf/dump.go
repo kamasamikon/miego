@@ -40,17 +40,24 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 		"94", keyMaxLength+4, "7;93",
 	)
 
-	for _, item := range cc.iItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+item.key, item.value))
+	for key, item := range cc.iItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+key, item.value))
 	}
-	for _, item := range cc.sItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+item.key, item.value))
+	for key, item := range cc.sItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+key, item.value))
 	}
-	for _, item := range cc.bItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+item.key, item.value))
+	for key, item := range cc.bItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+key, item.value))
 	}
-	for _, item := range cc.eItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+item.key, "..."))
+	for key := range cc.eItems {
+		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+key, "..."))
+	}
+	for key, item := range cc.xItems {
+		if item.getter != nil {
+			lines = append(lines, key, fmt.Sprintf("%v", item.getter(key)))
+		} else {
+			lines = append(lines, key, "...")
+		}
 	}
 
 	sort.Slice(lines, func(i int, j int) bool {
@@ -70,17 +77,24 @@ func (cc *ConfCenter) DumpMap() map[string]string {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	for _, item := range cc.iItems {
-		dict["i:/"+item.key] = fmt.Sprintf("%v", item.value)
+	for key, item := range cc.iItems {
+		dict["i:/"+key] = fmt.Sprintf("%v", item.value)
 	}
-	for _, item := range cc.sItems {
-		dict["s:/"+item.key] = strings.TrimSpace(item.value)
+	for key, item := range cc.sItems {
+		dict["s:/"+key] = strings.TrimSpace(item.value)
 	}
-	for _, item := range cc.bItems {
-		dict["b:/"+item.key] = fmt.Sprintf("%v", item.value)
+	for key, item := range cc.bItems {
+		dict["b:/"+key] = fmt.Sprintf("%v", item.value)
 	}
-	for _, item := range cc.eItems {
-		dict["e:/"+item.key] = "..."
+	for key := range cc.eItems {
+		dict["e:/"+key] = "..."
+	}
+	for key, item := range cc.xItems {
+		if item.getter != nil {
+			dict["e:/"+key] = fmt.Sprintf("%v", item.getter(key))
+		} else {
+			dict["e:/"+key] = "..."
+		}
 	}
 
 	return dict

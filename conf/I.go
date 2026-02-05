@@ -5,13 +5,12 @@ import "github.com/google/uuid"
 type iMonitor func(key string, vnow int64, vnew int64)
 
 type iItem struct {
-	key      string
 	monitors map[string]iMonitor
 	value    int64
 }
 
 // XXX: no lock
-func (cc *ConfCenter) iSet(item *iItem, val any) {
+func (cc *ConfCenter) iSet(item *iItem, key string, val any) {
 	var vnew int64
 	switch v := val.(type) {
 	case int64:
@@ -41,7 +40,7 @@ func (cc *ConfCenter) iSet(item *iItem, val any) {
 	if item.monitors != nil {
 		for _, cb := range item.monitors {
 			if cb != nil {
-				go cb(item.key, vnow, vnew)
+				go cb(key, vnow, vnew)
 			}
 		}
 	}
@@ -87,7 +86,7 @@ func (cc *ConfCenter) ISet(key string, val any) {
 	defer cc.mutex.Unlock()
 
 	if item, ok := cc.iItems[key]; ok {
-		cc.iSet(item, val)
+		cc.iSet(item, key, val)
 	}
 }
 
@@ -97,13 +96,11 @@ func (cc *ConfCenter) ISetf(key string, val any) {
 
 	item, ok := cc.iItems[key]
 	if !ok {
-		item = &iItem{
-			key: key,
-		}
-		cc.iItems[item.key] = item
+		item = &iItem{}
+		cc.iItems[key] = item
 	}
 
-	cc.iSet(item, val)
+	cc.iSet(item, key, val)
 }
 
 func (cc *ConfCenter) IRem(key string) {
@@ -155,7 +152,7 @@ func (cc *ConfCenter) IInc(key string, inc int64) int64 {
 
 	if item, ok := cc.iItems[key]; ok {
 		vNew := item.value + inc
-		cc.iSet(item, vNew)
+		cc.iSet(item, key, vNew)
 		return item.value
 	}
 	return -1

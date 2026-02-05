@@ -44,7 +44,7 @@ func WriterAdd(name string, writer io.Writer) {
 
 // XXX 没有加保护
 func WriterGet(name string) io.Writer {
-	w, _ := Conf.Writers[name]
+	w := Conf.Writers[name]
 	return w
 }
 

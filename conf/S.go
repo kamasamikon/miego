@@ -9,19 +9,18 @@ import (
 type sMonitor func(key string, vnow string, vnew string)
 
 type sItem struct {
-	key      string
 	monitors map[string]sMonitor
 	value    string
 }
 
 // XXX: no lock
-func (cc *ConfCenter) sSet(item *sItem, vnew string) {
+func (cc *ConfCenter) sSet(item *sItem, key string, vnew string) {
 	vnow := item.value
 	item.value = vnew
 	if item.monitors != nil {
 		for _, cb := range item.monitors {
 			if cb != nil {
-				go cb(item.key, vnow, vnew)
+				go cb(key, vnow, vnew)
 			}
 		}
 	}
@@ -67,7 +66,7 @@ func (cc *ConfCenter) SSet(key string, val string) {
 	defer cc.mutex.Unlock()
 
 	if item, ok := cc.sItems[key]; ok {
-		cc.sSet(item, val)
+		cc.sSet(item, key, val)
 	}
 }
 
@@ -77,13 +76,11 @@ func (cc *ConfCenter) SSetf(key string, val string) {
 
 	item, ok := cc.sItems[key]
 	if !ok {
-		item = &sItem{
-			key: key,
-		}
-		cc.sItems[item.key] = item
+		item = &sItem{}
+		cc.sItems[key] = item
 	}
 
-	cc.sSet(item, val)
+	cc.sSet(item, key, val)
 }
 
 func (cc *ConfCenter) SRem(key string) {

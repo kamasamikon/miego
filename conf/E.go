@@ -5,16 +5,15 @@ import "github.com/google/uuid"
 type eListener func(key string, arg any)
 
 type eItem struct {
-	key       string
 	listeners map[string]eListener
 }
 
 // XXX: no lock
-func (cc *ConfCenter) eShout(item *eItem, arg any) {
+func (cc *ConfCenter) eShout(item *eItem, key string, arg any) {
 	if item.listeners != nil {
 		for _, cb := range item.listeners {
 			if cb != nil {
-				go cb(item.key, arg)
+				go cb(key, arg)
 			}
 		}
 	}
@@ -36,9 +35,7 @@ func (cc *ConfCenter) EAdd(key string) {
 	defer cc.mutex.Unlock()
 
 	if _, ok := cc.eItems[key]; !ok {
-		cc.eItems[key] = &eItem{
-			key: key,
-		}
+		cc.eItems[key] = &eItem{}
 	}
 }
 
@@ -47,7 +44,7 @@ func (cc *ConfCenter) ESend(key string, arg any) {
 	defer cc.mutex.Unlock()
 
 	if item, ok := cc.eItems[key]; ok {
-		cc.eShout(item, arg)
+		cc.eShout(item, key, arg)
 	}
 }
 func (cc *ConfCenter) Emit(key string, arg any) {
@@ -60,13 +57,11 @@ func (cc *ConfCenter) ESendf(key string, arg any) {
 
 	item, ok := cc.eItems[key]
 	if !ok {
-		item = &eItem{
-			key: key,
-		}
-		cc.eItems[item.key] = item
+		item = &eItem{}
+		cc.eItems[key] = item
 	}
 
-	cc.eShout(item, arg)
+	cc.eShout(item, key, arg)
 }
 func (cc *ConfCenter) Emitf(key string, arg any) {
 	cc.ESendf(key, arg)
@@ -89,12 +84,12 @@ func (cc *ConfCenter) EListenerAdd(key string, cbName string, cb eListener) stri
 		cbName = uuid.New().String()
 	}
 
-	if e, ok := cc.eItems[key]; ok {
-		if e.listeners == nil {
-			e.listeners = make(map[string]eListener)
+	if item, ok := cc.eItems[key]; ok {
+		if item.listeners == nil {
+			item.listeners = make(map[string]eListener)
 		}
-		if _, ok := e.listeners[cbName]; !ok {
-			e.listeners[cbName] = cb
+		if _, ok := item.listeners[cbName]; !ok {
+			item.listeners[cbName] = cb
 			return cbName
 		}
 	}
@@ -105,9 +100,9 @@ func (cc *ConfCenter) EListenerRem(key string, cbName string) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	if e, ok := cc.eItems[key]; ok {
-		if e.listeners != nil {
-			delete(e.listeners, cbName)
+	if item, ok := cc.eItems[key]; ok {
+		if item.listeners != nil {
+			delete(item.listeners, cbName)
 		}
 	}
 }

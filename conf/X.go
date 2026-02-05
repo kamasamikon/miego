@@ -1,23 +1,11 @@
 package conf
 
-import "github.com/google/uuid"
-
-type xListener func(key string, arg any)
+type xGetter func(key string) any
+type xSetter func(key string, arg any)
 
 type xItem struct {
-	key       string
-	listeners map[string]xListener
-}
-
-// XXX: no lock
-func (cc *ConfCenter) xShout(item *xItem, arg any) {
-	if item.listeners != nil {
-		for _, cb := range item.listeners {
-			if cb != nil {
-				go cb(item.key, arg)
-			}
-		}
-	}
+	getter xGetter
+	setter xSetter
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,40 +24,30 @@ func (cc *ConfCenter) XAdd(key string) {
 	defer cc.mutex.Unlock()
 
 	if _, ok := cc.xItems[key]; !ok {
-		cc.xItems[key] = &xItem{
-			key: key,
-		}
+		cc.xItems[key] = &xItem{}
 	}
 }
 
-func (cc *ConfCenter) XSend(key string, arg any) {
+func (cc *ConfCenter) XSet(key string, arg any) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
 	if item, ok := cc.xItems[key]; ok {
-		cc.xShout(item, arg)
+		if item.setter != nil {
+			item.setter(key, arg)
+		}
 	}
 }
-func (cc *ConfCenter) Xmit(key string, arg any) {
-	cc.XSend(key, arg)
-}
-
-func (cc *ConfCenter) XSendf(key string, arg any) {
+func (cc *ConfCenter) XGet(key string) any {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	item, ok := cc.xItems[key]
-	if !ok {
-		item = &xItem{
-			key: key,
+	if item, ok := cc.xItems[key]; ok {
+		if item.setter != nil {
+			return item.getter(key)
 		}
-		cc.xItems[item.key] = item
 	}
-
-	cc.xShout(item, arg)
-}
-func (cc *ConfCenter) Xmitf(key string, arg any) {
-	cc.XSendf(key, arg)
+	return nil
 }
 
 func (cc *ConfCenter) XRem(key string) {
@@ -81,33 +59,20 @@ func (cc *ConfCenter) XRem(key string) {
 
 // ///////////////////////////////////////////////////////////////////////
 // Monitor ///////////////////////////////////////////////////////////////
-func (cc *ConfCenter) XListenerAdd(key string, cbName string, cb xListener) string {
+func (cc *ConfCenter) XSetSetter(key string, setter xSetter) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	if cbName == "" {
-		cbName = uuid.New().String()
+	if item, ok := cc.xItems[key]; ok {
+		item.setter = setter
 	}
-
-	if e, ok := cc.xItems[key]; ok {
-		if e.listeners == nil {
-			e.listeners = make(map[string]xListener)
-		}
-		if _, ok := e.listeners[cbName]; !ok {
-			e.listeners[cbName] = cb
-			return cbName
-		}
-	}
-	return ""
 }
 
-func (cc *ConfCenter) XListenerRem(key string, cbName string) {
+func (cc *ConfCenter) XSetGetter(key string, getter xGetter) {
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
 
-	if e, ok := cc.xItems[key]; ok {
-		if e.listeners != nil {
-			delete(e.listeners, cbName)
-		}
+	if item, ok := cc.xItems[key]; ok {
+		item.getter = getter
 	}
 }

@@ -132,6 +132,30 @@ func SSplit(key string, sep string) []string {
 	return Default.SSplit(key, sep)
 }
 
+// Execture
+
+func XHas(key string) bool {
+	return Default.XHas(key)
+}
+func XAdd(key string) {
+	Default.XAdd(key)
+}
+func XSet(key string, arg any) {
+	Default.XSet(key, arg)
+}
+func XGet(key string) any {
+	return Default.XGet(key)
+}
+func XRem(key string) {
+	Default.XRem(key)
+}
+func XSetSetter(key string, setter xSetter) {
+	Default.XSetSetter(key, setter)
+}
+func XSetGetter(key string, getter xGetter) {
+	Default.XSetGetter(key, getter)
+}
+
 // ///////////////////////////////////////////////////////////////////////
 // Entries
 

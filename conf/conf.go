@@ -32,10 +32,14 @@ type ConfCenter struct {
 
 	mutex sync.Mutex
 
+	// i,s,b 是配置数据
+	// e是广播消息
+	// x是函数方式获取数据，类型是any
 	iItems map[string]*iItem
 	sItems map[string]*sItem
 	bItems map[string]*bItem
 	eItems map[string]*eItem
+	xItems map[string]*xItem
 
 	loadOKCount int
 	loadNGCount int
@@ -54,6 +58,7 @@ func New(Name string) *ConfCenter {
 		sItems: make(map[string]*sItem),
 		bItems: make(map[string]*bItem),
 		eItems: make(map[string]*eItem),
+		xItems: make(map[string]*xItem),
 
 		loadOKCount: 0,
 		loadNGCount: 0,
@@ -186,7 +191,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	cc.mutex.Lock()
 	for key, item := range cc.iItems {
 		iItemsNew := &iItem{
-			key:   item.key,
 			value: item.value,
 		}
 		if item.monitors != nil {
@@ -200,7 +204,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	}
 	for key, item := range cc.sItems {
 		sItemsNew := &sItem{
-			key:   item.key,
 			value: item.value,
 		}
 		if item.monitors != nil {
@@ -214,7 +217,6 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	}
 	for key, item := range cc.bItems {
 		bItemsNew := &bItem{
-			key:   item.key,
 			value: item.value,
 		}
 		if item.monitors != nil {
@@ -227,9 +229,7 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 		newcc.bItems[key] = bItemsNew
 	}
 	for key, item := range cc.eItems {
-		eItemsNew := &eItem{
-			key: item.key,
-		}
+		eItemsNew := &eItem{}
 		if item.listeners != nil {
 			listeners := make(map[string]eListener)
 			for n, m := range item.listeners {
@@ -238,6 +238,13 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 			eItemsNew.listeners = listeners
 		}
 		newcc.eItems[key] = eItemsNew
+	}
+	for key, item := range cc.xItems {
+		xItemsNew := &xItem{
+			setter: item.setter,
+			getter: item.getter,
+		}
+		newcc.xItems[key] = xItemsNew
 	}
 
 	newcc.loadOKCount = cc.loadOKCount
