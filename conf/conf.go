@@ -10,11 +10,13 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
-	_bPathReady = "conf/ready"
+	_sPathReady = "conf/readyAt"
 	_bDebug     = "conf/debug"
+	_xCCNames   = "conf/names"
 )
 
 //go:embed assets/*
@@ -78,13 +80,6 @@ func New(Name string) *ConfCenter {
 	ccList[tmpName] = cc
 	cc.Name = tmpName
 	cc.SSetf("conf/name", Name)
-
-	var ccNames []string
-	for ccName := range ccList {
-		ccNames = append(ccNames, ccName)
-	}
-	sort.Strings(ccNames)
-	cc.SSetf("conf/names", strings.Join(ccNames, ","))
 
 	return cc
 }
@@ -252,6 +247,9 @@ func (cc *ConfCenter) Clone(Name string) *ConfCenter {
 	newcc.debug = cc.debug
 	cc.mutex.Unlock()
 
+	cc.SSetf("conf/name", newcc.Name)
+
+	newcc.Go()
 	return newcc
 }
 
@@ -317,12 +315,12 @@ func (cc *ConfCenter) OnReady(cb func()) {
 }
 
 func (cc *ConfCenter) Ready() {
-	cc.BSet(_bPathReady, true)
+	cc.SSet(_sPathReady, time.Now().Format("2006-01-03 15:04:05.000000"))
 }
 
 // Last to call
 func (cc *ConfCenter) Go() {
-	if cc.BTrue(_bPathReady) {
+	if cc.S(_sPathReady) != "" {
 		return
 	}
 
@@ -347,7 +345,7 @@ func init() {
 	//
 	// Some builtin entries
 	//
-	Default.BSetf(_bPathReady, false)
+	Default.SSetf(_sPathReady, "")
 
 	if os.Getenv("MG_CONF_DEBUG") == "debug" {
 		Default.BSetf(_bDebug, true)
@@ -356,6 +354,16 @@ func init() {
 		Default.BSetf(_bDebug, false)
 		Default.debug = 0
 	}
+
+	Default.XAdd(_xCCNames)
+	Default.XSetGetter(_xCCNames, func(_ string) any {
+		var ccNames []string
+		for ccName := range ccList {
+			ccNames = append(ccNames, ccName)
+		}
+		sort.Strings(ccNames)
+		return strings.Join(ccNames, ",")
+	})
 
 	// 优先级: 命令行 > 环境变量
 	Default.LoadFromEnv()

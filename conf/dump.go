@@ -54,9 +54,9 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 	}
 	for key, item := range cc.xItems {
 		if item.getter != nil {
-			lines = append(lines, key, fmt.Sprintf("%v", item.getter(key)))
+			lines = append(lines, "x:/"+key, fmt.Sprintf("%v", item.getter(key)))
 		} else {
-			lines = append(lines, key, "...")
+			lines = append(lines, "x:/"+key, "...")
 		}
 	}
 
@@ -91,9 +91,9 @@ func (cc *ConfCenter) DumpMap() map[string]string {
 	}
 	for key, item := range cc.xItems {
 		if item.getter != nil {
-			dict["e:/"+key] = fmt.Sprintf("%v", item.getter(key))
+			dict["x:/"+key] = fmt.Sprintf("%v", item.getter(key))
 		} else {
-			dict["e:/"+key] = "..."
+			dict["x:/"+key] = "..."
 		}
 	}
 
