@@ -60,7 +60,7 @@ func Done() {
 
 	for cbList.Len() > 0 {
 		// 在处理前检查死循环
-		currentState := getBitmapState()
+		currentState := bitmap
 		if stateMap[currentState] {
 			panic(fmt.Sprintf("检测到死循环！状态 %v 重复出现", currentState))
 		}
@@ -89,53 +89,14 @@ func Done() {
 	}
 }
 
-// 设置位图中的某一位
 func setBitmapBit(index int) {
 	slot := index / 64
 	offset := uint(index % 64)
 	bitmap[slot] |= 1 << offset
 }
 
-// 清除位图中的某一位
 func clearBitmapBit(index int) {
 	slot := index / 64
 	offset := uint(index % 64)
 	bitmap[slot] &^= 1 << offset
-}
-
-// 获取当前位图状态
-func getBitmapState() [4]uint64 {
-	return bitmap
-}
-
-// 获取当前位图状态（用于调试）
-func GetBitmap() [4]uint64 {
-	mu.Lock()
-	defer mu.Unlock()
-	return bitmap
-}
-
-// 获取队列长度（用于调试）
-func GetQueueLen() int {
-	mu.Lock()
-	defer mu.Unlock()
-	return cbList.Len()
-}
-
-// 获取已分配的CB数量（用于调试）
-func GetTotalCBCount() int {
-	mu.Lock()
-	defer mu.Unlock()
-	return nextIndex
-}
-
-// 重置所有状态（用于测试或异常恢复）
-func Reset() {
-	mu.Lock()
-	defer mu.Unlock()
-
-	cbList.Init()
-	bitmap = [4]uint64{0, 0, 0, 0}
-	stateMap = make(map[[4]uint64]bool)
-	nextIndex = 0
 }
