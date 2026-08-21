@@ -337,9 +337,12 @@ func (cc *ConfCenter) Go() {
 // INIT
 // ///////////////////////////////////////////////////////////////////////
 func init() {
-	data, err := Assets.ReadFile("assets/main.cfg")
-	if err == nil {
-		Default.LoadFromText(string(data), false)
+	if data, err := os.ReadFile("/etc/miego/miego.cfg"); err == nil {
+		Default.LoadFromText(string(data), true)
+	}
+
+	if data, err := Assets.ReadFile("assets/main.cfg"); err == nil {
+		Default.LoadFromText(string(data), true)
 	}
 
 	//
