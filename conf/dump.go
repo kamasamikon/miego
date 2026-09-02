@@ -54,9 +54,9 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 	}
 	for key, item := range cc.xItems {
 		if item.getter != nil {
-			lines = append(lines, "x:/"+key, fmt.Sprintf("%v", item.getter(key)))
+			lines = append(lines, fmt.Sprintf(fmtstr, "x:/"+key, item.getter(key)))
 		} else {
-			lines = append(lines, "x:/"+key, "...")
+			lines = append(lines, fmt.Sprintf(fmtstr, "x:/"+key, "..."))
 		}
 	}
 
