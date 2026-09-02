@@ -190,8 +190,8 @@ func LoadFromArg() {
 // ///////////////////////////////////////////////////////////////////////
 // Dump
 
-func Dump(joinBy string) string {
-	return Default.Dump(joinBy)
+func Dump(joinBy string, match string) string {
+	return Default.Dump(joinBy, match)
 }
 func DumpMap() map[string]string {
 	return Default.DumpMap()

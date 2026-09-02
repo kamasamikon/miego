@@ -2,14 +2,20 @@ package conf
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
 
 // Dump : Print all entries
-func (cc *ConfCenter) Dump(joinBy string) string {
+func (cc *ConfCenter) Dump(joinBy string, match string) string {
 	keyMaxLength := 0
 	var lines []string
+	var re *regexp.Regexp
+
+	if match != "" {
+		re = regexp.MustCompile(match)
+	}
 
 	cc.mutex.Lock()
 	defer cc.mutex.Unlock()
@@ -41,22 +47,40 @@ func (cc *ConfCenter) Dump(joinBy string) string {
 	)
 
 	for key, item := range cc.iItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "i:/"+key, item.value))
+		x := fmt.Sprintf(fmtstr, "i:/"+key, item.value)
+		if re == nil || re.MatchString(x) {
+			lines = append(lines, x)
+		}
 	}
 	for key, item := range cc.sItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "s:/"+key, item.value))
+		x := fmt.Sprintf(fmtstr, "s:/"+key, item.value)
+		if re == nil || re.MatchString(x) {
+			lines = append(lines, x)
+		}
 	}
 	for key, item := range cc.bItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "b:/"+key, item.value))
+		x := fmt.Sprintf(fmtstr, "b:/"+key, item.value)
+		if re == nil || re.MatchString(x) {
+			lines = append(lines, x)
+		}
 	}
 	for key := range cc.eItems {
-		lines = append(lines, fmt.Sprintf(fmtstr, "e:/"+key, "..."))
+		x := fmt.Sprintf(fmtstr, "e:/"+key, "...")
+		if re == nil || re.MatchString(x) {
+			lines = append(lines, x)
+		}
 	}
 	for key, item := range cc.xItems {
 		if item.getter != nil {
-			lines = append(lines, fmt.Sprintf(fmtstr, "x:/"+key, item.getter(key)))
+			x := fmt.Sprintf(fmtstr, "x:/"+key, item.getter(key))
+			if re == nil || re.MatchString(x) {
+				lines = append(lines, x)
+			}
 		} else {
-			lines = append(lines, fmt.Sprintf(fmtstr, "x:/"+key, "..."))
+			x := fmt.Sprintf(fmtstr, "x:/"+key, "...")
+			if re == nil || re.MatchString(x) {
+				lines = append(lines, x)
+			}
 		}
 	}
 

@@ -231,13 +231,19 @@ func DumpS(obj interface{}, strPart ...interface{}) string {
 		s = cfg.Sdump(obj)
 
 	case 1:
-		s = strPart[0].(string)
+		s = ColorType_F
+		s += strPart[0].(string)
+		s += ColorType_Reset
+		s += " "
 		s += cfg.Sdump(obj)
 
 	default:
 		fmtPart := strPart[0].(string)
 		argPart := strPart[1:]
-		s = fmt.Sprintf(fmtPart, argPart...)
+		s = ColorType_F
+		s += fmt.Sprintf(fmtPart, argPart...)
+		s += ColorType_Reset
+		s += " "
 		s += cfg.Sdump(obj)
 	}
 
