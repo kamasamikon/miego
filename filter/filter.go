@@ -24,3 +24,24 @@ func filterList(arr []string, pattern string) []string {
 func filter(text string, pattern string) string {
 	return strings.Join(filterList(strings.Split(text, "\n"), pattern), "\n")
 }
+
+// InVerse
+// untouched when error
+func vfilterList(arr []string, pattern string) []string {
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return arr
+	}
+
+	result := make([]string, 0, len(arr))
+	for _, s := range arr {
+		if !re.MatchString(s) {
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
+func vfilter(text string, pattern string) string {
+	return strings.Join(vfilterList(strings.Split(text, "\n"), pattern), "\n")
+}

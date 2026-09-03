@@ -17,7 +17,7 @@ type context struct {
 	pong        interface{}
 	contentType string
 	header      map[string]string
-	cookie      map[string]string
+	cookies     []*http.Cookie
 	noRedirect  bool
 	timeout     time.Duration
 	transport   *http.Transport
@@ -39,11 +39,18 @@ func (c *context) Header(k string, v string) *context {
 	return c
 }
 
-func (c *context) Cookie(k string, v string) *context {
-	if c.cookie == nil {
-		c.cookie = make(map[string]string)
+func (c *context) Headers(items map[string]string) *context {
+	if c.header == nil {
+		c.header = make(map[string]string)
 	}
-	c.cookie[k] = v
+	for k, v := range items {
+		c.header[k] = v
+	}
+	return c
+}
+
+func (c *context) Cookie(cookie *http.Cookie) *context {
+	c.cookies = append(c.cookies, cookie)
 	return c
 }
 
@@ -111,14 +118,8 @@ func (c *context) Post() (resp *http.Response, err error) {
 	req, err := http.NewRequest("POST", c.url, strings.NewReader(pingString))
 
 	// Set Cookie
-	for k, v := range c.cookie {
-		req.AddCookie(
-			&http.Cookie{
-				Name:     k,
-				Value:    v,
-				HttpOnly: true,
-			},
-		)
+	for _, cookie := range c.cookies {
+		req.AddCookie(cookie)
 	}
 
 	// Set Header, include contentType
@@ -184,14 +185,8 @@ func (c *context) Get() (resp *http.Response, err error) {
 	req, err := http.NewRequest("GET", c.url, nil)
 
 	// Set Cookie
-	for k, v := range c.cookie {
-		req.AddCookie(
-			&http.Cookie{
-				Name:     k,
-				Value:    v,
-				HttpOnly: true,
-			},
-		)
+	for _, cookie := range c.cookies {
+		req.AddCookie(cookie)
 	}
 
 	// Set Header, include contentType
