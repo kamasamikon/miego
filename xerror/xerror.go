@@ -16,12 +16,12 @@ type Error struct {
 	Message string
 
 	// 堆栈信息：xerror.New的位置
-	File string
-	Line int
-	Func string
+	File      string
+	ErrorLine int
+	Func      string
 
 	// 堆栈信息：函数调用的行
-	CallLine int
+	CallerLine int
 
 	// 链式结构：指向下一级（更底层的错误）
 	// 注意：设计为链表，方便遍历
@@ -41,12 +41,12 @@ func (e *Error) Unwrap() error {
 }
 
 func New(base error, format string, args ...interface{}) *Error {
-	_, _, callLine, _ := runtime.Caller(2)
+	_, _, callerLine, _ := runtime.Caller(2)
 
-	pc, file, line, ok := runtime.Caller(1)
+	pc, file, errorLine, ok := runtime.Caller(1)
 	if !ok {
 		file = "unknown"
-		line = 0
+		errorLine = 0
 	}
 
 	funcName := "unknown"
@@ -61,12 +61,12 @@ func New(base error, format string, args ...interface{}) *Error {
 	msg := fmt.Sprintf(format, args...)
 
 	return &Error{
-		Base:     base,
-		Message:  msg,
-		File:     filepath.Base(file), // 只保留文件名，不保留完整路径
-		Line:     line,
-		Func:     funcName,
-		CallLine: callLine,
+		Base:       base,
+		Message:    msg,
+		File:       filepath.Base(file), // 只保留文件名，不保留完整路径
+		ErrorLine:  errorLine,
+		Func:       funcName,
+		CallerLine: callerLine,
 	}
 }
 
@@ -95,7 +95,7 @@ func (e *Error) Stack() []string {
 	// 2. 遍历 chain，生成堆栈字符串
 	for _, err := range chain {
 		// 格式：函数名 文件名:(调用行号~错误行号): 错误信息
-		line := fmt.Sprintf("%s:%s:%d (~%d): %s", err.File, err.Func, err.Line, err.CallLine, err.Message)
+		line := fmt.Sprintf("%s:%s:%d (~%d): %s", err.File, err.Func, err.ErrorLine, err.CallerLine, err.Message)
 		stacks = append(stacks, line)
 	}
 
