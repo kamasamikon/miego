@@ -104,8 +104,13 @@ func (c *context) Post() (resp *http.Response, err error) {
 		pingString = ""
 	} else {
 		if s, ok := c.ping.(string); ok {
+			// as string
 			pingString = s
+		} else if s, ok := c.ping.([]byte); ok {
+			// as []byte
+			pingString = string(s)
 		} else {
+			// as json object
 			bytes, err := json.Marshal(c.ping)
 			if err != nil {
 				return nil, err
@@ -114,6 +119,7 @@ func (c *context) Post() (resp *http.Response, err error) {
 		}
 	}
 
+	klog.Dump(pingString, "pingString:")
 	// New Request
 	req, err := http.NewRequest("POST", c.url, strings.NewReader(pingString))
 
