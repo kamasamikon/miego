@@ -167,7 +167,12 @@ func (c *context) Post() (resp *http.Response, err error) {
 
 // Get : HTTPGet convert the response to pongObj structure
 func (c *context) Get() (resp *http.Response, err error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: c.timeout,
+	}
+	if c.transport != nil {
+		client.Transport = c.transport
+	}
 
 	if c.noRedirect {
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -190,7 +195,7 @@ func (c *context) Get() (resp *http.Response, err error) {
 	}
 
 	// Set Header, include contentType
-	for k, v := range c.cookie {
+	for k, v := range c.header {
 		req.Header.Add(k, v)
 	}
 	req.Header.Add("Content-Type", c.contentType)
