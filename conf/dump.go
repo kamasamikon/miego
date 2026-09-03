@@ -8,13 +8,17 @@ import (
 )
 
 // Dump : Print all entries
-func (cc *ConfCenter) Dump(joinBy string, match string) string {
+func (cc *ConfCenter) Dump(joinBy string, match, vmatch string) string {
 	keyMaxLength := 0
 	var lines []string
 	var re *regexp.Regexp
+	var vre *regexp.Regexp
 
 	if match != "" {
 		re = regexp.MustCompile(match)
+	}
+	if vmatch != "" {
+		vre = regexp.MustCompile(vmatch)
 	}
 
 	cc.mutex.Lock()
@@ -48,24 +52,36 @@ func (cc *ConfCenter) Dump(joinBy string, match string) string {
 
 	for key, item := range cc.iItems {
 		x := fmt.Sprintf(fmtstr, "i:/"+key, item.value)
+		if vre == nil || vre.MatchString(x) {
+			continue
+		}
 		if re == nil || re.MatchString(x) {
 			lines = append(lines, x)
 		}
 	}
 	for key, item := range cc.sItems {
 		x := fmt.Sprintf(fmtstr, "s:/"+key, item.value)
+		if vre == nil || vre.MatchString(x) {
+			continue
+		}
 		if re == nil || re.MatchString(x) {
 			lines = append(lines, x)
 		}
 	}
 	for key, item := range cc.bItems {
 		x := fmt.Sprintf(fmtstr, "b:/"+key, item.value)
+		if vre == nil || vre.MatchString(x) {
+			continue
+		}
 		if re == nil || re.MatchString(x) {
 			lines = append(lines, x)
 		}
 	}
 	for key := range cc.eItems {
 		x := fmt.Sprintf(fmtstr, "e:/"+key, "...")
+		if vre == nil || vre.MatchString(x) {
+			continue
+		}
 		if re == nil || re.MatchString(x) {
 			lines = append(lines, x)
 		}
@@ -73,11 +89,17 @@ func (cc *ConfCenter) Dump(joinBy string, match string) string {
 	for key, item := range cc.xItems {
 		if item.getter != nil {
 			x := fmt.Sprintf(fmtstr, "x:/"+key, item.getter(key))
+			if vre == nil || vre.MatchString(x) {
+				continue
+			}
 			if re == nil || re.MatchString(x) {
 				lines = append(lines, x)
 			}
 		} else {
 			x := fmt.Sprintf(fmtstr, "x:/"+key, "...")
+			if vre == nil || vre.MatchString(x) {
+				continue
+			}
 			if re == nil || re.MatchString(x) {
 				lines = append(lines, x)
 			}

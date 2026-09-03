@@ -329,7 +329,7 @@ func (cc *ConfCenter) Go() {
 		go cb()
 	}
 	if os.Getenv("MG_CONF_DUMP") == "1" {
-		fmt.Println(cc.Dump("\n", ""))
+		fmt.Println(cc.Dump("\n", "", ""))
 	}
 }
 
