@@ -119,7 +119,6 @@ func (c *context) Post() (resp *http.Response, err error) {
 		}
 	}
 
-	klog.Dump(pingString, "pingString:")
 	// New Request
 	req, err := http.NewRequest("POST", c.url, strings.NewReader(pingString))
 
