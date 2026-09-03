@@ -37,36 +37,24 @@ func (e *Error) Unwrap() error {
 	return e.Base
 }
 
-// New 创建一个新的 nerror 错误
-// 参数：
-//   - base: 上一级错误（可以为 nil）
-//   - format: 错误信息格式化字符串
-//   - args: 格式化参数
-//
-// 返回：*Error
 func New(base error, format string, args ...interface{}) *Error {
-	// 1. 获取调用者的文件、函数、行号（跳过当前函数和 New 自身，共 2 层）
-	pc, file, line, ok := runtime.Caller(2)
+	pc, file, line, ok := runtime.Caller(1)
 	if !ok {
 		file = "unknown"
 		line = 0
 	}
 
-	// 2. 获取函数名（只保留函数名，去掉包路径）
 	funcName := "unknown"
 	if ok {
 		fn := runtime.FuncForPC(pc)
 		if fn != nil {
-			// 提取函数名（去掉包路径）
 			parts := strings.Split(fn.Name(), ".")
 			funcName = parts[len(parts)-1]
 		}
 	}
 
-	// 3. 格式化错误信息
 	msg := fmt.Sprintf(format, args...)
 
-	// 4. 构造 nerror 实例
 	return &Error{
 		Base:    base,
 		Message: msg,
