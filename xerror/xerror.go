@@ -1,4 +1,4 @@
-package nerror
+package xerror
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Error 是 nerror 的错误类型，实现了 error 接口
+// Error 是 xerror 的错误类型，实现了 error 接口
 type Error struct {
 	// 上一级错误（被包装的底层错误）
 	Base error
@@ -78,7 +78,7 @@ func (e *Error) Stack() []string {
 		if next, ok := current.Base.(*Error); ok {
 			current = next
 		} else if current.Base != nil {
-			// 如果 Base 是普通 error（非 nerror），直接作为叶子节点
+			// 如果 Base 是普通 error（非 xerror），直接作为叶子节点
 			// 但我们不把它加入 chain，因为普通 error 没有堆栈信息
 			break
 		} else {
