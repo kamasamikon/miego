@@ -15,10 +15,13 @@ type Error struct {
 	// 当前错误信息（由 fmt 生成）
 	Message string
 
-	// 堆栈信息：当前错误产生的位置
+	// 堆栈信息：xerror.New的位置
 	File string
 	Line int
 	Func string
+
+	// 堆栈信息：函数调用的行
+	CallLine int
 
 	// 链式结构：指向下一级（更底层的错误）
 	// 注意：设计为链表，方便遍历
@@ -38,6 +41,8 @@ func (e *Error) Unwrap() error {
 }
 
 func New(base error, format string, args ...interface{}) *Error {
+	_, _, callLine, _ := runtime.Caller(2)
+
 	pc, file, line, ok := runtime.Caller(1)
 	if !ok {
 		file = "unknown"
@@ -56,11 +61,12 @@ func New(base error, format string, args ...interface{}) *Error {
 	msg := fmt.Sprintf(format, args...)
 
 	return &Error{
-		Base:    base,
-		Message: msg,
-		File:    filepath.Base(file), // 只保留文件名，不保留完整路径
-		Line:    line,
-		Func:    funcName,
+		Base:     base,
+		Message:  msg,
+		File:     filepath.Base(file), // 只保留文件名，不保留完整路径
+		Line:     line,
+		Func:     funcName,
+		CallLine: callLine,
 	}
 }
 
@@ -88,8 +94,8 @@ func (e *Error) Stack() []string {
 
 	// 2. 遍历 chain，生成堆栈字符串
 	for _, err := range chain {
-		// 格式：函数名 文件名:行号: 错误信息
-		line := fmt.Sprintf("[%s] %s:%d: %s", err.Func, err.File, err.Line, err.Message)
+		// 格式：函数名 文件名:(调用行号~错误行号): 错误信息
+		line := fmt.Sprintf("%s:%s:%d (~%d): %s", err.File, err.Func, err.Line, err.CallLine, err.Message)
 		stacks = append(stacks, line)
 	}
 
@@ -104,3 +110,64 @@ func (e *Error) StringWithStack() string {
 
 // 确保 *Error 实现了 error 接口
 var _ error = (*Error)(nil)
+
+/*
+package main
+
+import (
+	"fmt"
+	"miego/xerror"
+)
+
+func Layer0() error {
+	return xerror.New(nil, "Layer0: database connection timeout")
+}
+
+func Layer1() error {
+	if err := Layer0(); err != nil {
+		return xerror.New(err, "Layer1: query failed")
+	}
+	return nil
+}
+
+func Layer2() error {
+	if err := Layer1(); err != nil {
+		return xerror.New(err, "Layer2: failed to process")
+	}
+	return nil
+}
+
+func main() {
+	err := Layer2()
+	if err != nil {
+		fmt.Println("// 方式1：打印错误信息（含链）.................")
+		fmt.Println(err)
+
+		fmt.Println("// 方式2：打印堆栈列表.................")
+		if ne, ok := err.(*xerror.Error); ok {
+			stacks := ne.Stack()
+			for i, s := range stacks {
+				fmt.Printf("%d: %s\n", i+1, s)
+			}
+		}
+
+		fmt.Println("// 方式3：直接打印完整堆栈（方式2的简化）.................")
+		if ne, ok := err.(*xerror.Error); ok {
+			fmt.Println(ne.StringWithStack())
+		}
+	}
+}
+
+
+:!go run main.go
+// 方式1：打印错误信息（含链）.................
+Layer2: failed to process: Layer1: query failed: Layer0: database connection timeout
+// 方式2：打印堆栈列表.................
+1: main.go:Layer0:9 (~13): Layer0: database connection timeout
+2: main.go:Layer1:14 (~20): Layer1: query failed
+3: main.go:Layer2:21 (~27): Layer2: failed to process
+// 方式3：直接打印完整堆栈（方式2的简化）.................
+main.go:Layer0:9 (~13): Layer0: database connection timeout
+main.go:Layer1:14 (~20): Layer1: query failed
+main.go:Layer2:21 (~27): Layer2: failed to process
+*/
