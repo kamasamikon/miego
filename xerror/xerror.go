@@ -21,6 +21,7 @@ type Error struct {
 	Func      string
 
 	// 堆栈信息：函数调用的行
+	CallerFile string
 	CallerLine int
 
 	// 链式结构：指向下一级（更底层的错误）
@@ -29,10 +30,13 @@ type Error struct {
 
 // Error 实现 error 接口，返回当前错误的信息
 func (e *Error) Error() string {
-	if e.Base != nil {
-		return e.Message + ": " + e.Base.Error()
-	}
-	return e.Message
+	return e.StringWithStack()
+	/*
+		if e.Base != nil {
+			return e.Message + ": " + e.Base.Error()
+		}
+		return e.Message
+	*/
 }
 
 // Unwrap 实现 errors.Unwrap 接口，支持 errors.Is / errors.As
@@ -41,7 +45,7 @@ func (e *Error) Unwrap() error {
 }
 
 func New(base error, format string, args ...interface{}) *Error {
-	_, _, callerLine, _ := runtime.Caller(2)
+	_, callerFile, callerLine, _ := runtime.Caller(2)
 
 	pc, file, errorLine, ok := runtime.Caller(1)
 	if !ok {
@@ -67,6 +71,7 @@ func New(base error, format string, args ...interface{}) *Error {
 		ErrorLine:  errorLine,
 		Func:       funcName,
 		CallerLine: callerLine,
+		CallerFile: filepath.Base(callerFile),
 	}
 }
 
@@ -95,7 +100,12 @@ func (e *Error) Stack() []string {
 	// 2. 遍历 chain，生成堆栈字符串
 	for _, err := range chain {
 		// 格式：函数名 文件名:(调用行号~错误行号): 错误信息
-		line := fmt.Sprintf("%s:%s:%d (~%d): %s", err.File, err.Func, err.ErrorLine, err.CallerLine, err.Message)
+		line := fmt.Sprintf(
+			"(%s:%d => %s:%d:%s) %s",
+			err.CallerFile, err.CallerLine,
+			err.File, err.ErrorLine, err.Func,
+			err.Message,
+		)
 		stacks = append(stacks, line)
 	}
 
@@ -105,7 +115,13 @@ func (e *Error) Stack() []string {
 // Error 辅助函数：直接打印完整堆栈（方便调试）
 func (e *Error) StringWithStack() string {
 	stacks := e.Stack()
-	return strings.Join(stacks, "\n")
+	size := len(stacks)
+
+	var arr []string
+	for i := range stacks {
+		arr = append(arr, fmt.Sprintf("[%d] %s", i+1, stacks[size-i-1]))
+	}
+	return strings.Join(arr, "\n")
 }
 
 // 确保 *Error 实现了 error 接口
