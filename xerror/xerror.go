@@ -119,7 +119,6 @@ func (e *Error) Stack() []string {
 
 // Error 辅助函数：直接打印完整堆栈（方便调试）
 func (e *Error) StringWithStack() string {
-	stacks := e.Stack()
 	var arr []string
 	for i, item := range e.Stack() {
 		arr = append(arr, fmt.Sprintf("[%d] %s", i+1, item))
