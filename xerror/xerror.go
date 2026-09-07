@@ -23,20 +23,15 @@ type Error struct {
 	// 堆栈信息：函数调用的行
 	CallerFile string
 	CallerLine int
-
-	// 链式结构：指向下一级（更底层的错误）
-	// 注意：设计为链表，方便遍历
 }
 
 // Error 实现 error 接口，返回当前错误的信息
 func (e *Error) Error() string {
 	return e.StringWithStack()
-	/*
-		if e.Base != nil {
-			return e.Message + ": " + e.Base.Error()
-		}
-		return e.Message
-	*/
+	if e.Base != nil {
+		return e.Message + ": " + e.Base.Error()
+	}
+	return e.Message
 }
 
 // Unwrap 实现 errors.Unwrap 接口，支持 errors.Is / errors.As
@@ -67,7 +62,7 @@ func New(base error, format string, args ...interface{}) *Error {
 	return &Error{
 		Base:       base,
 		Message:    msg,
-		File:       filepath.Base(file), // 只保留文件名，不保留完整路径
+		File:       filepath.Base(file),
 		ErrorLine:  errorLine,
 		Func:       funcName,
 		CallerLine: callerLine,
@@ -75,31 +70,41 @@ func New(base error, format string, args ...interface{}) *Error {
 	}
 }
 
-// Stack 返回从最底层到当前层的完整堆栈信息（字符串切片）
-// 每一条格式为："[函数名] 文件名:行号: 错误信息"
 func (e *Error) Stack() []string {
 	var stacks []string
 
-	// 1. 收集所有层级（从最底层到最顶层）
 	var chain []*Error
 	current := e
 	for current != nil {
-		chain = append([]*Error{current}, chain...) // 头插法，使顺序为 底层 → 顶层
-		// 尝试解包到下一层
+		chain = append(
+			chain,
+			&Error{
+				Base:       current.Base,
+				Message:    current.Message,
+				File:       current.File,
+				ErrorLine:  current.ErrorLine,
+				Func:       current.Func,
+				CallerFile: current.CallerFile,
+				CallerLine: current.CallerLine,
+			},
+		)
+
 		if next, ok := current.Base.(*Error); ok {
 			current = next
 		} else if current.Base != nil {
-			// 如果 Base 是普通 error（非 xerror），直接作为叶子节点
-			// 但我们不把它加入 chain，因为普通 error 没有堆栈信息
+			chain = append(
+				chain,
+				&Error{
+					Message: current.Base.Error(),
+				},
+			)
 			break
 		} else {
 			current = nil
 		}
 	}
 
-	// 2. 遍历 chain，生成堆栈字符串
 	for _, err := range chain {
-		// 格式：函数名 文件名:(调用行号~错误行号): 错误信息
 		line := fmt.Sprintf(
 			"(%s:%d => %s:%d:%s) %s",
 			err.CallerFile, err.CallerLine,
@@ -115,11 +120,9 @@ func (e *Error) Stack() []string {
 // Error 辅助函数：直接打印完整堆栈（方便调试）
 func (e *Error) StringWithStack() string {
 	stacks := e.Stack()
-	size := len(stacks)
-
 	var arr []string
-	for i := range stacks {
-		arr = append(arr, fmt.Sprintf("[%d] %s", i+1, stacks[size-i-1]))
+	for i, item := range e.Stack() {
+		arr = append(arr, fmt.Sprintf("[%d] %s", i+1, item))
 	}
 	return strings.Join(arr, "\n")
 }
