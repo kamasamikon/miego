@@ -108,6 +108,12 @@ func Go(
 	}
 
 	conf.SSetf("gin/addr", addr)
+
+	if a, err := net.ResolveTCPAddr("tcp", addr); err != nil {
+		conf.SSetf("gin/addr/ip", a.IP.String())
+		conf.ISetf("gin/addr/port", a.Port)
+	}
+
 	RoutersToConf(Engine)
 	gracefulRun(Engine, addr)
 	return nil

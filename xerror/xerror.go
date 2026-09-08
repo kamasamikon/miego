@@ -39,17 +39,13 @@ func (e *Error) Unwrap() error {
 	return e.Base
 }
 
-func New(base error, format string, args ...interface{}) *Error {
-	_, callerFile, callerLine, _ := runtime.Caller(2)
-
+func New(base error) *Error {
+	funcName := "unknown"
 	pc, file, errorLine, ok := runtime.Caller(1)
 	if !ok {
 		file = "unknown"
 		errorLine = 0
-	}
-
-	funcName := "unknown"
-	if ok {
+	} else {
 		fn := runtime.FuncForPC(pc)
 		if fn != nil {
 			parts := strings.Split(fn.Name(), ".")
@@ -57,11 +53,36 @@ func New(base error, format string, args ...interface{}) *Error {
 		}
 	}
 
-	msg := fmt.Sprintf(format, args...)
-
+	_, callerFile, callerLine, _ := runtime.Caller(2)
 	return &Error{
 		Base:       base,
-		Message:    msg,
+		Message:    "",
+		File:       filepath.Base(file),
+		ErrorLine:  errorLine,
+		Func:       funcName,
+		CallerLine: callerLine,
+		CallerFile: filepath.Base(callerFile),
+	}
+}
+
+func Newf(base error, format string, args ...interface{}) *Error {
+	funcName := "unknown"
+	pc, file, errorLine, ok := runtime.Caller(1)
+	if !ok {
+		file = "unknown"
+		errorLine = 0
+	} else {
+		fn := runtime.FuncForPC(pc)
+		if fn != nil {
+			parts := strings.Split(fn.Name(), ".")
+			funcName = parts[len(parts)-1]
+		}
+	}
+
+	_, callerFile, callerLine, _ := runtime.Caller(2)
+	return &Error{
+		Base:       base,
+		Message:    fmt.Sprintf(format, args...),
 		File:       filepath.Base(file),
 		ErrorLine:  errorLine,
 		Func:       funcName,
