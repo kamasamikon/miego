@@ -107,7 +107,7 @@ func (cc *ConfCenter) Dump(joinBy string, match, vmatch string) string {
 	}
 
 	sort.Slice(lines, func(i int, j int) bool {
-		return strings.Compare(lines[i][1:], lines[j][1:]) < 0
+		return strings.Compare(lines[i][8:], lines[j][8:]) < 0
 	})
 
 	// Add the last \n

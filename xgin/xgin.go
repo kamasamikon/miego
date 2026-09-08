@@ -85,7 +85,9 @@ func RoutersToConf(Engine *gin.Engine) {
 }
 
 func Go(
-	Engine *gin.Engine, addr string,
+	Engine *gin.Engine,
+	addr string,
+	blockMode bool,
 	cb func(Engine *gin.Engine),
 ) error {
 	if conf.BTrue("gin/releaseMode") {
@@ -103,19 +105,22 @@ func Go(
 		}
 	}
 
+	conf.SSetf("gin/addr", addr)
+	if a, err := net.ResolveTCPAddr("tcp", addr); err == nil {
+		conf.SSetf("gin/addr/ip", a.IP.String())
+		conf.ISetf("gin/addr/port", a.Port)
+	}
+	RoutersToConf(Engine)
+
 	if cb != nil {
 		cb(Engine)
 	}
 
-	conf.SSetf("gin/addr", addr)
-
-	if a, err := net.ResolveTCPAddr("tcp", addr); err != nil {
-		conf.SSetf("gin/addr/ip", a.IP.String())
-		conf.ISetf("gin/addr/port", a.Port)
+	if blockMode {
+		gracefulRun(Engine, addr)
+	} else {
+		go gracefulRun(Engine, addr)
 	}
-
-	RoutersToConf(Engine)
-	gracefulRun(Engine, addr)
 	return nil
 }
 
