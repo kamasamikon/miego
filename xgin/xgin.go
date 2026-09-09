@@ -178,7 +178,11 @@ func Go(
 
 	conf.SSetf("gin/addr", addr)
 	if a, err := net.ResolveTCPAddr("tcp", addr); err == nil {
-		conf.SSetf("gin/addr/ip", a.IP.String())
+		if a.IP == nil {
+			conf.SSetf("gin/addr/ip", "127.0.0.1")
+		} else {
+			conf.SSetf("gin/addr/ip", a.IP.String())
+		}
 		conf.ISetf("gin/addr/port", a.Port)
 	}
 	RoutersToConf(Engine)
