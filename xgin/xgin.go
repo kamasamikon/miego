@@ -184,7 +184,10 @@ func Go(
 			conf.SSetf("gin/addr/ip", a.IP.String())
 		}
 		conf.ISetf("gin/addr/port", a.Port)
+	} else {
+		return err
 	}
+
 	RoutersToConf(Engine)
 
 	if cb != nil {

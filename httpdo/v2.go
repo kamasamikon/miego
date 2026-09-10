@@ -21,6 +21,7 @@ type context struct {
 	noRedirect  bool
 	timeout     time.Duration
 	transport   *http.Transport
+	lastErr     error // Last error
 }
 
 func New(url string) *context {
@@ -32,6 +33,9 @@ func New(url string) *context {
 }
 
 func (c *context) Header(k string, v string) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	if c.header == nil {
 		c.header = make(map[string]string)
 	}
@@ -40,6 +44,9 @@ func (c *context) Header(k string, v string) *context {
 }
 
 func (c *context) Headers(items map[string]string) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	if c.header == nil {
 		c.header = make(map[string]string)
 	}
@@ -50,36 +57,57 @@ func (c *context) Headers(items map[string]string) *context {
 }
 
 func (c *context) Cookie(cookie *http.Cookie) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.cookies = append(c.cookies, cookie)
 	return c
 }
 
 func (c *context) ContentType(contentType string) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.contentType = contentType
 	return c
 }
 
 func (c *context) Timeout(timeout time.Duration) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.timeout = timeout
 	return c
 }
 
 func (c *context) Transport(transport *http.Transport) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.transport = transport
 	return c
 }
 
 func (c *context) Redirect(Redirect bool) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.noRedirect = !Redirect
 	return c
 }
 
 func (c *context) Ping(ping interface{}) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.ping = ping
 	return c
 }
 
 func (c *context) Pong(pong interface{}) *context {
+	if c.lastErr != nil {
+		return c
+	}
 	c.pong = pong
 	return c
 }
@@ -121,6 +149,10 @@ func (c *context) Post() (resp *http.Response, err error) {
 
 	// New Request
 	req, err := http.NewRequest("POST", c.url, strings.NewReader(pingString))
+	if err != nil {
+		c.lastErr = err
+		return nil, err
+	}
 
 	// Set Cookie
 	for _, cookie := range c.cookies {
@@ -188,6 +220,10 @@ func (c *context) Get() (resp *http.Response, err error) {
 
 	// New Request
 	req, err := http.NewRequest("GET", c.url, nil)
+	if err != nil {
+		c.lastErr = err
+		return nil, err
+	}
 
 	// Set Cookie
 	for _, cookie := range c.cookies {
