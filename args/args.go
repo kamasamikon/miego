@@ -178,3 +178,19 @@ func Arg(index int) (arg string, ok bool) {
 	ok = true
 	return
 }
+
+// os.Args[index]
+func At(index int) (arg string, ok bool) {
+	size := len(os.Args)
+
+	if index < 0 {
+		index = size + index
+	}
+	if index < 0 || index >= size {
+		return
+	}
+
+	arg = os.Args[index]
+	ok = true
+	return
+}
