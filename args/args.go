@@ -194,3 +194,12 @@ func At(index int) (arg string, ok bool) {
 	ok = true
 	return
 }
+
+func IndexOf(s string) int {
+	for i, x := range os.Args {
+		if x == s {
+			return i
+		}
+	}
+	return -1
+}
