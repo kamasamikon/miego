@@ -54,6 +54,10 @@ func Add(cb func() bool) {
 	cbList.PushBack(cbInfo)
 }
 
+func Len() {
+	return cbList.Len()
+}
+
 func Done() {
 	mu.Lock()
 	defer mu.Unlock()
