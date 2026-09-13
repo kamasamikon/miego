@@ -3,6 +3,7 @@ package klog
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -79,6 +80,9 @@ func KLogS(dep int, shortPath int, color string, class rune, lf bool, formating 
 
 	sb.WriteRune('|')
 	sb.WriteString(now)
+
+	sb.WriteRune('|')
+	sb.WriteString(fmt.Sprintf("%d", os.Getpid()))
 
 	sb.WriteRune('|')
 	sb.WriteString(filename)

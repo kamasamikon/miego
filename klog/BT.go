@@ -23,8 +23,11 @@ func BT(maxdep int, formating string, args ...interface{}) {
 	cEnd := ColorType_Reset
 	cStart := ColorType_N
 
+	content := ""
 	txt := fmt.Sprintf(formating, args...)
-	content := fmt.Sprintf("%s|BT|%s %s\n", cStart, cEnd, txt)
+	if txt != "" {
+		content = fmt.Sprintf("%s|BT|%s %s\n", cStart, cEnd, txt)
+	}
 
 	dep := 0
 	for {
@@ -43,7 +46,7 @@ func BT(maxdep int, formating string, args ...interface{}) {
 		funcname = filepath.Ext(funcname)
 		funcname = strings.TrimPrefix(funcname, ".")
 
-		content += fmt.Sprintf("%s|%02d| F:%s|H:%s|L:%d|%s\n", cStart, dep, filename, funcname, line, cEnd)
+		content += fmt.Sprintf("%s|BT:%02d| F:%s|H:%s|L:%d|%s\n", cStart, dep, filename, funcname, line, cEnd)
 	}
 
 	s := []byte(content)
