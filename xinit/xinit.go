@@ -16,14 +16,13 @@ var (
 	mu     sync.Mutex
 
 	// 位图相关 - 4个uint64支持256个CB
-	bitmap    [4]uint64          // bitmap[0]:0-63, bitmap[1]:64-127, bitmap[2]:128-191, bitmap[3]:192-255
-	stateMap  map[[4]uint64]bool // 记录出现过的状态
-	nextIndex int                // 下一个可用的位图索引
+	// bitmap[0]:0-63, bitmap[1]:64-127, bitmap[2]:128-191, bitmap[3]:192-255
+	bitmap    [4]uint64
+	nextIndex int // 下一个可用的位图索引
 )
 
 func init() {
 	cbList = list.New()
-	stateMap = make(map[[4]uint64]bool)
 	nextIndex = 0
 }
 
@@ -36,17 +35,14 @@ func Add(cb func() bool) {
 	defer mu.Unlock()
 
 	if nextIndex >= 256 {
-		panic("最多支持256个并发CB")
+		panic("最多支持256个CB")
 	}
 
-	// 分配位图索引
 	index := nextIndex
 	nextIndex++
 
-	// 在位图中标记
 	setBitmapBit(index)
 
-	// 添加到队列
 	cbInfo := &CBInfo{
 		bitmapIndex: index,
 		cb:          cb,
@@ -54,22 +50,19 @@ func Add(cb func() bool) {
 	cbList.PushBack(cbInfo)
 }
 
-func Len() {
-	return cbList.Len()
-}
-
 func Done() {
 	mu.Lock()
 	defer mu.Unlock()
 
-	for cbList.Len() > 0 {
-		// 在处理前检查死循环
-		currentState := bitmap
-		if stateMap[currentState] {
-			panic(fmt.Sprintf("检测到死循环！状态 %v 重复出现", currentState))
-		}
-		stateMap[currentState] = true
+	if cbList.Len() == 0 {
+		return
+	}
 
+	// 一轮完整扫描的长度：连续这么多次没有成功，即认为无法推进
+	maxNoProgress := cbList.Len()
+	noProgress := 0
+
+	for cbList.Len() > 0 {
 		elem := cbList.Front()
 		if elem == nil {
 			break
@@ -78,17 +71,18 @@ func Done() {
 		cbInfo := elem.Value.(*CBInfo)
 		cbList.Remove(elem)
 
-		// 执行回调
 		ok := cbInfo.cb()
 
-		if !ok {
-			// 失败，重新入队（位图保持不变）
-			if cbList.Len() > 0 {
-				cbList.PushBack(cbInfo)
-			}
-		} else {
-			// 成功，清除位图标记
+		if ok {
 			clearBitmapBit(cbInfo.bitmapIndex)
+			noProgress = 0
+		} else {
+			// 失败：无条件重新入队
+			cbList.PushBack(cbInfo)
+			noProgress++
+			if noProgress >= maxNoProgress {
+				return fmt.Errorf("初始化无法完成：连续 %d 次没有回调成功，剩余位图=%v", noProgress, bitmap,)
+			}
 		}
 	}
 }
