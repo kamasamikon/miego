@@ -50,12 +50,12 @@ func Add(cb func() bool) {
 	cbList.PushBack(cbInfo)
 }
 
-func Done() {
+func Done() error {
 	mu.Lock()
 	defer mu.Unlock()
 
 	if cbList.Len() == 0 {
-		return
+		return nil
 	}
 
 	// 一轮完整扫描的长度：连续这么多次没有成功，即认为无法推进
@@ -85,6 +85,8 @@ func Done() {
 			}
 		}
 	}
+
+	return nil
 }
 
 func setBitmapBit(index int) {
