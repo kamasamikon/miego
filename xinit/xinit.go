@@ -3,6 +3,8 @@ package xinit
 import (
 	"container/list"
 	"fmt"
+	"reflect"
+	"runtime"
 	"sync"
 )
 
@@ -50,7 +52,7 @@ func Add(cb func() bool) {
 	cbList.PushBack(cbInfo)
 }
 
-func Done() error {
+func Done(verbose bool) error {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -70,6 +72,14 @@ func Done() error {
 
 		cbInfo := elem.Value.(*CBInfo)
 		cbList.Remove(elem)
+
+		if verbose {
+			pc := reflect.ValueOf(cbInfo.cb).Pointer()
+			if f := runtime.FuncForPC(pc); f != nil {
+				file, line := f.FileLine(pc)
+				fmt.Printf("xinit.CB: %s:%d\n", file, line)
+			}
+		}
 
 		ok := cbInfo.cb()
 

@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -19,7 +20,10 @@ import (
 )
 
 // Default :Only and default Engine
-var _Default *gin.Engine
+var (
+	_Default *gin.Engine
+	once     sync.Once
+)
 
 func IsPortAvailable(port int) bool {
 	addr := fmt.Sprintf(":%d", port)
@@ -45,6 +49,12 @@ func GetFreePort() (int, error) {
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
+func WaitSignals(sig ...os.Signal) os.Signal {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	return <-quit
+}
+
 // XXX: Copied from gin/examples/graceful-shutdown/...
 func gracefulRun(Engine *gin.Engine, addr string) {
 	srv := &http.Server{
@@ -61,10 +71,7 @@ func gracefulRun(Engine *gin.Engine, addr string) {
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT)
-	<-quit
-	fmt.Println("Server is shutting down...")
+	fmt.Printf("Shutting down... on %v\n", WaitSignals(syscall.SIGINT, syscall.SIGTERM))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -104,18 +111,20 @@ func ParseAddress(s string) (ip string, port int, q bool, e error) {
 		s = strings.TrimSuffix(s, "?")
 	}
 
-	segs := strings.Split(s, ":")
-	if len(segs) != 2 {
+	// 从右边找最后一个冒号
+	i := strings.LastIndex(s, ":")
+	if i < 0 {
 		e = fmt.Errorf("Bad address: '%s'", s)
 		return
 	}
-
-	ipPart := segs[0]
-	portPart := segs[1]
+	ipPart := s[:i]
+	portPart := s[i+1:]
 
 	// 解析IP部分（可能为空）
 	if ipPart != "" {
-		if tmp := net.ParseIP(ipPart); tmp != nil {
+		// 去掉 IPv6 的方括号形式 [::1]
+		host := strings.TrimPrefix(strings.TrimSuffix(ipPart, "]"), "[")
+		if tmp := net.ParseIP(host); tmp != nil {
 			ip = ipPart
 		} else {
 			e = fmt.Errorf("无效的IP地址: %s", ipPart)
@@ -203,13 +212,11 @@ func Go(
 }
 
 func Default() *gin.Engine {
-	if _Default == nil {
+	once.Do(func() {
 		if conf.BTrue("gin/releaseMode") {
 			gin.SetMode(gin.ReleaseMode)
 		}
-
 		_Default = gin.New()
-
 		if conf.BTrue("gin/cors/enable") {
 			_Default.Use(cors.Default())
 		}
@@ -219,6 +226,6 @@ func Default() *gin.Engine {
 		if conf.BTrue("gin/Recovery/enable") {
 			_Default.Use(gin.RecoveryWithWriter(nil, HandleRecovery))
 		}
-	}
+	})
 	return _Default
 }
